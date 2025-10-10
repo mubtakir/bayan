@@ -1,0 +1,253 @@
+// مقارنة عملية: Rust مقابل لغة البيان
+// Practical Comparison: Rust vs AlBayan Examples
+
+// ========== مثال 1: إدارة الذاكرة ==========
+// Memory Management Example
+
+// دالة معالجة النصوص (مثل Rust تماماً)
+fn process_text(text: string) -> int {
+    // نفس مفهوم الاستعارة في Rust
+    let length = 10; // محاكاة طول النص
+    return length;
+}
+
+// دالة نقل الملكية (مثل Rust تماماً)
+fn take_ownership(data: string) -> string {
+    // الملكية انتقلت هنا
+    let processed = "معالج";
+    return processed;
+}
+
+// ========== مثال 2: الهياكل والدوال ==========
+// Structs and Functions Example
+
+// تعريف هيكل (مثل Rust)
+struct Person {
+    name: string;
+    age: int;
+    salary: int;
+}
+
+// دالة إنشاء شخص جديد
+fn create_person(name: string, age: int, salary: int) -> Person {
+    return Person {
+        name: name,
+        age: age,
+        salary: salary
+    };
+}
+
+// دالة حساب الضرائب
+fn calculate_tax(person: Person) -> int {
+    if person.salary > 50000 {
+        return person.salary * 20 / 100;
+    }
+    if person.salary > 30000 {
+        return person.salary * 15 / 100;
+    }
+    return person.salary * 10 / 100;
+}
+
+// دالة تحديث الراتب
+fn update_salary(person: Person, new_salary: int) -> Person {
+    return Person {
+        name: person.name,
+        age: person.age,
+        salary: new_salary
+    };
+}
+
+// ========== مثال 3: معالجة الأخطاء ==========
+// Error Handling Example
+
+// دالة القسمة الآمنة
+fn safe_divide(a: int, b: int) -> int {
+    if b == 0 {
+        return 0; // في Rust: Result<i32, Error>
+    }
+    return a / b;
+}
+
+// دالة التحقق من صحة البيانات
+fn validate_age(age: int) -> string {
+    if age < 0 {
+        return "خطأ: العمر لا يمكن أن يكون سالب";
+    }
+    if age > 150 {
+        return "خطأ: العمر غير واقعي";
+    }
+    return "صحيح";
+}
+
+// ========== مثال 4: المجموعات والتكرار ==========
+// Collections and Iteration Example
+
+// دالة حساب مجموع الأرقام
+fn sum_numbers(a: int, b: int, c: int) -> int {
+    let total = a + b + c;
+    return total;
+}
+
+// دالة البحث عن الأكبر
+fn find_max(a: int, b: int, c: int) -> int {
+    let max_val = a;
+    if b > max_val {
+        let max_val = b;
+    }
+    if c > max_val {
+        let max_val = c;
+    }
+    return max_val;
+}
+
+// ========== مثال 5: الميزات الثورية الجديدة ==========
+// Revolutionary New Features
+
+// الذكاء الاصطناعي المدمج (غير موجود في Rust!)
+fn ai_text_analysis(text: string) -> string {
+    // نظام بصيرة للذكاء الاصطناعي - محاكاة
+    let sentiment = "إيجابي";
+    let keywords = "تحليل، ذكاء، نص";
+
+    return "التحليل: إيجابي";
+}
+
+// الرسم المدمج (غير موجود في Rust!)
+fn create_artwork() -> string {
+    // رسم دائرة ذهبية - محاكاة
+    let circle = "دائرة ذهبية";
+
+    // رسم مثلث فضي - محاكاة
+    let triangle = "مثلث فضي";
+
+    // رسم نجمة برونزية - محاكاة
+    let star = "نجمة برونزية";
+
+    return "عمل فني مدمج";
+}
+
+// الرسوم المتحركة المدمجة (غير موجود في Rust!)
+fn create_animation() -> string {
+    // إنشاء شخصية - محاكاة
+    let character = "بطل";
+
+    // إنشاء مشهد - محاكاة
+    let scene = "غابة";
+
+    return "رسوم متحركة";
+}
+
+// تحليل البيانات الذكي (غير موجود في Rust!)
+fn smart_data_analysis(a: int, b: int, c: int) -> string {
+    // تحليل الاتجاهات - محاكاة
+    let trends = "اتجاه صاعد";
+
+    // كشف الشذوذ - محاكاة
+    let anomalies = "لا توجد شذوذ";
+
+    return "تحليل ذكي مكتمل";
+}
+
+// ========== مثال 6: التطبيقات العملية ==========
+// Practical Applications
+
+// نظام إدارة المكتبة
+struct Book {
+    title: string;
+    author: string;
+    isbn: string;
+    available: bool;
+}
+
+// دالة البحث عن كتاب
+fn search_book(title: string) -> Book {
+    // محاكاة البحث
+    if title == "الأسود يليق بك" {
+        return Book {
+            title: "الأسود يليق بك",
+            author: "أحلام مستغانمي",
+            isbn: "123",
+            available: true
+        };
+    }
+
+    return Book {
+        title: "غير موجود",
+        author: "",
+        isbn: "",
+        available: false
+    };
+}
+
+// دالة استعارة كتاب
+fn borrow_book(book: Book) -> Book {
+    if book.available {
+        return Book {
+            title: book.title,
+            author: book.author,
+            isbn: book.isbn,
+            available: false
+        };
+    }
+    return book;
+}
+
+// ========== مثال 7: الحوسبة المالية ==========
+// Financial Computing
+
+// حساب الفائدة المركبة
+fn compound_interest(principal: int, rate: int, time: int) -> int {
+    // محاكاة مبسطة للفائدة المركبة
+    let simple_calculation = principal + principal * rate * time / 100;
+    return simple_calculation;
+}
+
+// تقييم المخاطر المالية
+fn assess_financial_risk(investment: int, volatility: int, time_horizon: int) -> string {
+    let risk_score = volatility * investment / time_horizon;
+
+    if risk_score > 10000 {
+        return "مخاطر عالية جداً";
+    }
+    if risk_score > 5000 {
+        return "مخاطر عالية";
+    }
+    if risk_score > 2000 {
+        return "مخاطر متوسطة";
+    }
+    return "مخاطر منخفضة";
+}
+
+// ========== الدالة الرئيسية ==========
+
+fn main() -> int {
+    // اختبار إدارة الذاكرة
+    let text = "مرحباً بلغة البيان";
+    let length = process_text(text);
+    let processed = take_ownership(text);
+
+    // اختبار الهياكل
+    let person = create_person("أحمد", 30, 45000);
+    let tax = calculate_tax(person);
+    let updated_person = update_salary(person, 50000);
+
+    // اختبار المجموعات
+    let total = sum_numbers(10, 20, 30);
+    let maximum = find_max(10, 20, 30);
+
+    // اختبار الميزات الثورية
+    let analysis = ai_text_analysis("هذا نص رائع للتحليل");
+    let artwork = create_artwork();
+    let animation = create_animation();
+    let data_analysis = smart_data_analysis(10, 20, 30);
+
+    // اختبار التطبيقات العملية
+    let found_book = search_book("الأسود يليق بك");
+    let borrowed = borrow_book(found_book);
+
+    // اختبار الحوسبة المالية
+    let investment_return = compound_interest(10000, 5, 10);
+    let risk_level = assess_financial_risk(50000, 15, 5);
+
+    return 0;
+}

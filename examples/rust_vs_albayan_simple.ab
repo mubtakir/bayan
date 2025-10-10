@@ -1,0 +1,217 @@
+// مقارنة بسيطة: Rust مقابل لغة البيان
+// Simple Comparison: Rust vs AlBayan
+
+// ========== مثال 1: الدوال الأساسية ==========
+// Basic Functions Example
+
+// دالة الجمع (مثل Rust تماماً)
+fn add(a: int, b: int) -> int {
+    return a + b;
+}
+
+// دالة الضرب (مثل Rust تماماً)
+fn multiply(a: int, b: int) -> int {
+    return a * b;
+}
+
+// دالة حساب المساحة
+fn calculate_area(length: int, width: int) -> int {
+    return length * width;
+}
+
+// ========== مثال 2: الشروط والمنطق ==========
+// Conditions and Logic Example
+
+// دالة تصنيف العمر (مثل Rust)
+fn classify_age(age: int) -> string {
+    if age < 13 {
+        return "طفل";
+    }
+    if age < 20 {
+        return "مراهق";
+    }
+    if age < 60 {
+        return "بالغ";
+    }
+    return "كبير السن";
+}
+
+// دالة تقييم الدرجات
+fn evaluate_grade(score: int) -> string {
+    if score >= 90 {
+        return "ممتاز";
+    }
+    if score >= 80 {
+        return "جيد جداً";
+    }
+    if score >= 70 {
+        return "جيد";
+    }
+    if score >= 60 {
+        return "مقبول";
+    }
+    return "راسب";
+}
+
+// ========== مثال 3: العمليات الحسابية ==========
+// Mathematical Operations Example
+
+// دالة حساب القوة (تربيع)
+fn square(number: int) -> int {
+    return number * number;
+}
+
+// دالة حساب المتوسط
+fn average(a: int, b: int, c: int) -> int {
+    let sum = a + b + c;
+    return sum / 3;
+}
+
+// دالة إيجاد الأكبر
+fn find_maximum(a: int, b: int, c: int) -> int {
+    let max = a;
+    if b > max {
+        let max = b;
+    }
+    if c > max {
+        let max = c;
+    }
+    return max;
+}
+
+// ========== مثال 4: الميزات الجديدة في البيان ==========
+// New Features in AlBayan
+
+// الذكاء الاصطناعي المدمج (غير موجود في Rust!)
+fn ai_sentiment_analysis(text: string) -> string {
+    // محاكاة تحليل المشاعر بالذكاء الاصطناعي
+    if text == "رائع" {
+        return "إيجابي";
+    }
+    if text == "سيء" {
+        return "سلبي";
+    }
+    return "محايد";
+}
+
+// الرسم المدمج (غير موجود في Rust!)
+fn create_simple_art() -> string {
+    // محاكاة إنشاء عمل فني
+    let shape1 = "دائرة";
+    let shape2 = "مربع";
+    let color = "أزرق";
+    
+    return "عمل فني: " + shape1 + " و " + shape2 + " باللون " + color;
+}
+
+// تحليل البيانات الذكي (غير موجود في Rust!)
+fn smart_analysis(value1: int, value2: int, value3: int) -> string {
+    let average_val = average(value1, value2, value3);
+    let max_val = find_maximum(value1, value2, value3);
+    
+    if max_val > average_val * 2 {
+        return "قيمة شاذة مكتشفة";
+    }
+    
+    if average_val > 50 {
+        return "اتجاه إيجابي";
+    }
+    
+    return "اتجاه مستقر";
+}
+
+// ========== مثال 5: التطبيقات العملية ==========
+// Practical Applications
+
+// حساب الراتب الصافي
+fn calculate_net_salary(gross_salary: int, tax_rate: int) -> int {
+    let tax_amount = gross_salary * tax_rate / 100;
+    let net_salary = gross_salary - tax_amount;
+    return net_salary;
+}
+
+// تقييم الأداء
+fn evaluate_performance(quality: int, speed: int, teamwork: int) -> string {
+    let total_score = quality + speed + teamwork;
+    let average_score = total_score / 3;
+    
+    if average_score >= 90 {
+        return "أداء متميز";
+    }
+    if average_score >= 80 {
+        return "أداء جيد";
+    }
+    if average_score >= 70 {
+        return "أداء مقبول";
+    }
+    return "يحتاج تحسين";
+}
+
+// حساب الخصم
+fn calculate_discount(price: int, discount_percent: int) -> int {
+    let discount_amount = price * discount_percent / 100;
+    let final_price = price - discount_amount;
+    return final_price;
+}
+
+// ========== مثال 6: المقارنات المالية ==========
+// Financial Comparisons
+
+// حساب الفائدة البسيطة
+fn simple_interest(principal: int, rate: int, time: int) -> int {
+    return principal * rate * time / 100;
+}
+
+// تقييم الاستثمار
+fn evaluate_investment(initial_amount: int, final_amount: int) -> string {
+    if final_amount > initial_amount * 2 {
+        return "استثمار ممتاز";
+    }
+    if final_amount > initial_amount + initial_amount / 2 {
+        return "استثمار جيد";
+    }
+    if final_amount > initial_amount {
+        return "استثمار مربح";
+    }
+    return "استثمار خاسر";
+}
+
+// حساب التوفير الشهري المطلوب
+fn calculate_monthly_savings(goal: int, months: int) -> int {
+    return goal / months;
+}
+
+// ========== الدالة الرئيسية ==========
+
+fn main() -> int {
+    // اختبار الدوال الأساسية
+    let sum_result = add(10, 20);
+    let product_result = multiply(5, 6);
+    let area_result = calculate_area(10, 15);
+    
+    // اختبار التصنيف
+    let age_category = classify_age(25);
+    let grade_evaluation = evaluate_grade(85);
+    
+    // اختبار العمليات الحسابية
+    let squared = square(8);
+    let avg = average(10, 20, 30);
+    let maximum = find_maximum(15, 25, 20);
+    
+    // اختبار الميزات الجديدة
+    let sentiment = ai_sentiment_analysis("رائع");
+    let artwork = create_simple_art();
+    let analysis = smart_analysis(10, 50, 30);
+    
+    // اختبار التطبيقات العملية
+    let net_salary = calculate_net_salary(5000, 15);
+    let performance = evaluate_performance(85, 90, 80);
+    let discounted_price = calculate_discount(1000, 20);
+    
+    // اختبار المقارنات المالية
+    let interest = simple_interest(10000, 5, 3);
+    let investment_eval = evaluate_investment(1000, 1800);
+    let monthly_saving = calculate_monthly_savings(12000, 12);
+    
+    return 0;
+}
