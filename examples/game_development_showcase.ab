@@ -1,0 +1,366 @@
+// مثال شامل لتطوير الألعاب بلغة البيان
+// Comprehensive Game Development Showcase in AlBayan
+
+// ========== نظام الشخصيات الذكية ==========
+// Smart Character System
+
+// إنشاء شخصية لاعب ذكية
+fn create_smart_player(name: string, strength: int, intelligence: int, speed: int) -> int {
+    print("إنشاء شخصية: " + name);
+    print("القوة: " + string(strength));
+    print("الذكاء: " + string(intelligence));
+    print("السرعة: " + string(speed));
+    
+    // حساب القوة الإجمالية
+    let total_power = strength + intelligence + speed;
+    print("القوة الإجمالية: " + string(total_power));
+    
+    return total_power;
+}
+
+// نظام ذكاء اصطناعي للأعداء
+fn create_ai_enemy(difficulty: int, behavior_type: int, learning_rate: int) -> int {
+    print("=== إنشاء عدو ذكي ===");
+    
+    if difficulty <= 3 {
+        print("مستوى الصعوبة: سهل");
+    }
+    if difficulty > 3 {
+        if difficulty <= 7 {
+            print("مستوى الصعوبة: متوسط");
+        }
+    }
+    if difficulty > 7 {
+        print("مستوى الصعوبة: صعب");
+    }
+    
+    // أنواع السلوك
+    if behavior_type == 1 {
+        print("نوع السلوك: مهاجم");
+    }
+    if behavior_type == 2 {
+        print("نوع السلوك: دفاعي");
+    }
+    if behavior_type == 3 {
+        print("نوع السلوك: ماكر");
+    }
+    if behavior_type == 4 {
+        print("نوع السلوك: متوازن");
+    }
+    
+    print("معدل التعلم: " + string(learning_rate) + "%");
+    
+    // حساب قوة العدو
+    let enemy_power = difficulty * 10 + learning_rate;
+    print("قوة العدو: " + string(enemy_power));
+    
+    return enemy_power;
+}
+
+// ========== نظام القتال الذكي ==========
+// Smart Combat System
+
+fn intelligent_battle_system(player_power: int, enemy_power: int, strategy: int) -> int {
+    print("=== بدء المعركة الذكية ===");
+    print("قوة اللاعب: " + string(player_power));
+    print("قوة العدو: " + string(enemy_power));
+    
+    // استراتيجيات القتال
+    if strategy == 1 {
+        print("الاستراتيجية: هجوم مباشر");
+        let player_power = player_power + 20;
+    }
+    if strategy == 2 {
+        print("الاستراتيجية: دفاع وانتظار");
+        let player_power = player_power + 10;
+    }
+    if strategy == 3 {
+        print("الاستراتيجية: خداع ومناورة");
+        let player_power = player_power + 15;
+    }
+    
+    // حساب نتيجة المعركة
+    let power_difference = player_power - enemy_power;
+    
+    if power_difference > 20 {
+        print("🏆 انتصار ساحق للاعب!");
+        return 3;
+    }
+    if power_difference > 0 {
+        print("✅ انتصار اللاعب!");
+        return 2;
+    }
+    if power_difference == 0 {
+        print("⚖️ تعادل!");
+        return 1;
+    }
+    
+    print("💀 هزيمة اللاعب!");
+    return 0;
+}
+
+// ========== نظام الرسومات والتأثيرات ==========
+// Graphics and Effects System
+
+fn create_visual_effect(effect_type: int, intensity: int, duration: int) -> int {
+    print("=== إنشاء تأثير بصري ===");
+    
+    // أنواع التأثيرات
+    if effect_type == 1 {
+        print("نوع التأثير: انفجار");
+    }
+    if effect_type == 2 {
+        print("نوع التأثير: برق");
+    }
+    if effect_type == 3 {
+        print("نوع التأثير: نار");
+    }
+    if effect_type == 4 {
+        print("نوع التأثير: جليد");
+    }
+    if effect_type == 5 {
+        print("نوع التأثير: ضوء");
+    }
+    
+    print("شدة التأثير: " + string(intensity) + "%");
+    print("مدة التأثير: " + string(duration) + " ثانية");
+    
+    // حساب قوة التأثير
+    let effect_power = intensity * duration / 10;
+    print("قوة التأثير: " + string(effect_power));
+    
+    return effect_power;
+}
+
+// نظام الرسوم المتحركة
+fn create_animation_sequence(character_id: int, animation_type: int, speed: int) -> int {
+    print("=== إنشاء تسلسل رسوم متحركة ===");
+    print("معرف الشخصية: " + string(character_id));
+    
+    // أنواع الحركات
+    if animation_type == 1 {
+        print("نوع الحركة: جري");
+    }
+    if animation_type == 2 {
+        print("نوع الحركة: قفز");
+    }
+    if animation_type == 3 {
+        print("نوع الحركة: هجوم");
+    }
+    if animation_type == 4 {
+        print("نوع الحركة: دفاع");
+    }
+    if animation_type == 5 {
+        print("نوع الحركة: سحر");
+    }
+    
+    print("سرعة الحركة: " + string(speed) + " إطار/ثانية");
+    
+    // حساب سلاسة الحركة
+    let smoothness = speed * 2;
+    if smoothness > 100 {
+        let smoothness = 100;
+    }
+    
+    print("سلاسة الحركة: " + string(smoothness) + "%");
+    
+    return smoothness;
+}
+
+// ========== نظام الفيزياء ==========
+// Physics System
+
+fn physics_simulation(object_mass: int, velocity: int, gravity: int) -> int {
+    print("=== محاكاة الفيزياء ===");
+    print("كتلة الجسم: " + string(object_mass) + " كيلو");
+    print("السرعة: " + string(velocity) + " م/ث");
+    print("الجاذبية: " + string(gravity) + " م/ث²");
+    
+    // حساب القوة
+    let force = object_mass * gravity;
+    print("القوة: " + string(force) + " نيوتن");
+    
+    // حساب الطاقة الحركية
+    let kinetic_energy = object_mass * velocity * velocity / 2;
+    print("الطاقة الحركية: " + string(kinetic_energy) + " جول");
+    
+    return kinetic_energy;
+}
+
+// نظام الاصطدام
+fn collision_detection(object1_x: int, object1_y: int, object2_x: int, object2_y: int, threshold: int) -> bool {
+    print("=== كشف الاصطدام ===");
+    print("الجسم الأول: (" + string(object1_x) + ", " + string(object1_y) + ")");
+    print("الجسم الثاني: (" + string(object2_x) + ", " + string(object2_y) + ")");
+    
+    // حساب المسافة
+    let distance_x = object1_x - object2_x;
+    let distance_y = object1_y - object2_y;
+    
+    // تحويل القيم السالبة إلى موجبة
+    if distance_x < 0 {
+        let distance_x = 0 - distance_x;
+    }
+    if distance_y < 0 {
+        let distance_y = 0 - distance_y;
+    }
+    
+    let total_distance = distance_x + distance_y;
+    print("المسافة الإجمالية: " + string(total_distance));
+    print("حد الاصطدام: " + string(threshold));
+    
+    if total_distance <= threshold {
+        print("🔥 اصطدام مكتشف!");
+        return true;
+    }
+    
+    print("✅ لا يوجد اصطدام");
+    return false;
+}
+
+// ========== نظام الصوت ==========
+// Audio System
+
+fn audio_system(sound_type: int, volume: int, pitch: int) -> int {
+    print("=== نظام الصوت ===");
+    
+    // أنواع الأصوات
+    if sound_type == 1 {
+        print("نوع الصوت: موسيقى خلفية");
+    }
+    if sound_type == 2 {
+        print("نوع الصوت: تأثيرات صوتية");
+    }
+    if sound_type == 3 {
+        print("نوع الصوت: أصوات شخصيات");
+    }
+    if sound_type == 4 {
+        print("نوع الصوت: أصوات بيئية");
+    }
+    
+    print("مستوى الصوت: " + string(volume) + "%");
+    print("طبقة الصوت: " + string(pitch));
+    
+    // حساب جودة الصوت
+    let audio_quality = volume + pitch;
+    if audio_quality > 100 {
+        let audio_quality = 100;
+    }
+    
+    print("جودة الصوت: " + string(audio_quality) + "%");
+    
+    return audio_quality;
+}
+
+// ========== نظام إدارة اللعبة ==========
+// Game Management System
+
+fn game_state_manager(current_level: int, player_score: int, lives_remaining: int) -> int {
+    print("=== إدارة حالة اللعبة ===");
+    print("المستوى الحالي: " + string(current_level));
+    print("نقاط اللاعب: " + string(player_score));
+    print("الأرواح المتبقية: " + string(lives_remaining));
+    
+    // تحديد حالة اللعبة
+    if lives_remaining <= 0 {
+        print("🔴 انتهت اللعبة!");
+        return 0;
+    }
+    
+    if player_score >= 1000 {
+        print("🏆 مستوى جديد مفتوح!");
+        let current_level = current_level + 1;
+        print("المستوى الجديد: " + string(current_level));
+        return 2;
+    }
+    
+    print("🎮 اللعبة مستمرة");
+    return 1;
+}
+
+// ========== مثال لعبة كاملة ==========
+// Complete Game Example
+
+fn demo_complete_game() -> int {
+    print("🎮 === مثال لعبة كاملة بلغة البيان === 🎮");
+    print("");
+    
+    // إنشاء اللاعب
+    print("1. إنشاء الشخصيات:");
+    let player = create_smart_player("البطل", 85, 90, 80);
+    let enemy = create_ai_enemy(7, 3, 75);
+    
+    print("");
+    
+    // إنشاء التأثيرات البصرية
+    print("2. إنشاء التأثيرات:");
+    let explosion = create_visual_effect(1, 90, 3);
+    let lightning = create_visual_effect(2, 85, 2);
+    
+    print("");
+    
+    // إنشاء الرسوم المتحركة
+    print("3. إنشاء الحركات:");
+    let player_animation = create_animation_sequence(1, 3, 60);
+    let enemy_animation = create_animation_sequence(2, 4, 45);
+    
+    print("");
+    
+    // محاكاة الفيزياء
+    print("4. محاكاة الفيزياء:");
+    let physics_result = physics_simulation(70, 25, 10);
+    let collision = collision_detection(100, 150, 105, 155, 10);
+    
+    print("");
+    
+    // نظام الصوت
+    print("5. نظام الصوت:");
+    let background_music = audio_system(1, 70, 50);
+    let battle_sounds = audio_system(2, 85, 60);
+    
+    print("");
+    
+    // المعركة
+    print("6. المعركة:");
+    let battle_result = intelligent_battle_system(player, enemy, 2);
+    
+    print("");
+    
+    // إدارة اللعبة
+    print("7. إدارة اللعبة:");
+    let game_state = game_state_manager(1, 750, 3);
+    
+    print("");
+    print("🎊 انتهى المثال بنجاح!");
+    print("🧬 لغة البيان - مستقبل تطوير الألعاب!");
+    
+    return 0;
+}
+
+// الدالة الرئيسية
+fn main() -> int {
+    print("🧬 === مثال تطوير الألعاب بلغة البيان === 🧬");
+    print("");
+    print("هذا المثال يوضح قدرات لغة البيان في:");
+    print("• إنشاء شخصيات ذكية");
+    print("• نظام قتال متقدم");
+    print("• رسومات وتأثيرات بصرية");
+    print("• فيزياء واقعية");
+    print("• نظام صوت شامل");
+    print("• إدارة حالة اللعبة");
+    print("");
+    
+    // تشغيل المثال الكامل
+    let result = demo_complete_game();
+    
+    print("");
+    print("=== معلومات إضافية ===");
+    print("• هذا مثال مبسط يوضح الإمكانيات");
+    print("• يمكن توسيعه ليصبح لعبة كاملة");
+    print("• جميع الميزات مدمجة في اللغة");
+    print("• لا حاجة لمكتبات خارجية");
+    print("");
+    print("🎮 ابدأ تطوير لعبتك الآن!");
+    
+    return 0;
+}
