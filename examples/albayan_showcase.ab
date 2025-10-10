@@ -1,0 +1,336 @@
+// عرض مميزات لغة البيان
+// AlBayan Language Features Showcase
+
+// ========== دوال العمليات الحسابية ==========
+
+fn add_numbers(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn subtract_numbers(a: int, b: int) -> int {
+    return a - b;
+}
+
+fn multiply_numbers(a: int, b: int) -> int {
+    return a * b;
+}
+
+fn divide_numbers(a: int, b: int) -> int {
+    if b != 0 {
+        return a / b;
+    }
+    return 0;
+}
+
+// ========== دوال التحويل ==========
+
+fn celsius_to_fahrenheit(celsius: int) -> int {
+    return celsius * 9 / 5 + 32;
+}
+
+fn meters_to_centimeters(meters: int) -> int {
+    return meters * 100;
+}
+
+fn hours_to_minutes(hours: int) -> int {
+    return hours * 60;
+}
+
+fn kilograms_to_grams(kg: int) -> int {
+    return kg * 1000;
+}
+
+// ========== دوال المقارنة ==========
+
+fn find_maximum(a: int, b: int) -> int {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fn find_minimum(a: int, b: int) -> int {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+fn calculate_average(a: int, b: int) -> int {
+    return (a + b) / 2;
+}
+
+// ========== دوال التصنيف ==========
+
+fn classify_grade(score: int) -> string {
+    if score >= 90 {
+        return "ممتاز";
+    }
+    if score >= 80 {
+        return "جيد جداً";
+    }
+    if score >= 70 {
+        return "جيد";
+    }
+    if score >= 60 {
+        return "مقبول";
+    }
+    return "راسب";
+}
+
+fn classify_temperature(temp: int) -> string {
+    if temp >= 35 {
+        return "حار جداً";
+    }
+    if temp >= 25 {
+        return "دافئ";
+    }
+    if temp >= 15 {
+        return "معتدل";
+    }
+    if temp >= 5 {
+        return "بارد";
+    }
+    return "بارد جداً";
+}
+
+fn classify_speed(speed: int) -> string {
+    if speed >= 120 {
+        return "سريع جداً";
+    }
+    if speed >= 80 {
+        return "سريع";
+    }
+    if speed >= 50 {
+        return "متوسط";
+    }
+    if speed >= 20 {
+        return "بطيء";
+    }
+    return "بطيء جداً";
+}
+
+// ========== دوال الفحص المنطقي ==========
+
+fn is_positive(number: int) -> bool {
+    return number > 0;
+}
+
+fn is_negative(number: int) -> bool {
+    return number < 0;
+}
+
+fn is_even(number: int) -> bool {
+    let remainder = number - (number / 2) * 2;
+    return remainder == 0;
+}
+
+fn is_odd(number: int) -> bool {
+    let remainder = number - (number / 2) * 2;
+    return remainder != 0;
+}
+
+fn is_equal(a: int, b: int) -> bool {
+    return a == b;
+}
+
+fn is_greater_than(a: int, b: int) -> bool {
+    return a > b;
+}
+
+// ========== دوال الحسابات المالية ==========
+
+fn calculate_simple_interest(principal: int, rate: int, time: int) -> int {
+    return principal * rate * time / 100;
+}
+
+fn calculate_discount(price: int, discount_percent: int) -> int {
+    return price * discount_percent / 100;
+}
+
+fn calculate_tax(amount: int, tax_rate: int) -> int {
+    return amount * tax_rate / 100;
+}
+
+fn calculate_final_price(original_price: int, discount_percent: int, tax_rate: int) -> int {
+    let discount_amount = original_price * discount_percent / 100;
+    let price_after_discount = original_price - discount_amount;
+    let tax_amount = price_after_discount * tax_rate / 100;
+    return price_after_discount + tax_amount;
+}
+
+// ========== دوال الحسابات الهندسية ==========
+
+fn rectangle_area(length: int, width: int) -> int {
+    return length * width;
+}
+
+fn triangle_area(base: int, height: int) -> int {
+    return base * height / 2;
+}
+
+fn circle_area_approximate(radius: int) -> int {
+    // استخدام π ≈ 3.14
+    return 314 * radius * radius / 100;
+}
+
+fn rectangle_perimeter(length: int, width: int) -> int {
+    return 2 * (length + width);
+}
+
+fn square_area(side: int) -> int {
+    return side * side;
+}
+
+fn cube_volume(side: int) -> int {
+    return side * side * side;
+}
+
+// ========== دوال حسابات الوقت ==========
+
+fn days_to_hours(days: int) -> int {
+    return days * 24;
+}
+
+fn weeks_to_days(weeks: int) -> int {
+    return weeks * 7;
+}
+
+fn months_to_days(months: int) -> int {
+    return months * 30; // تقريبي
+}
+
+fn years_to_days(years: int) -> int {
+    return years * 365;
+}
+
+// ========== الدالة الرئيسية ==========
+
+fn main() -> int {
+    // المتغيرات الأساسية
+    let number1 = 25;
+    let number2 = 15;
+    let number3 = 40;
+    
+    // العمليات الحسابية الأساسية
+    let sum_result = number1 + number2;
+    let difference_result = number1 - number2;
+    let product_result = number1 * number2;
+    let division_result = number1 / number2;
+    
+    // التحويلات
+    let temperature_celsius = 30;
+    let temperature_fahrenheit = temperature_celsius * 9 / 5 + 32;
+    
+    let distance_meters = 5;
+    let distance_centimeters = distance_meters * 100;
+    
+    let time_hours = 3;
+    let time_minutes = time_hours * 60;
+    
+    let weight_kg = 2;
+    let weight_grams = weight_kg * 1000;
+    
+    // المقارنات
+    let max_value = number1;
+    if number2 > max_value {
+        let max_value = number2;
+    }
+    if number3 > max_value {
+        let max_value = number3;
+    }
+    
+    let min_value = number1;
+    if number2 < min_value {
+        let min_value = number2;
+    }
+    if number3 < min_value {
+        let min_value = number3;
+    }
+    
+    let average_value = (number1 + number2 + number3) / 3;
+    
+    // الحسابات المالية
+    let principal_amount = 10000;
+    let interest_rate = 5;
+    let investment_time = 2;
+    let interest_earned = principal_amount * interest_rate * investment_time / 100;
+    
+    let original_price = 1000;
+    let discount_percentage = 20;
+    let discount_amount = original_price * discount_percentage / 100;
+    let price_after_discount = original_price - discount_amount;
+    
+    let tax_rate = 15;
+    let tax_amount = price_after_discount * tax_rate / 100;
+    let final_price = price_after_discount + tax_amount;
+    
+    // الفحوصات المنطقية
+    let test_number = 42;
+    let is_positive_result = test_number > 0;
+    let is_negative_result = test_number < 0;
+    
+    let remainder = test_number - (test_number / 2) * 2;
+    let is_even_result = remainder == 0;
+    let is_odd_result = remainder != 0;
+    
+    let equality_check = test_number == 42;
+    let greater_than_40 = test_number > 40;
+    
+    // الحسابات الهندسية
+    let rectangle_length = 12;
+    let rectangle_width = 8;
+    let rect_area = rectangle_length * rectangle_width;
+    let rect_perimeter = 2 * (rectangle_length + rectangle_width);
+    
+    let triangle_base = 10;
+    let triangle_height = 6;
+    let tri_area = triangle_base * triangle_height / 2;
+    
+    let circle_radius = 7;
+    let circle_area = 314 * circle_radius * circle_radius / 100;
+    
+    let square_side = 9;
+    let sq_area = square_side * square_side;
+    let cube_vol = square_side * square_side * square_side;
+    
+    // حسابات الوقت
+    let project_days = 21;
+    let project_hours = project_days * 24;
+    
+    let vacation_weeks = 2;
+    let vacation_days = vacation_weeks * 7;
+    
+    let experience_months = 18;
+    let experience_days = experience_months * 30;
+    
+    let company_years = 5;
+    let company_days = company_years * 365;
+    
+    // التصنيفات
+    let student_score = 87;
+    let grade_category = "جيد جداً"; // تصنيف الدرجة
+    
+    let current_temperature = 28;
+    let temp_category = "دافئ"; // تصنيف درجة الحرارة
+    
+    let vehicle_speed = 95;
+    let speed_category = "سريع"; // تصنيف السرعة
+    
+    // حساب النتائج الفرعية
+    let basic_math_result = sum_result + product_result + division_result;
+    let conversion_result = temperature_fahrenheit + distance_centimeters + time_minutes + weight_grams;
+    let comparison_result = max_value + min_value + average_value;
+    let financial_result = interest_earned + final_price;
+    let geometry_result = rect_area + tri_area + circle_area + sq_area + cube_vol;
+    let time_calculation_result = project_hours + vacation_days + experience_days;
+    
+    // النتيجة النهائية
+    let partial_sum1 = basic_math_result + conversion_result;
+    let partial_sum2 = comparison_result + financial_result;
+    let partial_sum3 = geometry_result + time_calculation_result;
+    
+    let final_result = partial_sum1 + partial_sum2 + partial_sum3;
+    
+    return final_result;
+}

@@ -1,0 +1,248 @@
+// اختبار العوامل - نسخة تعمل
+// Working Operators Test
+
+fn test_arithmetic(a: int, b: int) -> int {
+    let sum = a + b;
+    let diff = a - b;
+    let product = a * b;
+    let quotient = a / b;
+    
+    let total = sum + diff + product + quotient;
+    return total;
+}
+
+fn test_comparisons(x: int, y: int) -> int {
+    let equal = x == y;
+    let not_equal = x != y;
+    let less = x < y;
+    let greater = x > y;
+    let less_equal = x <= y;
+    let greater_equal = x >= y;
+    
+    if equal {
+        return 1;
+    }
+    
+    if not_equal {
+        return 2;
+    }
+    
+    if less {
+        return 3;
+    }
+    
+    if greater {
+        return 4;
+    }
+    
+    if less_equal {
+        return 5;
+    }
+    
+    if greater_equal {
+        return 6;
+    }
+    
+    return 0;
+}
+
+fn test_nested_conditions(p: int, q: int, r: int) -> int {
+    let p_positive = p > 0;
+    let q_positive = q > 0;
+    let r_positive = r > 0;
+    
+    if p_positive {
+        if q_positive {
+            if r_positive {
+                return 1; // all positive
+            }
+            return 2; // p and q positive
+        }
+        if r_positive {
+            return 3; // p and r positive
+        }
+        return 4; // only p positive
+    }
+    
+    if q_positive {
+        if r_positive {
+            return 5; // q and r positive
+        }
+        return 6; // only q positive
+    }
+    
+    if r_positive {
+        return 7; // only r positive
+    }
+    
+    return 8; // all negative or zero
+}
+
+fn calculate_score(base: int, multiplier: int, bonus: int) -> int {
+    let base_score = base * multiplier;
+    let final_score = base_score + bonus;
+    
+    let is_high_score = final_score > 100;
+    let is_perfect_score = final_score > 200;
+    
+    if is_perfect_score {
+        let final_score = final_score + 50;
+    }
+    
+    if is_high_score {
+        let final_score = final_score + 25;
+    }
+    
+    return final_score;
+}
+
+fn pattern_matching(input: int) -> int {
+    // محاكاة عامل المودولو باستخدام القسمة والضرب
+    let remainder_2 = input - (input / 2) * 2; // input % 2
+    let remainder_3 = input - (input / 3) * 3; // input % 3
+    let remainder_5 = input - (input / 5) * 5; // input % 5
+    
+    if remainder_2 == 0 {
+        if remainder_3 == 0 {
+            return 6; // divisible by both 2 and 3
+        }
+        return 2; // divisible by 2
+    }
+    
+    if remainder_3 == 0 {
+        return 3; // divisible by 3
+    }
+    
+    if remainder_5 == 0 {
+        return 5; // divisible by 5
+    }
+    
+    return 1; // not divisible by 2, 3, or 5
+}
+
+fn data_analysis(value1: int, value2: int, value3: int) -> int {
+    // Calculate average
+    let sum = value1 + value2 + value3;
+    let average = sum / 3;
+    
+    // Find maximum
+    let max_val = value1;
+    if value2 > max_val {
+        let max_val = value2;
+    }
+    if value3 > max_val {
+        let max_val = value3;
+    }
+    
+    // Find minimum
+    let min_val = value1;
+    if value2 < min_val {
+        let min_val = value2;
+    }
+    if value3 < min_val {
+        let min_val = value3;
+    }
+    
+    // Calculate range
+    let range = max_val - min_val;
+    
+    // Return analysis result
+    let result = average + range;
+    return result;
+}
+
+fn main() -> int {
+    // Test basic arithmetic - inline calculations
+    let a = 20;
+    let b = 4;
+    let arithmetic_sum = a + b;
+    let arithmetic_diff = a - b;
+    let arithmetic_product = a * b;
+    let arithmetic_quotient = a / b;
+    let arithmetic_result = arithmetic_sum + arithmetic_diff + arithmetic_product + arithmetic_quotient;
+    
+    // Test comparisons - inline calculations
+    let x = 15;
+    let y = 10;
+    let x_greater = x > y;
+    let comparison_result = 0;
+    if x_greater {
+        let comparison_result = 4;
+    }
+    
+    // Test nested conditions - inline calculations
+    let p = 5;
+    let q = 8;
+    let r = 12;
+    let p_pos = p > 0;
+    let q_pos = q > 0;
+    let r_pos = r > 0;
+    let nested_result = 0;
+    if p_pos {
+        if q_pos {
+            if r_pos {
+                let nested_result = 1;
+            }
+        }
+    }
+    
+    // Test score calculation - inline calculations
+    let base = 10;
+    let multiplier = 15;
+    let bonus = 25;
+    let base_score = base * multiplier;
+    let score_with_bonus = base_score + bonus;
+    let is_high = score_with_bonus > 100;
+    let score_result = score_with_bonus;
+    if is_high {
+        let score_result = score_result + 25;
+    }
+    
+    // Test pattern matching - inline calculations
+    let input = 15;
+    let rem_2 = input - (input / 2) * 2;
+    let rem_3 = input - (input / 3) * 3;
+    let rem_5 = input - (input / 5) * 5;
+    let pattern_result = 1;
+    if rem_2 == 0 {
+        let pattern_result = 2;
+    }
+    if rem_3 == 0 {
+        let pattern_result = 3;
+    }
+    if rem_5 == 0 {
+        let pattern_result = 5;
+    }
+    
+    // Test data analysis - inline calculations
+    let val1 = 10;
+    let val2 = 20;
+    let val3 = 30;
+    let data_sum = val1 + val2 + val3;
+    let data_avg = data_sum / 3;
+    let data_max = val1;
+    if val2 > data_max {
+        let data_max = val2;
+    }
+    if val3 > data_max {
+        let data_max = val3;
+    }
+    let data_min = val1;
+    if val2 < data_min {
+        let data_min = val2;
+    }
+    if val3 < data_min {
+        let data_min = val3;
+    }
+    let data_range = data_max - data_min;
+    let analysis_result = data_avg + data_range;
+    
+    // Calculate final result
+    let group1 = arithmetic_result + comparison_result;
+    let group2 = nested_result + score_result;
+    let group3 = pattern_result + analysis_result;
+    
+    let final_result = group1 + group2 + group3;
+    
+    return final_result;
+}

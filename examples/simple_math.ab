@@ -1,0 +1,279 @@
+// الرياضيات البسيطة - مثال أساسي
+// Simple Math - Basic example
+
+// دوال العمليات الأساسية
+fn add(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn subtract(a: int, b: int) -> int {
+    return a - b;
+}
+
+fn multiply(a: int, b: int) -> int {
+    return a * b;
+}
+
+fn divide(a: int, b: int) -> int {
+    return a / b;
+}
+
+// دوال المقارنة
+fn maximum(a: int, b: int) -> int {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fn minimum(a: int, b: int) -> int {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+// دوال التحقق
+fn is_positive(n: int) -> bool {
+    return n > 0;
+}
+
+fn is_negative(n: int) -> bool {
+    return n < 0;
+}
+
+// دوال القوة
+fn square(n: int) -> int {
+    return n * n;
+}
+
+fn cube(n: int) -> int {
+    return n * n * n;
+}
+
+// دوال الحسابات الهندسية
+fn rectangle_area(width: int, height: int) -> int {
+    return width * height;
+}
+
+fn triangle_area(base: int, height: int) -> int {
+    return (base * height) / 2;
+}
+
+// دوال التحويل
+fn celsius_to_fahrenheit(celsius: int) -> int {
+    return (celsius * 9) / 5 + 32;
+}
+
+fn meters_to_cm(meters: int) -> int {
+    return meters * 100;
+}
+
+// دوال التصنيف
+fn classify_number(n: int) -> string {
+    if n > 0 {
+        return "موجب";
+    }
+    if n < 0 {
+        return "سالب";
+    }
+    return "صفر";
+}
+
+fn classify_grade(grade: int) -> string {
+    if grade >= 90 {
+        return "ممتاز";
+    }
+    if grade >= 80 {
+        return "جيد جداً";
+    }
+    if grade >= 70 {
+        return "جيد";
+    }
+    if grade >= 60 {
+        return "مقبول";
+    }
+    return "راسب";
+}
+
+// دوال الحسابات المالية
+fn simple_interest(principal: int, rate: int, time: int) -> int {
+    return (principal * rate * time) / 100;
+}
+
+fn discount_amount(price: int, percent: int) -> int {
+    return (price * percent) / 100;
+}
+
+fn main() -> int {
+    print("=== الرياضيات البسيطة ===");
+    
+    // تعريف الأرقام
+    let num1 = 15;
+    let num2 = 8;
+    
+    print("العدد الأول: " + num1);
+    print("العدد الثاني: " + num2);
+    print("");
+    
+    // العمليات الأساسية
+    print("=== العمليات الأساسية ===");
+    
+    let sum_result = add(num1, num2);
+    print("الجمع: " + sum_result);
+    
+    let diff_result = subtract(num1, num2);
+    print("الطرح: " + diff_result);
+    
+    let mult_result = multiply(num1, num2);
+    print("الضرب: " + mult_result);
+    
+    let div_result = divide(num1, num2);
+    print("القسمة: " + div_result);
+    
+    print("");
+    
+    // المقارنة
+    print("=== المقارنة ===");
+    
+    let max_result = maximum(num1, num2);
+    print("الحد الأقصى: " + max_result);
+    
+    let min_result = minimum(num1, num2);
+    print("الحد الأدنى: " + min_result);
+    
+    print("");
+    
+    // القوى
+    print("=== القوى ===");
+    
+    let square1 = square(num1);
+    print("مربع " + num1 + " = " + square1);
+    
+    let square2 = square(num2);
+    print("مربع " + num2 + " = " + square2);
+    
+    let cube_result = cube(5);
+    print("مكعب 5 = " + cube_result);
+    
+    print("");
+    
+    // الحسابات الهندسية
+    print("=== الحسابات الهندسية ===");
+    
+    let width = 6;
+    let height = 4;
+    let area = rectangle_area(width, height);
+    print("مساحة مستطيل " + width + "×" + height + " = " + area);
+    
+    let base = 8;
+    let tri_height = 5;
+    let tri_area = triangle_area(base, tri_height);
+    print("مساحة مثلث قاعدة " + base + " وارتفاع " + tri_height + " = " + tri_area);
+    
+    print("");
+    
+    // التحويلات
+    print("=== التحويلات ===");
+    
+    let temp_c = 25;
+    let temp_f = celsius_to_fahrenheit(temp_c);
+    print(temp_c + "°C = " + temp_f + "°F");
+    
+    let meters = 3;
+    let centimeters = meters_to_cm(meters);
+    print(meters + " متر = " + centimeters + " سم");
+    
+    print("");
+    
+    // التصنيف
+    print("=== التصنيف ===");
+    
+    let type1 = classify_number(10);
+    print("10: " + type1);
+    
+    let type2 = classify_number(-5);
+    print("-5: " + type2);
+    
+    let type3 = classify_number(0);
+    print("0: " + type3);
+    
+    print("");
+    
+    let grade1 = classify_grade(95);
+    print("درجة 95: " + grade1);
+    
+    let grade2 = classify_grade(85);
+    print("درجة 85: " + grade2);
+    
+    let grade3 = classify_grade(75);
+    print("درجة 75: " + grade3);
+    
+    let grade4 = classify_grade(65);
+    print("درجة 65: " + grade4);
+    
+    let grade5 = classify_grade(45);
+    print("درجة 45: " + grade5);
+    
+    print("");
+    
+    // الحسابات المالية
+    print("=== الحسابات المالية ===");
+    
+    let principal = 1000;
+    let rate = 5;
+    let time = 2;
+    let interest = simple_interest(principal, rate, time);
+    print("الفائدة البسيطة: " + interest + " ريال");
+    
+    let total = add(principal, interest);
+    print("المبلغ الإجمالي: " + total + " ريال");
+    
+    print("");
+    
+    let price = 200;
+    let discount_percent = 15;
+    let discount = discount_amount(price, discount_percent);
+    print("خصم " + discount_percent + "%: " + discount + " ريال");
+    
+    let final_price = subtract(price, discount);
+    print("السعر النهائي: " + final_price + " ريال");
+    
+    print("");
+    
+    // اختبار التحقق
+    print("=== اختبار التحقق ===");
+    
+    let check1 = is_positive(10);
+    print("هل 10 موجب؟ " + check1);
+    
+    let check2 = is_negative(-5);
+    print("هل -5 سالب؟ " + check2);
+    
+    print("");
+    
+    // مثال تطبيقي
+    print("=== مثال تطبيقي: حساب المعدل ===");
+    
+    let grade_math = 85;
+    let grade_science = 90;
+    let grade_english = 78;
+    
+    print("درجة الرياضيات: " + grade_math);
+    print("درجة العلوم: " + grade_science);
+    print("درجة الإنجليزية: " + grade_english);
+    
+    let sum_grades = add(add(grade_math, grade_science), grade_english);
+    print("مجموع الدرجات: " + sum_grades);
+    
+    let average = divide(sum_grades, 3);
+    print("المعدل: " + average);
+    
+    let grade_level = classify_grade(average);
+    print("التقدير: " + grade_level);
+    
+    print("");
+    print("=== انتهى البرنامج ===");
+    
+    return 0;
+}

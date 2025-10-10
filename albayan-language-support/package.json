@@ -1,0 +1,164 @@
+{
+    "name": "albayan-language-support",
+    "displayName": "AlBayan Language Support",
+    "description": "Language support for AlBayan programming language with Basera AI integration",
+    "version": "0.1.0",
+    "publisher": "albayan-team",
+    "engines": {
+        "vscode": "^1.74.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Snippets",
+        "Formatters",
+        "Linters"
+    ],
+    "keywords": [
+        "albayan",
+        "arabic",
+        "programming",
+        "ai",
+        "basera",
+        "logic"
+    ],
+    "main": "./out/extension.js",
+    "activationEvents": [
+        "onLanguage:albayan"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "albayan",
+                "aliases": [
+                    "AlBayan",
+                    "البيان"
+                ],
+                "extensions": [
+                    ".ab"
+                ],
+                "configuration": "./language-configuration.json",
+                "icon": {
+                    "light": "./icons/albayan-light.svg",
+                    "dark": "./icons/albayan-dark.svg"
+                }
+            }
+        ],
+        "grammars": [
+            {
+                "language": "albayan",
+                "scopeName": "source.albayan",
+                "path": "./syntaxes/albayan.tmLanguage.json"
+            }
+        ],
+        "snippets": [
+            {
+                "language": "albayan",
+                "path": "./snippets/albayan.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "albayan.check",
+                "title": "فحص الصيغة",
+                "category": "البيان"
+            },
+            {
+                "command": "albayan.run",
+                "title": "تشغيل",
+                "category": "البيان"
+            },
+            {
+                "command": "albayan.format",
+                "title": "تنسيق",
+                "category": "البيان"
+            },
+            {
+                "command": "albayan.analyze",
+                "title": "تحليل",
+                "category": "البيان"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "albayan.run",
+                "key": "ctrl+f5",
+                "when": "editorTextFocus && resourceExtname == .ab"
+            },
+            {
+                "command": "albayan.check",
+                "key": "ctrl+shift+c",
+                "when": "editorTextFocus && resourceExtname == .ab"
+            },
+            {
+                "command": "albayan.format",
+                "key": "ctrl+shift+f",
+                "when": "editorTextFocus && resourceExtname == .ab"
+            }
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "when": "resourceExtname == .ab",
+                    "command": "albayan.run",
+                    "group": "albayan@1"
+                },
+                {
+                    "when": "resourceExtname == .ab",
+                    "command": "albayan.check",
+                    "group": "albayan@2"
+                },
+                {
+                    "when": "resourceExtname == .ab",
+                    "command": "albayan.format",
+                    "group": "albayan@3"
+                }
+            ]
+        },
+        "configuration": {
+            "type": "object",
+            "title": "AlBayan Configuration",
+            "properties": {
+                "albayan.compiler.path": {
+                    "type": "string",
+                    "default": "albayan",
+                    "description": "Path to AlBayan compiler"
+                },
+                "albayan.lsp.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable Language Server Protocol support"
+                },
+                "albayan.syntax.highlighting": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable syntax highlighting"
+                },
+                "albayan.diagnostics.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable diagnostics"
+                },
+                "albayan.formatting.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable code formatting"
+                },
+                "albayan.completion.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable code completion"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.74.0",
+        "@types/node": "16.x",
+        "typescript": "^4.9.4"
+    }
+}

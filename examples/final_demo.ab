@@ -1,0 +1,331 @@
+// العرض النهائي - لماذا لغة البيان؟
+// Final Demo - Why AlBayan Language?
+
+// ========== دوال العمليات الأساسية ==========
+
+fn add(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn subtract(a: int, b: int) -> int {
+    return a - b;
+}
+
+fn multiply(a: int, b: int) -> int {
+    return a * b;
+}
+
+fn divide(a: int, b: int) -> int {
+    if b != 0 {
+        return a / b;
+    }
+    return 0;
+}
+
+fn square(x: int) -> int {
+    return x * x;
+}
+
+fn cube(x: int) -> int {
+    return x * x * x;
+}
+
+// ========== دوال التحويل ==========
+
+fn celsius_to_fahrenheit(c: int) -> int {
+    return c * 9 / 5 + 32;
+}
+
+fn meters_to_cm(m: int) -> int {
+    return m * 100;
+}
+
+fn hours_to_minutes(h: int) -> int {
+    return h * 60;
+}
+
+fn kg_to_grams(kg: int) -> int {
+    return kg * 1000;
+}
+
+// ========== دوال المقارنة ==========
+
+fn find_max(a: int, b: int) -> int {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fn find_min(a: int, b: int) -> int {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+fn calculate_average(a: int, b: int) -> int {
+    return (a + b) / 2;
+}
+
+// ========== دوال الفحص ==========
+
+fn is_positive(n: int) -> bool {
+    return n > 0;
+}
+
+fn is_even(n: int) -> bool {
+    let remainder = n - (n / 2) * 2;
+    return remainder == 0;
+}
+
+fn is_equal(a: int, b: int) -> bool {
+    return a == b;
+}
+
+// ========== دوال الحسابات المالية ==========
+
+fn simple_interest(principal: int, rate: int, time: int) -> int {
+    return principal * rate * time / 100;
+}
+
+fn discount_amount(price: int, percent: int) -> int {
+    return price * percent / 100;
+}
+
+fn final_price(original: int, discount_percent: int) -> int {
+    let discount = original * discount_percent / 100;
+    return original - discount;
+}
+
+// ========== دوال الهندسة ==========
+
+fn rectangle_area(length: int, width: int) -> int {
+    return length * width;
+}
+
+fn triangle_area(base: int, height: int) -> int {
+    return base * height / 2;
+}
+
+fn circle_area(radius: int) -> int {
+    return 314 * radius * radius / 100;
+}
+
+// ========== دوال التصنيف ==========
+
+fn classify_grade(score: int) -> string {
+    if score >= 90 {
+        return "ممتاز";
+    }
+    if score >= 80 {
+        return "جيد جداً";
+    }
+    if score >= 70 {
+        return "جيد";
+    }
+    if score >= 60 {
+        return "مقبول";
+    }
+    return "راسب";
+}
+
+fn classify_age(age: int) -> string {
+    if age >= 60 {
+        return "كبير السن";
+    }
+    if age >= 30 {
+        return "بالغ";
+    }
+    if age >= 18 {
+        return "شاب";
+    }
+    return "صغير السن";
+}
+
+// ========== الدالة الرئيسية ==========
+
+fn main() -> int {
+    // المتغيرات الأساسية
+    let number1 = 25;
+    let number2 = 15;
+    let number3 = 40;
+    
+    // العمليات الحسابية
+    let sum_result = number1 + number2;
+    let diff_result = number1 - number2;
+    let mult_result = number1 * number2;
+    let div_result = number1 / number2;
+    let square_result = number1 * number1;
+    let cube_result = number2 * number2 * number2;
+    
+    // التحويلات
+    let temp_celsius = 30;
+    let temp_fahrenheit = temp_celsius * 9 / 5 + 32;
+    
+    let distance_meters = 5;
+    let distance_centimeters = distance_meters * 100;
+    
+    let time_hours = 3;
+    let time_minutes = time_hours * 60;
+    
+    let weight_kg = 2;
+    let weight_grams = weight_kg * 1000;
+    
+    // المقارنات
+    let max_value = number1;
+    if number2 > max_value {
+        let max_value = number2;
+    }
+    if number3 > max_value {
+        let max_value = number3;
+    }
+    
+    let min_value = number1;
+    if number2 < min_value {
+        let min_value = number2;
+    }
+    if number3 < min_value {
+        let min_value = number3;
+    }
+    
+    let average_value = (number1 + number2 + number3) / 3;
+    
+    // الفحوصات المنطقية
+    let test_number = 42;
+    let is_positive_result = test_number > 0;
+    let remainder = test_number - (test_number / 2) * 2;
+    let is_even_result = remainder == 0;
+    let is_equal_result = test_number == 42;
+    
+    // الحسابات المالية
+    let principal = 10000;
+    let rate = 5;
+    let time = 2;
+    let interest = principal * rate * time / 100;
+    
+    let original_price = 1000;
+    let discount_percent = 20;
+    let discount = original_price * discount_percent / 100;
+    let price_after_discount = original_price - discount;
+    
+    // الحسابات الهندسية
+    let rect_length = 12;
+    let rect_width = 8;
+    let rect_area = rect_length * rect_width;
+    
+    let tri_base = 10;
+    let tri_height = 6;
+    let tri_area = tri_base * tri_height / 2;
+    
+    let circle_radius = 7;
+    let circle_area_result = 314 * circle_radius * circle_radius / 100;
+    
+    // التصنيفات
+    let student_score = 87;
+    let grade_category = "جيد جداً"; // تصنيف الدرجة
+    
+    let person_age = 28;
+    let age_category = "بالغ"; // تصنيف العمر
+    
+    // حسابات الوقت
+    let project_days = 21;
+    let project_hours = project_days * 24;
+    
+    let vacation_weeks = 2;
+    let vacation_days = vacation_weeks * 7;
+    
+    let experience_years = 5;
+    let experience_days = experience_years * 365;
+    
+    // حسابات متقدمة
+    let salary = 8000;
+    let bonus_percent = 15;
+    let bonus = salary * bonus_percent / 100;
+    let total_salary = salary + bonus;
+    
+    let tax_rate = 10;
+    let tax = total_salary * tax_rate / 100;
+    let net_salary = total_salary - tax;
+    
+    // حسابات الاستثمار
+    let investment = 50000;
+    let annual_return = 8;
+    let investment_years = 3;
+    let total_return = investment * annual_return * investment_years / 100;
+    let final_investment_value = investment + total_return;
+    
+    // حسابات القرض
+    let loan_amount = 200000;
+    let loan_rate = 6;
+    let loan_years = 15;
+    let total_interest = loan_amount * loan_rate * loan_years / 100;
+    let total_loan_amount = loan_amount + total_interest;
+    let monthly_payment = total_loan_amount / (loan_years * 12);
+    
+    // حسابات التوفير
+    let monthly_income = 10000;
+    let monthly_expenses = 7000;
+    let monthly_savings = monthly_income - monthly_expenses;
+    let yearly_savings = monthly_savings * 12;
+    let savings_goal = 100000;
+    let years_to_goal = savings_goal / yearly_savings;
+    
+    // حسابات الطاقة والكفاءة
+    let electricity_units = 500;
+    let unit_price = 3;
+    let electricity_bill = electricity_units * unit_price;
+    
+    let fuel_liters = 40;
+    let fuel_price_per_liter = 2;
+    let fuel_cost = fuel_liters * fuel_price_per_liter;
+    
+    let distance_km = 300;
+    let fuel_efficiency = distance_km / fuel_liters; // كم لكل لتر
+    
+    // حسابات الصحة واللياقة
+    let weight = 75;
+    let height_cm = 175;
+    let height_m = height_cm / 100;
+    let bmi = weight / (height_m * height_m); // مؤشر كتلة الجسم
+    
+    let daily_calories = 2000;
+    let exercise_calories_burned = 300;
+    let net_calories = daily_calories - exercise_calories_burned;
+    
+    // حسابات التعليم
+    let math_score = 85;
+    let science_score = 90;
+    let arabic_score = 88;
+    let english_score = 82;
+    let total_scores = math_score + science_score + arabic_score + english_score;
+    let gpa = total_scores / 4;
+    
+    let tuition_fee = 15000;
+    let scholarship_percent = 25;
+    let scholarship_amount = tuition_fee * scholarship_percent / 100;
+    let net_tuition = tuition_fee - scholarship_amount;
+    
+    // النتائج الفرعية
+    let basic_operations = sum_result + mult_result + square_result + cube_result;
+    let conversions = temp_fahrenheit + distance_centimeters + time_minutes + weight_grams;
+    let comparisons = max_value + min_value + average_value;
+    let financial = interest + price_after_discount + net_salary;
+    let geometry = rect_area + tri_area + circle_area_result;
+    let time_calculations = project_hours + vacation_days + experience_days;
+    let investment_calculations = final_investment_value + monthly_payment;
+    let savings_calculations = yearly_savings + years_to_goal;
+    let energy_calculations = electricity_bill + fuel_cost + fuel_efficiency;
+    let health_calculations = bmi + net_calories;
+    let education_calculations = gpa + net_tuition;
+    
+    // النتيجة النهائية
+    let group1 = basic_operations + conversions + comparisons;
+    let group2 = financial + geometry + time_calculations;
+    let group3 = investment_calculations + savings_calculations + energy_calculations;
+    let group4 = health_calculations + education_calculations;
+    
+    let final_result = group1 + group2 + group3 + group4;
+    
+    return final_result;
+}

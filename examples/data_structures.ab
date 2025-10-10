@@ -1,0 +1,350 @@
+// هياكل البيانات المتقدمة - مثال شامل
+// Advanced Data Structures - Comprehensive example
+
+// هيكل للطالب
+struct Student {
+    id: int,
+    name: string,
+    age: int,
+    grades: list<float>,
+    major: string,
+    year: int,
+}
+
+// هيكل للمقرر
+struct Course {
+    code: string,
+    name: string,
+    credits: int,
+    instructor: string,
+    enrolled_students: list<int>, // معرفات الطلاب
+}
+
+// هيكل لنظام إدارة الجامعة
+struct UniversitySystem {
+    students: dict<int, Student>,
+    courses: dict<string, Course>,
+    enrollments: dict<int, list<string>>, // student_id -> course_codes
+    next_student_id: int,
+}
+
+// دوال لإنشاء الهياكل
+fn create_student(id: int, name: string, age: int, major: string, year: int) -> Student {
+    return Student {
+        id: id,
+        name: name,
+        age: age,
+        grades: [],
+        major: major,
+        year: year,
+    };
+}
+
+fn create_course(code: string, name: string, credits: int, instructor: string) -> Course {
+    return Course {
+        code: code,
+        name: name,
+        credits: credits,
+        instructor: instructor,
+        enrolled_students: [],
+    };
+}
+
+fn create_university_system() -> UniversitySystem {
+    return UniversitySystem {
+        students: {},
+        courses: {},
+        enrollments: {},
+        next_student_id: 1,
+    };
+}
+
+// دوال إدارة الطلاب
+fn add_student(system: &mut UniversitySystem, name: string, age: int, major: string, year: int) -> int {
+    let student_id = system.next_student_id;
+    let student = create_student(student_id, name, age, major, year);
+    
+    system.students[student_id] = student;
+    system.enrollments[student_id] = [];
+    system.next_student_id = system.next_student_id + 1;
+    
+    print("تم تسجيل الطالب: " + name + " (المعرف: " + student_id + ")");
+    return student_id;
+}
+
+fn add_course(system: &mut UniversitySystem, code: string, name: string, credits: int, instructor: string) {
+    let course = create_course(code, name, credits, instructor);
+    system.courses[code] = course;
+    print("تم إضافة المقرر: " + name + " (" + code + ")");
+}
+
+fn enroll_student(system: &mut UniversitySystem, student_id: int, course_code: string) -> bool {
+    // التحقق من وجود الطالب والمقرر
+    if !system.students.contains_key(student_id) {
+        print("خطأ: الطالب غير موجود");
+        return false;
+    }
+    
+    if !system.courses.contains_key(course_code) {
+        print("خطأ: المقرر غير موجود");
+        return false;
+    }
+    
+    // التحقق من عدم التسجيل المسبق
+    if system.enrollments[student_id].contains(course_code) {
+        print("خطأ: الطالب مسجل بالفعل في هذا المقرر");
+        return false;
+    }
+    
+    // تسجيل الطالب في المقرر
+    system.enrollments[student_id].push(course_code);
+    system.courses[course_code].enrolled_students.push(student_id);
+    
+    let student_name = system.students[student_id].name;
+    let course_name = system.courses[course_code].name;
+    print("تم تسجيل " + student_name + " في مقرر " + course_name);
+    
+    return true;
+}
+
+fn add_grade(system: &mut UniversitySystem, student_id: int, grade: float) {
+    if system.students.contains_key(student_id) {
+        system.students[student_id].grades.push(grade);
+        print("تم إضافة درجة " + grade + " للطالب " + system.students[student_id].name);
+    } else {
+        print("خطأ: الطالب غير موجود");
+    }
+}
+
+// دوال التحليل والإحصائيات
+fn calculate_student_average(student: &Student) -> float {
+    if student.grades.len() == 0 {
+        return 0.0;
+    }
+    
+    let mut sum = 0.0;
+    for grade in student.grades {
+        sum = sum + grade;
+    }
+    
+    return sum / student.grades.len();
+}
+
+fn get_students_by_major(system: &UniversitySystem, major: string) -> list<int> {
+    let mut result = [];
+    
+    for (student_id, student) in system.students {
+        if student.major == major {
+            result.push(student_id);
+        }
+    }
+    
+    return result;
+}
+
+fn get_top_students(system: &UniversitySystem, count: int) -> list<tuple<int, float>> {
+    let mut student_averages = [];
+    
+    // حساب متوسط كل طالب
+    for (student_id, student) in system.students {
+        let average = calculate_student_average(student);
+        student_averages.push((student_id, average));
+    }
+    
+    // ترتيب الطلاب حسب المتوسط (محاكاة الترتيب)
+    // في التطبيق الحقيقي، نستخدم دالة ترتيب مناسبة
+    
+    // إرجاع أفضل عدد محدد من الطلاب
+    let mut result = [];
+    let max_count = if count > student_averages.len() { student_averages.len() } else { count };
+    
+    for i in 0..max_count {
+        result.push(student_averages[i]);
+    }
+    
+    return result;
+}
+
+fn get_course_statistics(system: &UniversitySystem, course_code: string) -> dict<string, float> {
+    let mut stats = {};
+    
+    if !system.courses.contains_key(course_code) {
+        return stats;
+    }
+    
+    let course = &system.courses[course_code];
+    let enrolled_count = course.enrolled_students.len();
+    
+    stats["enrolled_students"] = enrolled_count;
+    stats["credits"] = course.credits;
+    
+    // حساب متوسط درجات الطلاب المسجلين
+    let mut total_average = 0.0;
+    let mut students_with_grades = 0;
+    
+    for student_id in course.enrolled_students {
+        if system.students.contains_key(student_id) {
+            let student = &system.students[student_id];
+            if student.grades.len() > 0 {
+                total_average = total_average + calculate_student_average(student);
+                students_with_grades = students_with_grades + 1;
+            }
+        }
+    }
+    
+    if students_with_grades > 0 {
+        stats["average_grade"] = total_average / students_with_grades;
+    } else {
+        stats["average_grade"] = 0.0;
+    }
+    
+    return stats;
+}
+
+// دوال التقارير
+fn generate_student_report(system: &UniversitySystem, student_id: int) -> string {
+    if !system.students.contains_key(student_id) {
+        return "الطالب غير موجود";
+    }
+    
+    let student = &system.students[student_id];
+    let mut report = "=== تقرير الطالب ===\n";
+    report = report + "المعرف: " + student.id + "\n";
+    report = report + "الاسم: " + student.name + "\n";
+    report = report + "العمر: " + student.age + " سنة\n";
+    report = report + "التخصص: " + student.major + "\n";
+    report = report + "السنة الدراسية: " + student.year + "\n";
+    
+    let average = calculate_student_average(student);
+    report = report + "المتوسط العام: " + average + "\n";
+    
+    report = report + "الدرجات: ";
+    for grade in student.grades {
+        report = report + grade + " ";
+    }
+    report = report + "\n";
+    
+    // المقررات المسجل فيها
+    if system.enrollments.contains_key(student_id) {
+        let courses = &system.enrollments[student_id];
+        report = report + "المقررات المسجل فيها:\n";
+        for course_code in courses {
+            if system.courses.contains_key(course_code) {
+                let course_name = system.courses[course_code].name;
+                report = report + "- " + course_name + " (" + course_code + ")\n";
+            }
+        }
+    }
+    
+    return report;
+}
+
+fn generate_university_report(system: &UniversitySystem) -> string {
+    let mut report = "=== تقرير الجامعة ===\n";
+    
+    // إحصائيات عامة
+    report = report + "إجمالي الطلاب: " + system.students.len() + "\n";
+    report = report + "إجمالي المقررات: " + system.courses.len() + "\n";
+    
+    // إحصائيات التخصصات
+    let mut majors = {};
+    for (_, student) in system.students {
+        if majors.contains_key(student.major) {
+            majors[student.major] = majors[student.major] + 1;
+        } else {
+            majors[student.major] = 1;
+        }
+    }
+    
+    report = report + "\nالطلاب حسب التخصص:\n";
+    for (major, count) in majors {
+        report = report + "- " + major + ": " + count + " طالب\n";
+    }
+    
+    // أفضل الطلاب
+    let top_students = get_top_students(system, 3);
+    report = report + "\nأفضل 3 طلاب:\n";
+    for (i, (student_id, average)) in top_students.enumerate() {
+        let student_name = system.students[student_id].name;
+        report = report + (i + 1) + ". " + student_name + " - " + average + "\n";
+    }
+    
+    return report;
+}
+
+// دالة لإنشاء بيانات تجريبية
+fn populate_sample_data(system: &mut UniversitySystem) {
+    print("إنشاء بيانات تجريبية...");
+    
+    // إضافة طلاب
+    let student1 = add_student(system, "أحمد محمد", 20, "هندسة", 2);
+    let student2 = add_student(system, "فاطمة علي", 19, "طب", 1);
+    let student3 = add_student(system, "محمد حسن", 21, "حاسوب", 3);
+    let student4 = add_student(system, "سارة أحمد", 18, "طب", 1);
+    let student5 = add_student(system, "عمر خالد", 22, "هندسة", 4);
+    
+    // إضافة مقررات
+    add_course(system, "CS101", "مقدمة في البرمجة", 3, "د. أحمد");
+    add_course(system, "MATH201", "التفاضل والتكامل", 4, "د. فاطمة");
+    add_course(system, "ENG301", "الهندسة الكهربائية", 3, "د. محمد");
+    add_course(system, "MED101", "علم التشريح", 5, "د. سارة");
+    
+    // تسجيل الطلاب في المقررات
+    enroll_student(system, student1, "CS101");
+    enroll_student(system, student1, "MATH201");
+    enroll_student(system, student2, "MED101");
+    enroll_student(system, student3, "CS101");
+    enroll_student(system, student4, "MED101");
+    enroll_student(system, student5, "ENG301");
+    
+    // إضافة درجات
+    add_grade(system, student1, 85.5);
+    add_grade(system, student1, 90.0);
+    add_grade(system, student1, 88.5);
+    
+    add_grade(system, student2, 95.0);
+    add_grade(system, student2, 92.5);
+    
+    add_grade(system, student3, 78.0);
+    add_grade(system, student3, 82.5);
+    add_grade(system, student3, 80.0);
+    
+    add_grade(system, student4, 91.0);
+    add_grade(system, student4, 89.5);
+    
+    add_grade(system, student5, 75.0);
+    add_grade(system, student5, 77.5);
+}
+
+fn main() -> int {
+    print("=== نظام إدارة الجامعة ===");
+    
+    // إنشاء النظام
+    let mut university = create_university_system();
+    
+    // إضافة بيانات تجريبية
+    populate_sample_data(&mut university);
+    
+    // عرض تقرير طالب محدد
+    print("\n" + generate_student_report(&university, 1));
+    
+    // عرض إحصائيات مقرر
+    print("\n=== إحصائيات مقرر CS101 ===");
+    let course_stats = get_course_statistics(&university, "CS101");
+    for (key, value) in course_stats {
+        print(key + ": " + value);
+    }
+    
+    // عرض طلاب تخصص معين
+    print("\n=== طلاب الطب ===");
+    let med_students = get_students_by_major(&university, "طب");
+    for student_id in med_students {
+        let student_name = university.students[student_id].name;
+        print("- " + student_name);
+    }
+    
+    // عرض التقرير العام
+    print("\n" + generate_university_report(&university));
+    
+    return 0;
+}

@@ -1,0 +1,301 @@
+// نظام توصيات الكتب الذكي - مثال عملي شامل
+// Smart Book Recommendation System - Comprehensive practical example
+
+// ========== البرمجة المنطقية: قواعد المعرفة ==========
+
+// تعريف العلاقات الأساسية
+relation user_likes(string, string);        // المستخدم يحب نوع معين
+relation book_category(string, string);     // الكتاب ينتمي لفئة معينة
+relation book_author(string, string);       // مؤلف الكتاب
+relation user_read(string, string);         // المستخدم قرأ كتاب معين
+relation book_difficulty(string, string);   // مستوى صعوبة الكتاب
+relation book_rating(string, int);          // تقييم الكتاب من 1-5
+
+// إضافة الحقائق - بيانات المستخدمين
+fact user_likes("أحمد", "برمجة").
+fact user_likes("أحمد", "ذكاء_اصطناعي").
+fact user_likes("فاطمة", "أدب").
+fact user_likes("فاطمة", "تاريخ").
+fact user_likes("محمد", "علوم").
+fact user_likes("محمد", "رياضيات").
+
+// بيانات الكتب
+fact book_category("تعلم Python", "برمجة").
+fact book_category("الذكاء الاصطناعي للمبتدئين", "ذكاء_اصطناعي").
+fact book_category("مئة عام من العزلة", "أدب").
+fact book_category("تاريخ الأندلس", "تاريخ").
+fact book_category("الفيزياء الحديثة", "علوم").
+fact book_category("التفاضل والتكامل", "رياضيات").
+
+fact book_author("تعلم Python", "د. أحمد محمد").
+fact book_author("الذكاء الاصطناعي للمبتدئين", "د. سارة علي").
+fact book_author("مئة عام من العزلة", "غابرييل ماركيز").
+
+fact book_difficulty("تعلم Python", "مبتدئ").
+fact book_difficulty("الذكاء الاصطناعي للمبتدئين", "متوسط").
+fact book_difficulty("التفاضل والتكامل", "متقدم").
+
+fact book_rating("تعلم Python", 4).
+fact book_rating("الذكاء الاصطناعي للمبتدئين", 5).
+fact book_rating("مئة عام من العزلة", 5).
+fact book_rating("تاريخ الأندلس", 4).
+
+// الكتب المقروءة
+fact user_read("أحمد", "تعلم Python").
+fact user_read("فاطمة", "مئة عام من العزلة").
+
+// ========== القواعد المنطقية للتوصيات ==========
+
+// قاعدة التوصية الأساسية: إذا كان المستخدم يحب فئة معينة
+rule basic_recommendation(User, Book) :-
+    user_likes(User, Category),
+    book_category(Book, Category),
+    not user_read(User, Book).
+
+// قاعدة التوصية المتقدمة: كتب عالية التقييم
+rule quality_recommendation(User, Book) :-
+    user_likes(User, Category),
+    book_category(Book, Category),
+    book_rating(Book, Rating),
+    Rating >= 4,
+    not user_read(User, Book).
+
+// قاعدة التوصية حسب المستوى
+rule level_appropriate_recommendation(User, Book, Level) :-
+    user_likes(User, Category),
+    book_category(Book, Category),
+    book_difficulty(Book, Level),
+    not user_read(User, Book).
+
+// ========== الدوال التقليدية ==========
+
+// دالة لحساب نقاط التوصية
+fn calculate_recommendation_score(user: string, book: string) -> int {
+    let mut score = 0;
+    
+    // نقاط أساسية للفئة المفضلة
+    score = score + 10;
+    
+    // نقاط إضافية للتقييم العالي
+    let rating = get_book_rating(book);
+    if rating >= 4 {
+        score = score + 20;
+    }
+    if rating == 5 {
+        score = score + 10;
+    }
+    
+    // نقاط للمستوى المناسب
+    let difficulty = get_book_difficulty(book);
+    if difficulty == "مبتدئ" {
+        score = score + 15;
+    }
+    if difficulty == "متوسط" {
+        score = score + 10;
+    }
+    
+    return score;
+}
+
+// دالة للحصول على تقييم الكتاب
+fn get_book_rating(book: string) -> int {
+    if book == "تعلم Python" {
+        return 4;
+    }
+    if book == "الذكاء الاصطناعي للمبتدئين" {
+        return 5;
+    }
+    if book == "مئة عام من العزلة" {
+        return 5;
+    }
+    if book == "تاريخ الأندلس" {
+        return 4;
+    }
+    return 3;
+}
+
+// دالة للحصول على مستوى صعوبة الكتاب
+fn get_book_difficulty(book: string) -> string {
+    if book == "تعلم Python" {
+        return "مبتدئ";
+    }
+    if book == "الذكاء الاصطناعي للمبتدئين" {
+        return "متوسط";
+    }
+    if book == "التفاضل والتكامل" {
+        return "متقدم";
+    }
+    return "متوسط";
+}
+
+// دالة لتصنيف المستخدم حسب اهتماماته
+fn classify_user_interests(user: string) -> string {
+    if user == "أحمد" {
+        return "تقني";
+    }
+    if user == "فاطمة" {
+        return "أدبي";
+    }
+    if user == "محمد" {
+        return "علمي";
+    }
+    return "عام";
+}
+
+// دالة لإنشاء تقرير التوصيات
+fn generate_recommendation_report(user: string) -> string {
+    let mut report = "=== تقرير التوصيات لـ " + user + " ===\n";
+    
+    let user_type = classify_user_interests(user);
+    report = report + "نوع المستخدم: " + user_type + "\n\n";
+    
+    // التوصيات الأساسية
+    report = report + "التوصيات الأساسية:\n";
+    if user == "أحمد" {
+        let score1 = calculate_recommendation_score(user, "الذكاء الاصطناعي للمبتدئين");
+        report = report + "- الذكاء الاصطناعي للمبتدئين (نقاط: " + score1 + ")\n";
+    }
+    
+    if user == "فاطمة" {
+        let score2 = calculate_recommendation_score(user, "تاريخ الأندلس");
+        report = report + "- تاريخ الأندلس (نقاط: " + score2 + ")\n";
+    }
+    
+    if user == "محمد" {
+        let score3 = calculate_recommendation_score(user, "الفيزياء الحديثة");
+        report = report + "- الفيزياء الحديثة (نقاط: " + score3 + ")\n";
+        
+        let score4 = calculate_recommendation_score(user, "التفاضل والتكامل");
+        report = report + "- التفاضل والتكامل (نقاط: " + score4 + ")\n";
+    }
+    
+    report = report + "\n";
+    
+    // إحصائيات
+    report = report + "إحصائيات:\n";
+    report = report + "- عدد الكتب المقروءة: 1\n";
+    report = report + "- عدد الفئات المفضلة: 2\n";
+    report = report + "- متوسط التقييم المفضل: 4.5\n";
+    
+    return report;
+}
+
+// دالة لمحاكاة الذكاء الاصطناعي
+fn ai_predict_user_preference(user: string, book: string) -> float {
+    // محاكاة نموذج ذكاء اصطناعي للتنبؤ بتفضيلات المستخدم
+    let base_score = 0.5;
+    
+    // تحليل التوافق بين المستخدم والكتاب
+    if user == "أحمد" {
+        if book == "الذكاء الاصطناعي للمبتدئين" {
+            return 0.95; // توافق عالي جداً
+        }
+        if book == "تعلم Python" {
+            return 0.85; // توافق عالي (لكنه قرأه بالفعل)
+        }
+    }
+    
+    if user == "فاطمة" {
+        if book == "تاريخ الأندلس" {
+            return 0.90;
+        }
+        if book == "مئة عام من العزلة" {
+            return 0.88; // قرأته بالفعل
+        }
+    }
+    
+    if user == "محمد" {
+        if book == "الفيزياء الحديثة" {
+            return 0.92;
+        }
+        if book == "التفاضل والتكامل" {
+            return 0.87;
+        }
+    }
+    
+    return base_score;
+}
+
+// دالة لدمج التوصيات المنطقية مع الذكاء الاصطناعي
+fn hybrid_recommendation(user: string) -> string {
+    let mut result = "=== نظام التوصيات الهجين ===\n";
+    result = result + "المستخدم: " + user + "\n\n";
+    
+    // التوصيات المنطقية
+    result = result + "🧠 التوصيات المنطقية:\n";
+    if user == "أحمد" {
+        result = result + "- الذكاء الاصطناعي للمبتدئين (قاعدة: تطابق الاهتمامات)\n";
+    }
+    if user == "فاطمة" {
+        result = result + "- تاريخ الأندلس (قاعدة: تطابق الاهتمامات)\n";
+    }
+    if user == "محمد" {
+        result = result + "- الفيزياء الحديثة (قاعدة: تطابق الاهتمامات)\n";
+        result = result + "- التفاضل والتكامل (قاعدة: تطابق الاهتمامات)\n";
+    }
+    
+    result = result + "\n🤖 توقعات الذكاء الاصطناعي:\n";
+    
+    // توقعات الذكاء الاصطناعي
+    if user == "أحمد" {
+        let ai_score = ai_predict_user_preference(user, "الذكاء الاصطناعي للمبتدئين");
+        result = result + "- الذكاء الاصطناعي للمبتدئين: " + (ai_score * 100.0) + "%\n";
+    }
+    
+    if user == "فاطمة" {
+        let ai_score = ai_predict_user_preference(user, "تاريخ الأندلس");
+        result = result + "- تاريخ الأندلس: " + (ai_score * 100.0) + "%\n";
+    }
+    
+    if user == "محمد" {
+        let ai_score1 = ai_predict_user_preference(user, "الفيزياء الحديثة");
+        let ai_score2 = ai_predict_user_preference(user, "التفاضل والتكامل");
+        result = result + "- الفيزياء الحديثة: " + (ai_score1 * 100.0) + "%\n";
+        result = result + "- التفاضل والتكامل: " + (ai_score2 * 100.0) + "%\n";
+    }
+    
+    result = result + "\n✨ التوصية النهائية: دمج المنطق والذكاء الاصطناعي\n";
+    
+    return result;
+}
+
+// ========== الدالة الرئيسية ==========
+
+fn main() -> int {
+    // عرض معلومات النظام
+    let system_info = "🔥 نظام توصيات الكتب الذكي 🔥\n";
+    system_info = system_info + "يجمع بين البرمجة المنطقية والذكاء الاصطناعي\n";
+    system_info = system_info + "========================================\n\n";
+    
+    // اختبار النظام مع مستخدمين مختلفين
+    let users = ["أحمد", "فاطمة", "محمد"];
+    
+    // تجربة المستخدم الأول: أحمد (مهتم بالبرمجة والذكاء الاصطناعي)
+    let ahmed_report = generate_recommendation_report("أحمد");
+    let ahmed_hybrid = hybrid_recommendation("أحمد");
+    
+    // تجربة المستخدم الثاني: فاطمة (مهتمة بالأدب والتاريخ)
+    let fatima_report = generate_recommendation_report("فاطمة");
+    let fatima_hybrid = hybrid_recommendation("فاطمة");
+    
+    // تجربة المستخدم الثالث: محمد (مهتم بالعلوم والرياضيات)
+    let mohammed_report = generate_recommendation_report("محمد");
+    let mohammed_hybrid = hybrid_recommendation("محمد");
+    
+    // حساب إحصائيات النظام
+    let total_books = 6;
+    let total_users = 3;
+    let total_categories = 6;
+    let recommendation_accuracy = 92; // نسبة دقة التوصيات
+    
+    let stats = "\n📊 إحصائيات النظام:\n";
+    stats = stats + "- إجمالي الكتب: " + total_books + "\n";
+    stats = stats + "- إجمالي المستخدمين: " + total_users + "\n";
+    stats = stats + "- إجمالي الفئات: " + total_categories + "\n";
+    stats = stats + "- دقة التوصيات: " + recommendation_accuracy + "%\n";
+    
+    // النتيجة النهائية
+    let final_score = total_books * total_users + recommendation_accuracy;
+    
+    return final_score;
+}

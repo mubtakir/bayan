@@ -1,0 +1,350 @@
+// نظام خبير للتشخيص الطبي - مثال على البرمجة المنطقية والذكاء الاصطناعي
+// Medical Diagnosis Expert System - Logic Programming and AI example
+
+use ai::neural_networks::*;
+use std::collections::{HashMap, HashSet};
+
+// تعريف العلاقات المنطقية
+relation Symptom(string, string);        // (patient, symptom)
+relation Disease(string, string);        // (patient, disease)
+relation Medication(string, string);     // (disease, medication)
+relation Contraindication(string, string); // (medication, condition)
+relation Age(string, int);               // (patient, age)
+relation Gender(string, string);         // (patient, gender)
+
+// قواعد التشخيص
+rule Disease(Patient, "نزلة برد") :- 
+    Symptom(Patient, "سعال"),
+    Symptom(Patient, "حمى خفيفة"),
+    Symptom(Patient, "احتقان أنف");
+
+rule Disease(Patient, "إنفلونزا") :- 
+    Symptom(Patient, "حمى عالية"),
+    Symptom(Patient, "صداع"),
+    Symptom(Patient, "آلام عضلات");
+
+rule Disease(Patient, "التهاب حلق") :- 
+    Symptom(Patient, "ألم حلق"),
+    Symptom(Patient, "صعوبة بلع"),
+    Symptom(Patient, "تورم غدد");
+
+rule Disease(Patient, "صداع نصفي") :- 
+    Symptom(Patient, "صداع شديد"),
+    Symptom(Patient, "حساسية ضوء"),
+    Symptom(Patient, "غثيان");
+
+rule Disease(Patient, "ارتفاع ضغط") :- 
+    Symptom(Patient, "صداع"),
+    Symptom(Patient, "دوخة"),
+    Age(Patient, Age),
+    Age > 40;
+
+// قواعد العلاج
+rule Medication("نزلة برد", "باراسيتامول");
+rule Medication("نزلة برد", "مضاد احتقان");
+rule Medication("إنفلونزا", "مضاد فيروسات");
+rule Medication("إنفلونزا", "مسكن ألم");
+rule Medication("التهاب حلق", "مضاد حيوي");
+rule Medication("صداع نصفي", "سوماتريبتان");
+rule Medication("ارتفاع ضغط", "مثبط ACE");
+
+// موانع الاستعمال
+rule Contraindication("باراسيتامول", "مرض كبد");
+rule Contraindication("مضاد حيوي", "حساسية بنسلين");
+rule Contraindication("سوماتريبتان", "مرض قلب");
+
+// فئة المريض
+class Patient {
+    id: string,
+    name: string,
+    age: int,
+    gender: string,
+    symptoms: Vec<string>,
+    medical_history: Vec<string>,
+    allergies: Vec<string>,
+}
+
+impl Patient {
+    fn new(id: string, name: string, age: int, gender: string) -> Patient {
+        return Patient {
+            id: id,
+            name: name,
+            age: age,
+            gender: gender,
+            symptoms: Vec::new(),
+            medical_history: Vec::new(),
+            allergies: Vec::new(),
+        };
+    }
+    
+    fn add_symptom(&mut self, symptom: string) {
+        self.symptoms.push(symptom);
+        // إضافة الأعراض لقاعدة المعرفة
+        assert Symptom(self.id.clone(), symptom);
+    }
+    
+    fn add_medical_history(&mut self, condition: string) {
+        self.medical_history.push(condition);
+    }
+    
+    fn add_allergy(&mut self, allergy: string) {
+        self.allergies.push(allergy);
+    }
+    
+    fn register_facts(&self) {
+        // تسجيل معلومات المريض في قاعدة المعرفة
+        assert Age(self.id.clone(), self.age);
+        assert Gender(self.id.clone(), self.gender.clone());
+    }
+}
+
+// فئة التشخيص
+struct Diagnosis {
+    disease: string,
+    confidence: float,
+    symptoms_matched: Vec<string>,
+    recommended_medications: Vec<string>,
+    warnings: Vec<string>,
+}
+
+impl Diagnosis {
+    fn new(disease: string, confidence: float) -> Diagnosis {
+        return Diagnosis {
+            disease: disease,
+            confidence: confidence,
+            symptoms_matched: Vec::new(),
+            recommended_medications: Vec::new(),
+            warnings: Vec::new(),
+        };
+    }
+}
+
+// النظام الخبير للتشخيص
+class MedicalExpertSystem {
+    neural_network: NeuralNetwork,
+    symptom_weights: HashMap<string, float>,
+    disease_patterns: HashMap<string, Vec<string>>,
+}
+
+impl MedicalExpertSystem {
+    fn new() -> MedicalExpertSystem {
+        let mut system = MedicalExpertSystem {
+            neural_network: NeuralNetwork::new(),
+            symptom_weights: HashMap::new(),
+            disease_patterns: HashMap::new(),
+        };
+        
+        system.initialize_neural_network();
+        system.initialize_symptom_weights();
+        system.initialize_disease_patterns();
+        
+        return system;
+    }
+    
+    fn initialize_neural_network(&mut self) {
+        // إنشاء شبكة عصبية للتشخيص
+        self.neural_network.add_layer(Box::new(Dense::new(20, 64))); // 20 عرض محتمل
+        self.neural_network.add_layer(Box::new(BatchNorm::new(64)));
+        self.neural_network.add_layer(Box::new(Dropout::new(0.3)));
+        self.neural_network.add_layer(Box::new(Dense::new(64, 32)));
+        self.neural_network.add_layer(Box::new(Dense::new(32, 10))); // 10 أمراض محتملة
+        
+        println("تم تهيئة الشبكة العصبية للتشخيص");
+    }
+    
+    fn initialize_symptom_weights(&mut self) {
+        // أوزان الأعراض حسب الأهمية
+        self.symptom_weights.insert("حمى عالية".to_string(), 0.9);
+        self.symptom_weights.insert("صداع شديد".to_string(), 0.8);
+        self.symptom_weights.insert("صعوبة تنفس".to_string(), 0.95);
+        self.symptom_weights.insert("ألم صدر".to_string(), 0.9);
+        self.symptom_weights.insert("سعال".to_string(), 0.6);
+        self.symptom_weights.insert("احتقان أنف".to_string(), 0.4);
+        self.symptom_weights.insert("صداع".to_string(), 0.5);
+        self.symptom_weights.insert("دوخة".to_string(), 0.6);
+        self.symptom_weights.insert("غثيان".to_string(), 0.5);
+        self.symptom_weights.insert("ألم حلق".to_string(), 0.6);
+    }
+    
+    fn initialize_disease_patterns(&mut self) {
+        // أنماط الأمراض والأعراض المرتبطة
+        self.disease_patterns.insert("نزلة برد".to_string(), 
+            vec!["سعال".to_string(), "احتقان أنف".to_string(), "حمى خفيفة".to_string()]);
+        
+        self.disease_patterns.insert("إنفلونزا".to_string(), 
+            vec!["حمى عالية".to_string(), "صداع".to_string(), "آلام عضلات".to_string()]);
+        
+        self.disease_patterns.insert("التهاب حلق".to_string(), 
+            vec!["ألم حلق".to_string(), "صعوبة بلع".to_string(), "تورم غدد".to_string()]);
+    }
+    
+    fn diagnose_patient(&self, patient: &Patient) -> Vec<Diagnosis> {
+        println("بدء تشخيص المريض: " + patient.name);
+        
+        // تسجيل معلومات المريض
+        patient.register_facts();
+        
+        let mut diagnoses = Vec::new();
+        
+        // التشخيص باستخدام البرمجة المنطقية
+        let logic_diagnoses = self.logic_based_diagnosis(patient);
+        diagnoses.extend(logic_diagnoses);
+        
+        // التشخيص باستخدام الشبكة العصبية
+        let ai_diagnoses = self.ai_based_diagnosis(patient);
+        diagnoses.extend(ai_diagnoses);
+        
+        // ترتيب التشخيصات حسب الثقة
+        diagnoses.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap());
+        
+        return diagnoses;
+    }
+    
+    fn logic_based_diagnosis(&self, patient: &Patient) -> Vec<Diagnosis> {
+        let mut diagnoses = Vec::new();
+        
+        // استعلام قاعدة المعرفة عن الأمراض المحتملة
+        query_solve { Disease(patient.id.clone(), DiseaseName) } => {
+            let mut diagnosis = Diagnosis::new(DiseaseName.clone(), 0.8);
+            
+            // البحث عن الأدوية الموصى بها
+            query_solve { Medication(DiseaseName.clone(), Med) } => {
+                // فحص موانع الاستعمال
+                let mut safe = true;
+                for allergy in &patient.allergies {
+                    query_solve { Contraindication(Med.clone(), allergy.clone()) } => {
+                        safe = false;
+                        diagnosis.warnings.push("تحذير: " + Med + " قد يسبب رد فعل تحسسي");
+                    }
+                }
+                
+                for condition in &patient.medical_history {
+                    query_solve { Contraindication(Med.clone(), condition.clone()) } => {
+                        safe = false;
+                        diagnosis.warnings.push("تحذير: " + Med + " غير مناسب بسبب " + condition);
+                    }
+                }
+                
+                if safe {
+                    diagnosis.recommended_medications.push(Med);
+                }
+            }
+            
+            diagnoses.push(diagnosis);
+        }
+        
+        return diagnoses;
+    }
+    
+    fn ai_based_diagnosis(&self, patient: &Patient) -> Vec<Diagnosis> {
+        let mut diagnoses = Vec::new();
+        
+        // تحويل الأعراض إلى متجه رقمي
+        let symptom_vector = self.symptoms_to_vector(&patient.symptoms);
+        
+        // استخدام الشبكة العصبية للتنبؤ (محاكاة)
+        println("تحليل الأعراض باستخدام الذكاء الاصطناعي...");
+        
+        // محاكاة نتائج الشبكة العصبية
+        for (disease, pattern) in &self.disease_patterns {
+            let confidence = self.calculate_pattern_match(&patient.symptoms, pattern);
+            if confidence > 0.3 {
+                let mut diagnosis = Diagnosis::new(disease.clone(), confidence);
+                diagnosis.symptoms_matched = pattern.clone();
+                diagnoses.push(diagnosis);
+            }
+        }
+        
+        return diagnoses;
+    }
+    
+    fn symptoms_to_vector(&self, symptoms: &Vec<string>) -> Vec<float> {
+        let mut vector = vec![0.0; 20]; // 20 عرض محتمل
+        
+        for (i, symptom) in symptoms.iter().enumerate() {
+            if i < 20 {
+                let weight = self.symptom_weights.get(symptom).unwrap_or(&0.5);
+                vector[i] = *weight;
+            }
+        }
+        
+        return vector;
+    }
+    
+    fn calculate_pattern_match(&self, symptoms: &Vec<string>, pattern: &Vec<string>) -> float {
+        let mut matches = 0;
+        for pattern_symptom in pattern {
+            if symptoms.contains(pattern_symptom) {
+                matches += 1;
+            }
+        }
+        
+        return matches as float / pattern.len() as float;
+    }
+    
+    fn generate_report(&self, patient: &Patient, diagnoses: &Vec<Diagnosis>) -> string {
+        let mut report = format!("=== تقرير التشخيص الطبي ===\n");
+        report += &format!("المريض: {}\n", patient.name);
+        report += &format!("العمر: {} سنة\n", patient.age);
+        report += &format!("الجنس: {}\n\n", patient.gender);
+        
+        report += "الأعراض المسجلة:\n";
+        for symptom in &patient.symptoms {
+            report += &format!("- {}\n", symptom);
+        }
+        
+        report += "\nالتشخيصات المحتملة:\n";
+        for (i, diagnosis) in diagnoses.iter().enumerate() {
+            report += &format!("{}. {} (ثقة: {:.1}%)\n", 
+                i + 1, diagnosis.disease, diagnosis.confidence * 100.0);
+            
+            if !diagnosis.recommended_medications.is_empty() {
+                report += "   الأدوية الموصى بها:\n";
+                for med in &diagnosis.recommended_medications {
+                    report += &format!("   - {}\n", med);
+                }
+            }
+            
+            if !diagnosis.warnings.is_empty() {
+                report += "   تحذيرات:\n";
+                for warning in &diagnosis.warnings {
+                    report += &format!("   ⚠️ {}\n", warning);
+                }
+            }
+            report += "\n";
+        }
+        
+        report += "ملاحظة: هذا التشخيص مبدئي ويجب استشارة طبيب مختص.\n";
+        
+        return report;
+    }
+}
+
+fn main() -> int {
+    println("=== نظام التشخيص الطبي الخبير ===");
+    
+    // إنشاء النظام الخبير
+    let expert_system = MedicalExpertSystem::new();
+    
+    // إنشاء مريض للاختبار
+    let mut patient = Patient::new("P001".to_string(), "أحمد محمد".to_string(), 35, "ذكر".to_string());
+    
+    // إضافة الأعراض
+    patient.add_symptom("حمى عالية".to_string());
+    patient.add_symptom("صداع".to_string());
+    patient.add_symptom("آلام عضلات".to_string());
+    patient.add_symptom("سعال".to_string());
+    
+    // إضافة التاريخ المرضي والحساسيات
+    patient.add_medical_history("ارتفاع ضغط".to_string());
+    patient.add_allergy("بنسلين".to_string());
+    
+    // إجراء التشخيص
+    let diagnoses = expert_system.diagnose_patient(&patient);
+    
+    // إنتاج التقرير
+    let report = expert_system.generate_report(&patient, &diagnoses);
+    println(report);
+    
+    return 0;
+}

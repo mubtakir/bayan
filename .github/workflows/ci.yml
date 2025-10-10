@@ -1,0 +1,192 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+    
+    - name: Run clippy
+      run: cargo clippy --all-targets --all-features -- -D warnings
+    
+    - name: Run tests
+      run: cargo test --verbose
+    
+    - name: Test AlBayan examples
+      run: |
+        cargo build --release
+        echo "Testing beginner examples..."
+        ./target/release/albayan check examples/beginner_examples.ab
+        echo "Testing AI systems..."
+        ./target/release/albayan check examples/ai_systems_showcase.ab
+        echo "Testing artistic demo..."
+        ./target/release/albayan check examples/enhanced_artistic_demo.ab
+        echo "Testing animation system..."
+        ./target/release/albayan check examples/animation_studio_system.ab
+        echo "Testing database analytics..."
+        ./target/release/albayan check examples/database_analytics_system.ab
+
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Build
+      run: cargo build --release --verbose
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: albayan-${{ matrix.os }}
+        path: |
+          target/release/albayan*
+          !target/release/albayan.d
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
+    
+    - name: Run security audit
+      run: cargo audit
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: llvm-tools-preview
+    
+    - name: Install cargo-llvm-cov
+      run: cargo install cargo-llvm-cov
+    
+    - name: Generate coverage
+      run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: lcov.info
+        fail_ci_if_error: true
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Build documentation
+      run: cargo doc --no-deps --all-features
+    
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./target/doc
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [test, build, security]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Build release
+      run: cargo build --release
+    
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          target/release/albayan
+        body: |
+          ## 🚀 AlBayan Language Release
+          
+          This release includes:
+          - ✅ Core compiler improvements
+          - ✅ Enhanced AI capabilities  
+          - ✅ New artistic features
+          - ✅ Bug fixes and optimizations
+          
+          ### 📥 Installation
+          ```bash
+          # Download and install
+          wget https://github.com/albayan-lang/albayan/releases/latest/download/albayan
+          chmod +x albayan
+          sudo mv albayan /usr/local/bin/
+          ```
+          
+          ### 🧬 What's New
+          See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+          
+          **🌟 Happy coding with AlBayan! 🚀**
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,418 @@
+// حاسبة تجريبية - مشروع عملي بسيط
+// Demo Calculator - Simple Practical Project
+
+// ========== العمليات الأساسية ==========
+
+fn add_two(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn subtract_two(a: int, b: int) -> int {
+    return a - b;
+}
+
+fn multiply_two(a: int, b: int) -> int {
+    return a * b;
+}
+
+fn divide_safe(a: int, b: int) -> int {
+    if b != 0 {
+        return a / b;
+    }
+    return 0;
+}
+
+fn power_square(number: int) -> int {
+    return number * number;
+}
+
+fn power_cube(number: int) -> int {
+    return number * number * number;
+}
+
+// ========== العمليات المالية ==========
+
+fn calculate_interest(principal: int, rate: int, years: int) -> int {
+    return principal * rate * years / 100;
+}
+
+fn calculate_discount(price: int, percent: int) -> int {
+    return price * percent / 100;
+}
+
+fn price_after_discount(original: int, discount_percent: int) -> int {
+    let discount = original * discount_percent / 100;
+    return original - discount;
+}
+
+fn calculate_tax(amount: int, tax_rate: int) -> int {
+    return amount * tax_rate / 100;
+}
+
+fn total_with_tax(amount: int, tax_rate: int) -> int {
+    let tax = amount * tax_rate / 100;
+    return amount + tax;
+}
+
+// ========== التحويلات ==========
+
+fn celsius_to_fahrenheit(celsius: int) -> int {
+    return celsius * 9 / 5 + 32;
+}
+
+fn fahrenheit_to_celsius(fahrenheit: int) -> int {
+    return (fahrenheit - 32) * 5 / 9;
+}
+
+fn meters_to_centimeters(meters: int) -> int {
+    return meters * 100;
+}
+
+fn centimeters_to_meters(cm: int) -> int {
+    return cm / 100;
+}
+
+fn hours_to_minutes(hours: int) -> int {
+    return hours * 60;
+}
+
+fn minutes_to_hours(minutes: int) -> int {
+    return minutes / 60;
+}
+
+fn kilograms_to_grams(kg: int) -> int {
+    return kg * 1000;
+}
+
+fn grams_to_kilograms(grams: int) -> int {
+    return grams / 1000;
+}
+
+// ========== الحسابات الهندسية ==========
+
+fn rectangle_area(length: int, width: int) -> int {
+    return length * width;
+}
+
+fn rectangle_perimeter(length: int, width: int) -> int {
+    return 2 * (length + width);
+}
+
+fn triangle_area(base: int, height: int) -> int {
+    return base * height / 2;
+}
+
+fn circle_area(radius: int) -> int {
+    // π ≈ 3.14 = 314/100
+    return 314 * radius * radius / 100;
+}
+
+fn circle_perimeter(radius: int) -> int {
+    // 2πr ≈ 6.28 * r = 628 * r / 100
+    return 628 * radius / 100;
+}
+
+fn square_area(side: int) -> int {
+    return side * side;
+}
+
+fn cube_volume(side: int) -> int {
+    return side * side * side;
+}
+
+// ========== الإحصائيات ==========
+
+fn average_of_two(a: int, b: int) -> int {
+    return (a + b) / 2;
+}
+
+fn average_of_three(a: int, b: int, c: int) -> int {
+    return (a + b + c) / 3;
+}
+
+fn maximum_of_two(a: int, b: int) -> int {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fn minimum_of_two(a: int, b: int) -> int {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+fn maximum_of_three(a: int, b: int, c: int) -> int {
+    let max_ab = a;
+    if b > a {
+        let max_ab = b;
+    }
+    
+    if c > max_ab {
+        return c;
+    }
+    return max_ab;
+}
+
+fn minimum_of_three(a: int, b: int, c: int) -> int {
+    let min_ab = a;
+    if b < a {
+        let min_ab = b;
+    }
+    
+    if c < min_ab {
+        return c;
+    }
+    return min_ab;
+}
+
+// ========== الفحوصات المنطقية ==========
+
+fn is_positive(number: int) -> bool {
+    return number > 0;
+}
+
+fn is_negative(number: int) -> bool {
+    return number < 0;
+}
+
+fn is_zero(number: int) -> bool {
+    return number == 0;
+}
+
+fn is_even(number: int) -> bool {
+    let remainder = number - (number / 2) * 2;
+    return remainder == 0;
+}
+
+fn is_odd(number: int) -> bool {
+    let remainder = number - (number / 2) * 2;
+    return remainder != 0;
+}
+
+fn are_equal(a: int, b: int) -> bool {
+    return a == b;
+}
+
+fn is_greater(a: int, b: int) -> bool {
+    return a > b;
+}
+
+fn is_smaller(a: int, b: int) -> bool {
+    return a < b;
+}
+
+// ========== حسابات الوقت ==========
+
+fn days_to_hours(days: int) -> int {
+    return days * 24;
+}
+
+fn hours_to_days(hours: int) -> int {
+    return hours / 24;
+}
+
+fn weeks_to_days(weeks: int) -> int {
+    return weeks * 7;
+}
+
+fn days_to_weeks(days: int) -> int {
+    return days / 7;
+}
+
+fn years_to_days(years: int) -> int {
+    return years * 365;
+}
+
+fn days_to_years(days: int) -> int {
+    return days / 365;
+}
+
+// ========== التصنيف والتقييم ==========
+
+fn classify_grade(score: int) -> string {
+    if score >= 90 {
+        return "ممتاز";
+    }
+    if score >= 80 {
+        return "جيد جداً";
+    }
+    if score >= 70 {
+        return "جيد";
+    }
+    if score >= 60 {
+        return "مقبول";
+    }
+    return "راسب";
+}
+
+fn classify_temperature(temp: int) -> string {
+    if temp >= 40 {
+        return "حار جداً";
+    }
+    if temp >= 30 {
+        return "حار";
+    }
+    if temp >= 20 {
+        return "معتدل";
+    }
+    if temp >= 10 {
+        return "بارد";
+    }
+    return "بارد جداً";
+}
+
+fn classify_age_group(age: int) -> string {
+    if age >= 65 {
+        return "كبار السن";
+    }
+    if age >= 30 {
+        return "بالغ";
+    }
+    if age >= 18 {
+        return "شاب";
+    }
+    if age >= 13 {
+        return "مراهق";
+    }
+    return "طفل";
+}
+
+fn evaluate_performance(score: int) -> string {
+    if score >= 95 {
+        return "متميز";
+    }
+    if score >= 85 {
+        return "ممتاز";
+    }
+    if score >= 75 {
+        return "جيد";
+    }
+    if score >= 65 {
+        return "مقبول";
+    }
+    return "يحتاج تحسين";
+}
+
+// ========== الدالة الرئيسية ==========
+
+fn main() -> int {
+    // اختبار العمليات الأساسية
+    let x = 20;
+    let y = 8;
+    
+    let sum = add_two(x, y);
+    let difference = subtract_two(x, y);
+    let product = multiply_two(x, y);
+    let quotient = divide_safe(x, y);
+    let square = power_square(x);
+    let cube = power_cube(y);
+    
+    // اختبار العمليات المالية
+    let principal = 5000;
+    let rate = 6;
+    let years = 3;
+    let interest = calculate_interest(principal, rate, years);
+    
+    let price = 800;
+    let discount_percent = 15;
+    let discount = calculate_discount(price, discount_percent);
+    let final_price = price_after_discount(price, discount_percent);
+    
+    let tax_rate = 10;
+    let tax = calculate_tax(final_price, tax_rate);
+    let total_price = total_with_tax(final_price, tax_rate);
+    
+    // اختبار التحويلات
+    let temp_c = 25;
+    let temp_f = celsius_to_fahrenheit(temp_c);
+    let temp_c_back = fahrenheit_to_celsius(temp_f);
+    
+    let distance_m = 5;
+    let distance_cm = meters_to_centimeters(distance_m);
+    
+    let time_h = 3;
+    let time_min = hours_to_minutes(time_h);
+    
+    let weight_kg = 2;
+    let weight_g = kilograms_to_grams(weight_kg);
+    
+    // اختبار الحسابات الهندسية
+    let rect_length = 12;
+    let rect_width = 8;
+    let rect_area = rectangle_area(rect_length, rect_width);
+    let rect_perimeter = rectangle_perimeter(rect_length, rect_width);
+    
+    let tri_base = 10;
+    let tri_height = 6;
+    let tri_area = triangle_area(tri_base, tri_height);
+    
+    let circle_radius = 7;
+    let circle_area_result = circle_area(circle_radius);
+    let circle_perimeter_result = circle_perimeter(circle_radius);
+    
+    let square_side = 9;
+    let square_area_result = square_area(square_side);
+    let cube_volume_result = cube_volume(square_side);
+    
+    // اختبار الإحصائيات
+    let num1 = 15;
+    let num2 = 25;
+    let num3 = 20;
+    
+    let avg_two = average_of_two(num1, num2);
+    let avg_three = average_of_three(num1, num2, num3);
+    let max_two = maximum_of_two(num1, num2);
+    let min_two = minimum_of_two(num1, num2);
+    let max_three = maximum_of_three(num1, num2, num3);
+    let min_three = minimum_of_three(num1, num2, num3);
+    
+    // اختبار الفحوصات المنطقية
+    let test_num = 42;
+    let positive_check = is_positive(test_num);
+    let even_check = is_even(test_num);
+    let equality_check = are_equal(test_num, 42);
+    let greater_check = is_greater(test_num, 40);
+    
+    // اختبار حسابات الوقت
+    let project_days = 14;
+    let project_hours = days_to_hours(project_days);
+    
+    let vacation_weeks = 2;
+    let vacation_days = weeks_to_days(vacation_weeks);
+    
+    let experience_years = 5;
+    let experience_days = years_to_days(experience_years);
+    
+    // اختبار التصنيف
+    let student_score = 87;
+    let grade = classify_grade(student_score);
+    
+    let current_temp = 28;
+    let temp_class = classify_temperature(current_temp);
+    
+    let person_age = 25;
+    let age_group = classify_age_group(person_age);
+    
+    let performance_score = 88;
+    let performance = evaluate_performance(performance_score);
+    
+    // حساب النتائج الفرعية
+    let basic_math = sum + product + square + cube;
+    let financial_calc = interest + final_price + total_price;
+    let conversions = temp_f + distance_cm + time_min + weight_g;
+    let geometry = rect_area + tri_area + circle_area_result + square_area_result;
+    let statistics = avg_three + max_three + min_three;
+    let time_calc = project_hours + vacation_days + experience_days;
+    
+    // النتيجة النهائية
+    let result1 = basic_math + financial_calc;
+    let result2 = conversions + geometry;
+    let result3 = statistics + time_calc;
+    
+    let final_result = result1 + result2 + result3;
+    
+    return final_result;
+}

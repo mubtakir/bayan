@@ -1,0 +1,253 @@
+// الهياكل والسمات - مثال على البرمجة الكائنية باستخدام الميزات المدعومة
+// Structs and Traits - Object-oriented programming with supported features
+
+// تعريف هيكل للحيوان
+struct Animal {
+    name: string,
+    age: int,
+    species: string,
+}
+
+// تعريف هيكل للكلب
+struct Dog {
+    animal: Animal,
+    breed: string,
+    is_trained: bool,
+}
+
+// تعريف هيكل للقطة
+struct Cat {
+    animal: Animal,
+    indoor_only: bool,
+    favorite_toy: string,
+}
+
+// دوال للعمل مع الحيوانات
+fn create_animal(name: string, age: int, species: string) -> Animal {
+    return Animal {
+        name: name,
+        age: age,
+        species: species,
+    };
+}
+
+fn create_dog(name: string, age: int, breed: string) -> Dog {
+    let animal = create_animal(name, age, "كلب");
+    return Dog {
+        animal: animal,
+        breed: breed,
+        is_trained: false,
+    };
+}
+
+fn create_cat(name: string, age: int, indoor_only: bool) -> Cat {
+    let animal = create_animal(name, age, "قطة");
+    return Cat {
+        animal: animal,
+        indoor_only: indoor_only,
+        favorite_toy: "كرة الصوف",
+    };
+}
+
+// دوال للحصول على أصوات الحيوانات
+fn animal_sound(animal: &Animal) -> string {
+    if animal.species == "كلب" {
+        return "هاو هاو!";
+    } else if animal.species == "قطة" {
+        return "مياو مياو!";
+    } else {
+        return "صوت حيوان";
+    }
+}
+
+// دوال للعمل مع الكلاب
+fn train_dog(dog: &mut Dog) {
+    dog.is_trained = true;
+    print(dog.animal.name + " تم تدريبه بنجاح!");
+}
+
+fn dog_fetch(dog: &Dog) -> string {
+    if dog.is_trained {
+        return dog.animal.name + " يجلب الكرة!";
+    } else {
+        return dog.animal.name + " لا يعرف كيف يجلب الكرة بعد.";
+    }
+}
+
+// دوال للعمل مع القطط
+fn cat_purr(cat: &Cat) -> string {
+    return cat.animal.name + " تخرخر بسعادة!";
+}
+
+fn cat_play(cat: &Cat) -> string {
+    return cat.animal.name + " تلعب مع " + cat.favorite_toy;
+}
+
+// دالة لعرض معلومات الحيوان
+fn show_animal_info(animal: &Animal) {
+    print("الاسم: " + animal.name);
+    print("العمر: " + animal.age + " سنة");
+    print("النوع: " + animal.species);
+    print("الصوت: " + animal_sound(animal));
+}
+
+// دالة لعرض معلومات الكلب
+fn show_dog_info(dog: &Dog) {
+    show_animal_info(&dog.animal);
+    print("السلالة: " + dog.breed);
+    let training_status = if dog.is_trained { "مدرب" } else { "غير مدرب" };
+    print("حالة التدريب: " + training_status);
+}
+
+// دالة لعرض معلومات القطة
+fn show_cat_info(cat: &Cat) {
+    show_animal_info(&cat.animal);
+    let location = if cat.indoor_only { "داخلي فقط" } else { "داخلي وخارجي" };
+    print("المكان: " + location);
+    print("اللعبة المفضلة: " + cat.favorite_toy);
+}
+
+// هيكل لإدارة الحيوانات الأليفة
+struct PetManager {
+    dogs: list<Dog>,
+    cats: list<Cat>,
+    total_pets: int,
+}
+
+fn create_pet_manager() -> PetManager {
+    return PetManager {
+        dogs: [],
+        cats: [],
+        total_pets: 0,
+    };
+}
+
+fn add_dog_to_manager(manager: &mut PetManager, dog: Dog) {
+    manager.dogs.push(dog);
+    manager.total_pets = manager.total_pets + 1;
+    print("تم إضافة كلب جديد!");
+}
+
+fn add_cat_to_manager(manager: &mut PetManager, cat: Cat) {
+    manager.cats.push(cat);
+    manager.total_pets = manager.total_pets + 1;
+    print("تم إضافة قطة جديدة!");
+}
+
+fn play_with_all_dogs(manager: &PetManager) {
+    print("=== وقت اللعب مع الكلاب ===");
+    for dog in manager.dogs {
+        print(dog_fetch(&dog));
+    }
+}
+
+fn play_with_all_cats(manager: &PetManager) {
+    print("=== وقت اللعب مع القطط ===");
+    for cat in manager.cats {
+        print(cat_play(&cat));
+        print(cat_purr(&cat));
+    }
+}
+
+fn show_manager_stats(manager: &PetManager) {
+    print("=== إحصائيات الحيوانات الأليفة ===");
+    print("إجمالي الحيوانات: " + manager.total_pets);
+    print("عدد الكلاب: " + manager.dogs.len());
+    print("عدد القطط: " + manager.cats.len());
+    
+    let mut trained_dogs = 0;
+    for dog in manager.dogs {
+        if dog.is_trained {
+            trained_dogs = trained_dogs + 1;
+        }
+    }
+    print("الكلاب المدربة: " + trained_dogs + " من " + manager.dogs.len());
+}
+
+// دالة لمحاكاة يوم في حياة الحيوانات الأليفة
+fn simulate_pet_day(manager: &mut PetManager) {
+    print("=== بداية يوم جديد ===");
+    
+    // إطعام جميع الحيوانات
+    print("\n--- وقت الطعام ---");
+    for dog in &manager.dogs {
+        print("إطعام " + dog.animal.name + " طعام الكلاب");
+    }
+    for cat in &manager.cats {
+        print("إطعام " + cat.animal.name + " طعام القطط");
+    }
+    
+    // تدريب الكلاب غير المدربة
+    print("\n--- وقت التدريب ---");
+    for dog in &mut manager.dogs {
+        if !dog.is_trained {
+            train_dog(dog);
+        }
+    }
+    
+    // وقت اللعب
+    print("\n--- وقت اللعب ---");
+    play_with_all_dogs(manager);
+    play_with_all_cats(manager);
+    
+    print("\n=== انتهاء اليوم ===");
+}
+
+fn main() -> int {
+    print("=== مثال الهياكل والسمات ===");
+    
+    // إنشاء حيوانات مختلفة
+    let mut dog1 = create_dog("ريكس", 3, "جيرمن شيبرد");
+    let mut dog2 = create_dog("بيلا", 2, "لابرادور");
+    let cat1 = create_cat("مشمش", 2, true);
+    let cat2 = create_cat("لولو", 4, false);
+    
+    // عرض معلومات الحيوانات
+    print("\n=== معلومات الحيوانات ===");
+    show_dog_info(&dog1);
+    print("");
+    show_dog_info(&dog2);
+    print("");
+    show_cat_info(&cat1);
+    print("");
+    show_cat_info(&cat2);
+    
+    // تدريب أحد الكلاب
+    print("\n=== التدريب ===");
+    train_dog(&mut dog1);
+    
+    // اختبار قدرات الكلاب
+    print("\n=== اختبار القدرات ===");
+    print(dog_fetch(&dog1));
+    print(dog_fetch(&dog2));
+    
+    // اختبار أنشطة القطط
+    print("\n=== أنشطة القطط ===");
+    print(cat_play(&cat1));
+    print(cat_purr(&cat1));
+    print(cat_play(&cat2));
+    print(cat_purr(&cat2));
+    
+    // إنشاء مدير الحيوانات الأليفة
+    print("\n=== إدارة الحيوانات الأليفة ===");
+    let mut manager = create_pet_manager();
+    
+    // إضافة الحيوانات للمدير
+    add_dog_to_manager(&mut manager, dog1);
+    add_dog_to_manager(&mut manager, dog2);
+    add_cat_to_manager(&mut manager, cat1);
+    add_cat_to_manager(&mut manager, cat2);
+    
+    // عرض الإحصائيات
+    show_manager_stats(&manager);
+    
+    // محاكاة يوم كامل
+    print("\n");
+    simulate_pet_day(&mut manager);
+    
+    // عرض الإحصائيات النهائية
+    print("\n");
+    show_manager_stats(&manager);
+    
+    return 0;
+}

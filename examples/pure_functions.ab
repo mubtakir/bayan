@@ -1,0 +1,440 @@
+// الدوال النقية - مثال بسيط بدون استدعاءات معقدة
+// Pure Functions - Simple example without complex calls
+
+// دوال العمليات الأساسية
+fn add_two(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn subtract_two(a: int, b: int) -> int {
+    return a - b;
+}
+
+fn multiply_two(a: int, b: int) -> int {
+    return a * b;
+}
+
+fn divide_two(a: int, b: int) -> int {
+    if b != 0 {
+        return a / b;
+    }
+    return 0;
+}
+
+// دوال المقارنة
+fn get_max(a: int, b: int) -> int {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fn get_min(a: int, b: int) -> int {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+fn get_abs(x: int) -> int {
+    if x < 0 {
+        return -x;
+    }
+    return x;
+}
+
+// دوال التحقق
+fn check_positive(n: int) -> bool {
+    return n > 0;
+}
+
+fn check_negative(n: int) -> bool {
+    return n < 0;
+}
+
+fn check_zero(n: int) -> bool {
+    return n == 0;
+}
+
+fn check_equal(a: int, b: int) -> bool {
+    return a == b;
+}
+
+// دوال القوة
+fn get_square(n: int) -> int {
+    return n * n;
+}
+
+fn get_cube(n: int) -> int {
+    return n * n * n;
+}
+
+fn get_double(n: int) -> int {
+    return n * 2;
+}
+
+fn get_half(n: int) -> int {
+    return n / 2;
+}
+
+// دوال الحسابات الهندسية
+fn calc_rectangle_area(width: int, height: int) -> int {
+    return width * height;
+}
+
+fn calc_rectangle_perimeter(width: int, height: int) -> int {
+    return (width + height) * 2;
+}
+
+fn calc_triangle_area(base: int, height: int) -> int {
+    return (base * height) / 2;
+}
+
+fn calc_circle_area_simple(radius: int) -> int {
+    return 3 * radius * radius; // π ≈ 3
+}
+
+// دوال التحويل
+fn convert_c_to_f(celsius: int) -> int {
+    return (celsius * 9) / 5 + 32;
+}
+
+fn convert_m_to_cm(meters: int) -> int {
+    return meters * 100;
+}
+
+fn convert_hours_to_minutes(hours: int) -> int {
+    return hours * 60;
+}
+
+fn convert_kg_to_grams(kg: int) -> int {
+    return kg * 1000;
+}
+
+// دوال التصنيف
+fn get_number_category(n: int) -> string {
+    if n > 0 {
+        return "موجب";
+    }
+    if n < 0 {
+        return "سالب";
+    }
+    return "صفر";
+}
+
+fn get_grade_category(grade: int) -> string {
+    if grade >= 90 {
+        return "ممتاز";
+    }
+    if grade >= 80 {
+        return "جيد جداً";
+    }
+    if grade >= 70 {
+        return "جيد";
+    }
+    if grade >= 60 {
+        return "مقبول";
+    }
+    return "راسب";
+}
+
+fn get_age_category(age: int) -> string {
+    if age < 13 {
+        return "طفل";
+    }
+    if age < 20 {
+        return "مراهق";
+    }
+    if age < 60 {
+        return "بالغ";
+    }
+    return "كبير السن";
+}
+
+// دوال الحسابات المالية
+fn calc_simple_interest(principal: int, rate: int, time: int) -> int {
+    return (principal * rate * time) / 100;
+}
+
+fn calc_discount(price: int, percent: int) -> int {
+    return (price * percent) / 100;
+}
+
+fn calc_tax(price: int, percent: int) -> int {
+    return (price * percent) / 100;
+}
+
+fn calc_tip(bill: int, percent: int) -> int {
+    return (bill * percent) / 100;
+}
+
+// دوال الإحصاء البسيطة
+fn calc_average_two(a: int, b: int) -> int {
+    return (a + b) / 2;
+}
+
+fn calc_average_three(a: int, b: int, c: int) -> int {
+    return (a + b + c) / 3;
+}
+
+fn calc_sum_two(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn calc_sum_three(a: int, b: int, c: int) -> int {
+    return a + b + c;
+}
+
+// دوال التحقق من النطاقات
+fn is_in_valid_range(value: int, min_val: int, max_val: int) -> bool {
+    return value >= min_val && value <= max_val;
+}
+
+fn is_passing_grade(grade: int) -> bool {
+    return grade >= 60;
+}
+
+fn is_adult_person(age: int) -> bool {
+    return age >= 18;
+}
+
+fn is_valid_percentage(percent: int) -> bool {
+    return percent >= 0 && percent <= 100;
+}
+
+// دوال الحسابات المتقدمة
+fn calc_power_of_two(exp: int) -> int {
+    if exp == 0 {
+        return 1;
+    }
+    if exp == 1 {
+        return 2;
+    }
+    if exp == 2 {
+        return 4;
+    }
+    if exp == 3 {
+        return 8;
+    }
+    if exp == 4 {
+        return 16;
+    }
+    return 32;
+}
+
+fn calc_factorial_small(n: int) -> int {
+    if n <= 1 {
+        return 1;
+    }
+    if n == 2 {
+        return 2;
+    }
+    if n == 3 {
+        return 6;
+    }
+    if n == 4 {
+        return 24;
+    }
+    if n == 5 {
+        return 120;
+    }
+    return 720;
+}
+
+// دوال المقارنة المتقدمة
+fn find_max_of_three(a: int, b: int, c: int) -> int {
+    if a >= b && a >= c {
+        return a;
+    }
+    if b >= a && b >= c {
+        return b;
+    }
+    return c;
+}
+
+fn find_min_of_three(a: int, b: int, c: int) -> int {
+    if a <= b && a <= c {
+        return a;
+    }
+    if b <= a && b <= c {
+        return b;
+    }
+    return c;
+}
+
+// دوال التحويل المتقدمة
+fn convert_seconds_to_minutes(seconds: int) -> int {
+    return seconds / 60;
+}
+
+fn convert_minutes_to_hours(minutes: int) -> int {
+    return minutes / 60;
+}
+
+fn convert_cm_to_meters(cm: int) -> int {
+    return cm / 100;
+}
+
+fn convert_grams_to_kg(grams: int) -> int {
+    return grams / 1000;
+}
+
+fn main() -> int {
+    // تعريف المتغيرات الأساسية
+    let number1 = 15;
+    let number2 = 8;
+    let number3 = 12;
+    let number4 = 20;
+    let number5 = 25;
+    
+    // العمليات الحسابية الأساسية
+    let sum_result = number1 + number2;
+    let diff_result = number1 - number2;
+    let mult_result = number1 * number2;
+    let div_result = number1 / number2;
+    
+    // عمليات المقارنة
+    let max_result = number1;
+    if number2 > max_result {
+        max_result = number2;
+    }
+    
+    let min_result = number1;
+    if number2 < min_result {
+        min_result = number2;
+    }
+    
+    // عمليات القوة
+    let square_result = number1 * number1;
+    let cube_result = number2 * number2 * number2;
+    let double_result = number3 * 2;
+    let half_result = number4 / 2;
+    
+    // الحسابات الهندسية
+    let rect_width = 6;
+    let rect_height = 4;
+    let rect_area = rect_width * rect_height;
+    let rect_perimeter = (rect_width + rect_height) * 2;
+    
+    let tri_base = 8;
+    let tri_height = 5;
+    let tri_area = (tri_base * tri_height) / 2;
+    
+    let circle_radius = 3;
+    let circle_area = 3 * circle_radius * circle_radius;
+    
+    // التحويلات
+    let temp_celsius = 25;
+    let temp_fahrenheit = (temp_celsius * 9) / 5 + 32;
+    
+    let distance_meters = 5;
+    let distance_cm = distance_meters * 100;
+    
+    let time_hours = 3;
+    let time_minutes = time_hours * 60;
+    
+    let weight_kg = 70;
+    let weight_grams = weight_kg * 1000;
+    
+    // الحسابات المالية
+    let principal = 1000;
+    let rate = 5;
+    let time = 2;
+    let interest = (principal * rate * time) / 100;
+    let total_amount = principal + interest;
+    
+    let item_price = 200;
+    let discount_percent = 15;
+    let discount_amount = (item_price * discount_percent) / 100;
+    let final_price = item_price - discount_amount;
+    
+    let bill_amount = 150;
+    let tip_percent = 10;
+    let tip_amount = (bill_amount * tip_percent) / 100;
+    let total_bill = bill_amount + tip_amount;
+    
+    // الإحصاء
+    let grade1 = 85;
+    let grade2 = 90;
+    let grade3 = 78;
+    let total_grades = grade1 + grade2 + grade3;
+    let average_grade = total_grades / 3;
+    
+    let data1 = 10;
+    let data2 = 15;
+    let data3 = 20;
+    let data4 = 25;
+    let data5 = 30;
+    let data_sum = data1 + data2 + data3 + data4 + data5;
+    let data_average = data_sum / 5;
+    
+    // التحقق من الشروط
+    let is_positive_num = number1 > 0;
+    let is_negative_num = number2 < 0;
+    let is_zero_num = number3 == 0;
+    let is_equal_nums = number1 == number2;
+    
+    let is_passing = average_grade >= 60;
+    let is_excellent = average_grade >= 90;
+    let is_adult_age = 25 >= 18;
+    let is_valid_percent = discount_percent >= 0 && discount_percent <= 100;
+    
+    // حسابات متقدمة
+    let power_result = 1;
+    let exp = 4;
+    if exp == 0 {
+        power_result = 1;
+    }
+    if exp == 1 {
+        power_result = 2;
+    }
+    if exp == 2 {
+        power_result = 4;
+    }
+    if exp == 3 {
+        power_result = 8;
+    }
+    if exp == 4 {
+        power_result = 16;
+    }
+    
+    let factorial_result = 1;
+    let fact_num = 5;
+    if fact_num == 1 {
+        factorial_result = 1;
+    }
+    if fact_num == 2 {
+        factorial_result = 2;
+    }
+    if fact_num == 3 {
+        factorial_result = 6;
+    }
+    if fact_num == 4 {
+        factorial_result = 24;
+    }
+    if fact_num == 5 {
+        factorial_result = 120;
+    }
+    
+    // المقارنة المتقدمة
+    let max_of_three = number1;
+    if number2 > max_of_three {
+        max_of_three = number2;
+    }
+    if number3 > max_of_three {
+        max_of_three = number3;
+    }
+    
+    let min_of_three = number1;
+    if number2 < min_of_three {
+        min_of_three = number2;
+    }
+    if number3 < min_of_three {
+        min_of_three = number3;
+    }
+    
+    // النتيجة النهائية
+    let final_calculation = sum_result + mult_result + rect_area + interest + average_grade;
+    
+    return final_calculation;
+}

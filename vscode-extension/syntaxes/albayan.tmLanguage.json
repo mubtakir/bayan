@@ -1,0 +1,173 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "AlBayan",
+  "patterns": [
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#types"
+    },
+    {
+      "include": "#logic"
+    },
+    {
+      "include": "#ai"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#functions"
+    }
+  ],
+  "repository": {
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.albayan",
+          "match": "\\b(if|else|while|for|loop|break|continue|return|match|case)\\b"
+        },
+        {
+          "name": "keyword.declaration.albayan",
+          "match": "\\b(fn|let|mut|const|struct|enum|impl|trait|mod|use|pub)\\b"
+        },
+        {
+          "name": "keyword.other.albayan",
+          "match": "\\b(self|Self|super|crate|where|as|ref|move|static|extern|unsafe)\\b"
+        }
+      ]
+    },
+    "logic": {
+      "patterns": [
+        {
+          "name": "keyword.logic.albayan",
+          "match": "\\b(relation|rule|fact|query|assert|retract|findall|bagof|setof)\\b"
+        },
+        {
+          "name": "operator.logic.albayan",
+          "match": "(:-|\\.|\\?-|!)"
+        }
+      ]
+    },
+    "ai": {
+      "patterns": [
+        {
+          "name": "keyword.ai.albayan",
+          "match": "\\b(model|tensor|dataset|train|predict|load|save|neural|layer)\\b"
+        },
+        {
+          "name": "support.type.ai.albayan",
+          "match": "\\b(Tensor|Model|Dataset|NeuralNetwork|Layer)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "support.type.primitive.albayan",
+          "match": "\\b(int|float|bool|string|char|void)\\b"
+        },
+        {
+          "name": "support.type.collection.albayan",
+          "match": "\\b(Vec|Array|Map|Set|List|Queue|Stack|Tree|Graph)\\b"
+        },
+        {
+          "name": "support.type.concurrent.albayan",
+          "match": "\\b(Channel|Mutex|Atomic|Future|Stream|Thread)\\b"
+        },
+        {
+          "name": "support.type.reference.albayan",
+          "match": "\\b(Ref|MutRef|WeakRef|Box|Rc|Arc)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.albayan",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.albayan",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.albayan",
+          "begin": "//",
+          "end": "$"
+        },
+        {
+          "name": "comment.block.albayan",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.integer.albayan",
+          "match": "\\b\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.float.albayan",
+          "match": "\\b\\d+\\.\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.hex.albayan",
+          "match": "\\b0x[0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.binary.albayan",
+          "match": "\\b0b[01]+\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.arithmetic.albayan",
+          "match": "(\\+|\\-|\\*|\\/|%)"
+        },
+        {
+          "name": "keyword.operator.comparison.albayan",
+          "match": "(==|!=|<|>|<=|>=)"
+        },
+        {
+          "name": "keyword.operator.logical.albayan",
+          "match": "(&&|\\|\\||!)"
+        },
+        {
+          "name": "keyword.operator.assignment.albayan",
+          "match": "(=|\\+=|\\-=|\\*=|\\/=|%=)"
+        },
+        {
+          "name": "keyword.operator.bitwise.albayan",
+          "match": "(&|\\||\\^|<<|>>|~)"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "entity.name.function.albayan",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*(?=\\s*\\()"
+        }
+      ]
+    }
+  },
+  "scopeName": "source.albayan"
+}

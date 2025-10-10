@@ -1,0 +1,59 @@
+[package]
+name = "albayan"
+version = "0.1.0"
+edition = "2021"
+description = "البيان (AlBayan) - A modern programming language integrating logic programming, AI, and traditional paradigms"
+authors = ["AlBayan Team"]
+license = "MIT"
+
+[dependencies]
+# Lexical analysis
+logos = "0.14"
+
+# Parsing
+chumsky = "0.9"
+
+# LLVM IR generation (disabled for now)
+# inkwell = { version = "0.4", features = ["llvm17-0"] }
+
+# Language Server Protocol
+tower-lsp = "0.20"
+tower = "0.4"
+serde_json = "1.0"
+
+# Machine Learning and AI
+ndarray = "0.15"
+rand = "0.8"
+# candle-core = "0.3"
+# candle-nn = "0.3"
+# candle-transformers = "0.3"
+# ort = "1.16"  # ONNX Runtime
+# tch = "0.13"  # PyTorch bindings
+
+# Command line interface
+clap = { version = "4.0", features = ["derive"] }
+
+# Error handling and utilities
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+
+# Async runtime for future features
+tokio = { version = "1.0", features = ["full"] }
+
+# Logic programming engine dependencies
+petgraph = "0.6"  # For graph-based reasoning
+indexmap = "2.0"  # For ordered maps in knowledge base
+
+[dev-dependencies]
+criterion = "0.5"  # For benchmarking
+
+[[bin]]
+name = "albayan"
+path = "src/main.rs"
+
+[lib]
+name = "albayan_lib"
+path = "src/lib.rs"

@@ -1,0 +1,73 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Runtime
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Build artifacts
+/build/
+/dist/
+/out/
+
+# AlBayan specific
+*.ab.compiled
+*.ab.cache
+.albayan/
+
+# Documentation build
+/docs/_build/
+/docs/site/
+
+# Test outputs
+test_outputs/
+*.test
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# AlBayan examples output
+examples/output/
+examples/*.png
+examples/*.svg
+examples/*.pdf
+examples/*.jpeg
+
+# Compiled binaries
+albayan
+albayan.exe
+*.exe
+*.dll
+*.so
+*.dylib

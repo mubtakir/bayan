@@ -1,0 +1,201 @@
+{
+    "Function": {
+        "prefix": "fn",
+        "body": [
+            "fn ${1:function_name}(${2:params}) -> ${3:return_type} {",
+            "\t${4:// function body}",
+            "\treturn ${5:value};",
+            "}"
+        ],
+        "description": "Create a function"
+    },
+    "Main Function": {
+        "prefix": "main",
+        "body": [
+            "fn main() -> int {",
+            "\t${1:// main function body}",
+            "\treturn 0;",
+            "}"
+        ],
+        "description": "Create main function"
+    },
+    "Let Statement": {
+        "prefix": "let",
+        "body": [
+            "let ${1:variable_name} = ${2:value};"
+        ],
+        "description": "Create let statement"
+    },
+    "If Statement": {
+        "prefix": "if",
+        "body": [
+            "if ${1:condition} {",
+            "\t${2:// if body}",
+            "}"
+        ],
+        "description": "Create if statement"
+    },
+    "If-Else Statement": {
+        "prefix": "ifelse",
+        "body": [
+            "if ${1:condition} {",
+            "\t${2:// if body}",
+            "} else {",
+            "\t${3:// else body}",
+            "}"
+        ],
+        "description": "Create if-else statement"
+    },
+    "While Loop": {
+        "prefix": "while",
+        "body": [
+            "while ${1:condition} {",
+            "\t${2:// loop body}",
+            "}"
+        ],
+        "description": "Create while loop"
+    },
+    "For Loop": {
+        "prefix": "for",
+        "body": [
+            "for ${1:item} in ${2:collection} {",
+            "\t${3:// loop body}",
+            "}"
+        ],
+        "description": "Create for loop"
+    },
+    "Struct": {
+        "prefix": "struct",
+        "body": [
+            "struct ${1:StructName} {",
+            "\t${2:field_name}: ${3:field_type};",
+            "}"
+        ],
+        "description": "Create struct"
+    },
+    "Enum": {
+        "prefix": "enum",
+        "body": [
+            "enum ${1:EnumName} {",
+            "\t${2:Variant1},",
+            "\t${3:Variant2},",
+            "}"
+        ],
+        "description": "Create enum"
+    },
+    "Class": {
+        "prefix": "class",
+        "body": [
+            "class ${1:ClassName} {",
+            "\t${2:field_name}: ${3:field_type};",
+            "\t",
+            "\tfn ${4:method_name}(self) -> ${5:return_type} {",
+            "\t\t${6:// method body}",
+            "\t}",
+            "}"
+        ],
+        "description": "Create class"
+    },
+    "Relation": {
+        "prefix": "relation",
+        "body": [
+            "relation ${1:relation_name}(${2:arg_types});"
+        ],
+        "description": "Create relation"
+    },
+    "Fact": {
+        "prefix": "fact",
+        "body": [
+            "fact ${1:fact_name}(${2:arguments});"
+        ],
+        "description": "Create fact"
+    },
+    "Rule": {
+        "prefix": "rule",
+        "body": [
+            "rule ${1:head} :- ${2:body};"
+        ],
+        "description": "Create rule"
+    },
+    "Basera Sigmoid": {
+        "prefix": "sigmoid",
+        "body": [
+            "fn ${1:sigmoid_function}(x: int) -> int {",
+            "\tlet alpha = ${2:1};",
+            "\tlet k_real = ${3:1};",
+            "\tlet k_imaginary = ${4:0};",
+            "\tlet x0 = ${5:0};",
+            "\t",
+            "\t// Sigmoid calculation",
+            "\tlet shifted_x = x - x0;",
+            "\tlet exp_part = k_real * shifted_x / 100;",
+            "\tlet sigmoid_result = alpha * 100 / (100 + exp_part);",
+            "\t",
+            "\treturn sigmoid_result;",
+            "}"
+        ],
+        "description": "Create Basera sigmoid function"
+    },
+    "Basera Theory": {
+        "prefix": "theory",
+        "body": [
+            "// ${1:Theory Name} Implementation",
+            "fn ${2:theory_function}(input: int) -> int {",
+            "\t// Zero Duality: Everything emerges from zero",
+            "\tlet positive_emergence = input * 2;",
+            "\tlet negative_emergence = 0 - positive_emergence;",
+            "\tlet cosmic_balance = positive_emergence + negative_emergence; // Always = 0",
+            "\t",
+            "\t// Perpendicularity: Opposites are perpendicular",
+            "\tlet perpendicular_result = positive_emergence;",
+            "\t",
+            "\t// Filament: Smallest building blocks",
+            "\tlet filament_structure = perpendicular_result / 10;",
+            "\t",
+            "\treturn filament_structure;",
+            "}"
+        ],
+        "description": "Create Basera theory implementation"
+    },
+    "AI Model": {
+        "prefix": "aimodel",
+        "body": [
+            "fn ${1:ai_model}(input_data: int) -> int {",
+            "\t// Multi-layer thinking core",
+            "\tlet mathematical_layer = input_data * 2;",
+            "\tlet linguistic_layer = mathematical_layer + 5;",
+            "\tlet logical_layer = linguistic_layer * 3;",
+            "\tlet physical_layer = logical_layer / 2;",
+            "\t",
+            "\t// Expert/Explorer decision",
+            "\tlet confidence = physical_layer % 100;",
+            "\tlet exploration_depth = confidence / 10;",
+            "\t",
+            "\tif confidence > 70 {",
+            "\t\t// Expert mode",
+            "\t\treturn physical_layer + 100;",
+            "\t} else {",
+            "\t\t// Explorer mode",
+            "\t\treturn physical_layer + exploration_depth;",
+            "\t}",
+            "}"
+        ],
+        "description": "Create AI model function"
+    },
+    "Comment Block": {
+        "prefix": "comment",
+        "body": [
+            "// ========== ${1:Section Title} ==========",
+            "// ${2:Description}",
+            ""
+        ],
+        "description": "Create comment block"
+    },
+    "Arabic Comment": {
+        "prefix": "تعليق",
+        "body": [
+            "// ${1:التعليق باللغة العربية}"
+        ],
+        "description": "Create Arabic comment"
+    }
+}

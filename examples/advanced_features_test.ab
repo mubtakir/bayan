@@ -1,0 +1,287 @@
+// اختبار الميزات المتقدمة الجديدة في لغة البيان
+// Testing Advanced Features in AlBayan Language
+
+// ========== اختبار الدوال مع استدعاءات ==========
+
+fn add_numbers(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn multiply_numbers(x: int, y: int) -> int {
+    return x * y;
+}
+
+fn calculate_area(length: int, width: int) -> int {
+    let area = length * width;
+    return area;
+}
+
+fn factorial(n: int) -> int {
+    if n <= 1 {
+        return 1;
+    }
+    let n_minus_one = n - 1;
+    let factorial_result = factorial(n_minus_one);
+    return n * factorial_result;
+}
+
+// ========== اختبار العوامل الجديدة ==========
+
+fn test_operators(a: int, b: int) -> int {
+    // اختبار عامل المودولو
+    let remainder = a % b;
+    
+    // اختبار العامل AND
+    let condition1 = a > 0;
+    let condition2 = b > 0;
+    let both_positive = condition1 && condition2;
+    
+    // اختبار العامل OR
+    let either_positive = condition1 || condition2;
+    
+    if both_positive {
+        return remainder + 10;
+    }
+    
+    if either_positive {
+        return remainder + 5;
+    }
+    
+    return remainder;
+}
+
+// ========== اختبار المصفوفات ==========
+
+fn test_arrays() -> int {
+    let numbers = [1, 2, 3, 4, 5];
+    let first_element = numbers[0];
+    let last_element = numbers[4];
+    
+    let sum = first_element + last_element;
+    return sum;
+}
+
+fn array_operations() -> int {
+    let data = [10, 20, 30];
+    let element1 = data[0];
+    let element2 = data[1];
+    let element3 = data[2];
+    
+    let total = element1 + element2 + element3;
+    return total;
+}
+
+// ========== اختبار العمليات المعقدة ==========
+
+fn complex_calculations(x: int, y: int, z: int) -> int {
+    // استخدام عدة عوامل معاً
+    let step1 = x * y + z;
+    let step2 = step1 % 10;
+    let step3 = step2 * 2;
+    
+    // استخدام الشروط المعقدة
+    let condition_a = x > 5;
+    let condition_b = y < 20;
+    let condition_c = z != 0;
+    
+    let complex_condition = condition_a && condition_b || condition_c;
+    
+    if complex_condition {
+        return step3 + 100;
+    }
+    
+    return step3;
+}
+
+// ========== اختبار استدعاءات الدوال المتداخلة ==========
+
+fn nested_function_calls(a: int, b: int, c: int) -> int {
+    let sum_ab = add_numbers(a, b);
+    let product_abc = multiply_numbers(sum_ab, c);
+    let area_result = calculate_area(product_abc, 2);
+    
+    return area_result;
+}
+
+fn mathematical_operations(num: int) -> int {
+    let doubled = multiply_numbers(num, 2);
+    let plus_ten = add_numbers(doubled, 10);
+    let area_calc = calculate_area(plus_ten, 3);
+    
+    return area_calc;
+}
+
+// ========== اختبار الحسابات المتقدمة ==========
+
+fn advanced_math(base: int, exponent: int) -> int {
+    let result = 1;
+    let counter = 0;
+    
+    // محاكاة الأس باستخدام الضرب المتكرر
+    if exponent > 0 {
+        let result = base;
+        let counter = 1;
+        
+        if counter < exponent {
+            let result = result * base;
+            let counter = counter + 1;
+        }
+        
+        if counter < exponent {
+            let result = result * base;
+            let counter = counter + 1;
+        }
+        
+        if counter < exponent {
+            let result = result * base;
+        }
+    }
+    
+    return result;
+}
+
+fn fibonacci_like(n: int) -> int {
+    if n <= 1 {
+        return n;
+    }
+    
+    let a = 0;
+    let b = 1;
+    let counter = 2;
+    
+    if counter <= n {
+        let temp = a + b;
+        let a = b;
+        let b = temp;
+        let counter = counter + 1;
+    }
+    
+    if counter <= n {
+        let temp = a + b;
+        let a = b;
+        let b = temp;
+        let counter = counter + 1;
+    }
+    
+    if counter <= n {
+        let temp = a + b;
+        let a = b;
+        let b = temp;
+        let counter = counter + 1;
+    }
+    
+    if counter <= n {
+        let temp = a + b;
+        let a = b;
+        let b = temp;
+        let counter = counter + 1;
+    }
+    
+    if counter <= n {
+        let temp = a + b;
+        let b = temp;
+    }
+    
+    return b;
+}
+
+// ========== اختبار معالجة البيانات ==========
+
+fn data_processing(input_data: int, threshold: int) -> int {
+    let processed_data = input_data;
+    
+    // تطبيق عدة تحويلات
+    let processed_data = processed_data * 2;
+    let processed_data = processed_data + 5;
+    let processed_data = processed_data % 100;
+    
+    // فحص العتبة
+    let above_threshold = processed_data > threshold;
+    let below_double_threshold = processed_data < (threshold * 2);
+    
+    let in_range = above_threshold && below_double_threshold;
+    
+    if in_range {
+        let processed_data = processed_data + 10;
+    }
+    
+    return processed_data;
+}
+
+fn statistical_analysis(data1: int, data2: int, data3: int) -> int {
+    // حساب المتوسط
+    let sum = data1 + data2 + data3;
+    let average = sum / 3;
+    
+    // حساب الانحراف
+    let diff1 = data1 - average;
+    let diff2 = data2 - average;
+    let diff3 = data3 - average;
+    
+    // حساب مربع الانحرافات (تقريبي)
+    let abs_diff1 = diff1;
+    if diff1 < 0 {
+        let abs_diff1 = 0 - diff1;
+    }
+    
+    let abs_diff2 = diff2;
+    if diff2 < 0 {
+        let abs_diff2 = 0 - diff2;
+    }
+    
+    let abs_diff3 = diff3;
+    if diff3 < 0 {
+        let abs_diff3 = 0 - diff3;
+    }
+    
+    let variance_approx = abs_diff1 + abs_diff2 + abs_diff3;
+    
+    return variance_approx;
+}
+
+// ========== الدالة الرئيسية ==========
+
+fn main() -> int {
+    // اختبار العمليات الأساسية
+    let sum_result = add_numbers(15, 25);
+    let multiply_result = multiply_numbers(6, 7);
+    let area_result = calculate_area(8, 12);
+    
+    // اختبار العوامل الجديدة
+    let operator_test = test_operators(17, 5);
+    
+    // اختبار المصفوفات
+    let array_test = test_arrays();
+    let array_ops = array_operations();
+    
+    // اختبار العمليات المعقدة
+    let complex_result = complex_calculations(10, 15, 3);
+    
+    // اختبار الاستدعاءات المتداخلة
+    let nested_result = nested_function_calls(5, 8, 3);
+    let math_ops = mathematical_operations(7);
+    
+    // اختبار الحسابات المتقدمة
+    let power_result = advanced_math(3, 4);
+    let fib_result = fibonacci_like(6);
+    
+    // اختبار معالجة البيانات
+    let processed_result = data_processing(45, 30);
+    let stats_result = statistical_analysis(10, 20, 30);
+    
+    // حساب النتائج الفرعية
+    let basic_operations = sum_result + multiply_result + area_result;
+    let advanced_operations = operator_test + array_test + array_ops;
+    let complex_operations = complex_result + nested_result + math_ops;
+    let mathematical_operations = power_result + fib_result;
+    let data_operations = processed_result + stats_result;
+    
+    // النتيجة الإجمالية
+    let group1 = basic_operations + advanced_operations;
+    let group2 = complex_operations + mathematical_operations;
+    let group3 = data_operations;
+    
+    let total_score = group1 + group2 + group3;
+    
+    return total_score;
+}

@@ -1,0 +1,334 @@
+// اختبار الميزات المتقدمة الجديدة - نسخة تعمل
+// Working Advanced Features Test
+
+// ========== اختبار العوامل الجديدة ==========
+
+fn test_modulo_operator(a: int, b: int) -> int {
+    // اختبار عامل المودولو %
+    let remainder = a % b;
+    return remainder;
+}
+
+fn test_logical_and(a: int, b: int) -> int {
+    // اختبار العامل AND &&
+    let condition1 = a > 0;
+    let condition2 = b > 0;
+    let both_positive = condition1 && condition2;
+    
+    if both_positive {
+        return 1;
+    }
+    
+    return 0;
+}
+
+fn test_logical_or(a: int, b: int) -> int {
+    // اختبار العامل OR ||
+    let condition1 = a > 10;
+    let condition2 = b > 10;
+    let either_large = condition1 || condition2;
+    
+    if either_large {
+        return 1;
+    }
+    
+    return 0;
+}
+
+// ========== اختبار المصفوفات ==========
+
+fn test_array_access() -> int {
+    let numbers = [10, 20, 30, 40, 50];
+    let first = numbers[0];
+    let second = numbers[1];
+    let third = numbers[2];
+    
+    let sum = first + second + third;
+    return sum;
+}
+
+fn test_array_operations() -> int {
+    let data = [5, 15, 25];
+    let element1 = data[0];
+    let element2 = data[1];
+    let element3 = data[2];
+    
+    // عمليات على عناصر المصفوفة
+    let product = element1 * element2;
+    let remainder = element3 % element1;
+    let total = product + remainder;
+    
+    return total;
+}
+
+// ========== اختبار العمليات المعقدة ==========
+
+fn complex_arithmetic(x: int, y: int, z: int) -> int {
+    // استخدام عدة عوامل معاً
+    let step1 = x * y;
+    let step2 = step1 + z;
+    let step3 = step2 % 10;
+    let step4 = step3 * 2;
+    
+    return step4;
+}
+
+fn complex_conditions(a: int, b: int, c: int) -> int {
+    // شروط معقدة مع && و ||
+    let cond1 = a > 5;
+    let cond2 = b < 20;
+    let cond3 = c != 0;
+    
+    let complex_and = cond1 && cond2;
+    let complex_or = cond2 || cond3;
+    let final_condition = complex_and && complex_or;
+    
+    if final_condition {
+        return 100;
+    }
+    
+    return 50;
+}
+
+// ========== اختبار الحسابات المتقدمة ==========
+
+fn power_calculation(base: int, exp: int) -> int {
+    // حساب الأس بطريقة مبسطة
+    let result = 1;
+    
+    if exp >= 1 {
+        let result = result * base;
+    }
+    
+    if exp >= 2 {
+        let result = result * base;
+    }
+    
+    if exp >= 3 {
+        let result = result * base;
+    }
+    
+    if exp >= 4 {
+        let result = result * base;
+    }
+    
+    return result;
+}
+
+fn fibonacci_sequence(n: int) -> int {
+    // حساب فيبوناتشي بطريقة مبسطة
+    if n <= 1 {
+        return n;
+    }
+    
+    let a = 0;
+    let b = 1;
+    let count = 2;
+    
+    if count <= n {
+        let temp = a + b;
+        let a = b;
+        let b = temp;
+        let count = count + 1;
+    }
+    
+    if count <= n {
+        let temp = a + b;
+        let a = b;
+        let b = temp;
+        let count = count + 1;
+    }
+    
+    if count <= n {
+        let temp = a + b;
+        let a = b;
+        let b = temp;
+        let count = count + 1;
+    }
+    
+    if count <= n {
+        let temp = a + b;
+        let a = b;
+        let b = temp;
+        let count = count + 1;
+    }
+    
+    if count <= n {
+        let temp = a + b;
+        let b = temp;
+    }
+    
+    return b;
+}
+
+// ========== اختبار معالجة البيانات ==========
+
+fn data_transformation(input: int) -> int {
+    // تحويلات متعددة على البيانات
+    let step1 = input * 3;
+    let step2 = step1 + 7;
+    let step3 = step2 % 50;
+    let step4 = step3 * 2;
+    
+    // فحص النتيجة
+    let is_even = step4 % 2;
+    let is_large = step4 > 25;
+    
+    if is_even == 0 && is_large {
+        let step4 = step4 + 10;
+    }
+    
+    return step4;
+}
+
+fn statistical_operations(val1: int, val2: int, val3: int) -> int {
+    // عمليات إحصائية بسيطة
+    let sum = val1 + val2 + val3;
+    let average = sum / 3;
+    
+    // حساب الانحرافات
+    let diff1 = val1 - average;
+    let diff2 = val2 - average;
+    let diff3 = val3 - average;
+    
+    // قيم مطلقة مبسطة
+    let abs_diff1 = diff1;
+    if diff1 < 0 {
+        let abs_diff1 = 0 - diff1;
+    }
+    
+    let abs_diff2 = diff2;
+    if diff2 < 0 {
+        let abs_diff2 = 0 - diff2;
+    }
+    
+    let abs_diff3 = diff3;
+    if diff3 < 0 {
+        let abs_diff3 = 0 - diff3;
+    }
+    
+    let total_deviation = abs_diff1 + abs_diff2 + abs_diff3;
+    
+    return total_deviation;
+}
+
+// ========== اختبار الخوارزميات ==========
+
+fn sorting_algorithm(a: int, b: int, c: int) -> int {
+    // ترتيب ثلاثة أرقام (مبسط)
+    let first = a;
+    let second = b;
+    let third = c;
+    
+    // مقارنات وتبديل
+    if first > second {
+        let temp = first;
+        let first = second;
+        let second = temp;
+    }
+    
+    if second > third {
+        let temp = second;
+        let second = third;
+        let third = temp;
+    }
+    
+    if first > second {
+        let temp = first;
+        let first = second;
+        let second = temp;
+    }
+    
+    // إرجاع المتوسط
+    return second;
+}
+
+fn search_algorithm(target: int, arr_size: int) -> int {
+    // محاكاة البحث في مصفوفة
+    let search_data = [10, 25, 30, 45, 60];
+    let found = 0;
+    let position = 0;
+    
+    // فحص العناصر
+    let element0 = search_data[0];
+    if element0 == target {
+        let found = 1;
+        let position = 0;
+    }
+    
+    let element1 = search_data[1];
+    if element1 == target && found == 0 {
+        let found = 1;
+        let position = 1;
+    }
+    
+    let element2 = search_data[2];
+    if element2 == target && found == 0 {
+        let found = 1;
+        let position = 2;
+    }
+    
+    let element3 = search_data[3];
+    if element3 == target && found == 0 {
+        let found = 1;
+        let position = 3;
+    }
+    
+    let element4 = search_data[4];
+    if element4 == target && found == 0 {
+        let found = 1;
+        let position = 4;
+    }
+    
+    if found == 1 {
+        return position;
+    }
+    
+    return 0 - 1; // لم يتم العثور عليه
+}
+
+// ========== الدالة الرئيسية ==========
+
+fn main() -> int {
+    // اختبار العوامل الجديدة
+    let modulo_test = test_modulo_operator(17, 5);
+    let and_test = test_logical_and(10, 15);
+    let or_test = test_logical_or(5, 25);
+    
+    // اختبار المصفوفات
+    let array_access_test = test_array_access();
+    let array_ops_test = test_array_operations();
+    
+    // اختبار العمليات المعقدة
+    let arithmetic_test = complex_arithmetic(6, 7, 8);
+    let conditions_test = complex_conditions(10, 15, 5);
+    
+    // اختبار الحسابات المتقدمة
+    let power_test = power_calculation(3, 4);
+    let fibonacci_test = fibonacci_sequence(7);
+    
+    // اختبار معالجة البيانات
+    let transformation_test = data_transformation(12);
+    let statistics_test = statistical_operations(10, 20, 30);
+    
+    // اختبار الخوارزميات
+    let sorting_test = sorting_algorithm(30, 10, 20);
+    let search_test = search_algorithm(30, 5);
+    
+    // حساب النتائج الفرعية
+    let operators_score = modulo_test + and_test + or_test;
+    let arrays_score = array_access_test + array_ops_test;
+    let complex_score = arithmetic_test + conditions_test;
+    let advanced_score = power_test + fibonacci_test;
+    let data_score = transformation_test + statistics_test;
+    let algorithms_score = sorting_test + search_test;
+    
+    // النتيجة الإجمالية
+    let group1 = operators_score + arrays_score;
+    let group2 = complex_score + advanced_score;
+    let group3 = data_score + algorithms_score;
+    
+    let total_advanced_features_score = group1 + group2 + group3;
+    
+    return total_advanced_features_score;
+}

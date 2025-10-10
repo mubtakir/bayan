@@ -1,0 +1,332 @@
+// نظام إدارة مكتبة - مثال متقدم على البرمجة الكائنية
+// Library Management System - Advanced OOP example
+
+use std::collections::HashMap;
+use std::time::Date;
+
+// فئة أساسية للعناصر
+abstract class LibraryItem {
+    id: string,
+    title: string,
+    author: string,
+    publication_year: int,
+    is_available: bool,
+}
+
+impl LibraryItem {
+    fn new(id: string, title: string, author: string, year: int) -> Self {
+        return Self {
+            id: id,
+            title: title,
+            author: author,
+            publication_year: year,
+            is_available: true,
+        };
+    }
+    
+    abstract fn get_type(&self) -> string;
+    abstract fn get_loan_period(&self) -> int; // بالأيام
+    
+    fn get_info(&self) -> string {
+        let status = if self.is_available { "متاح" } else { "مُعار" };
+        return "المعرف: " + self.id + 
+               "\nالعنوان: " + self.title + 
+               "\nالمؤلف: " + self.author + 
+               "\nسنة النشر: " + self.publication_year + 
+               "\nالحالة: " + status;
+    }
+    
+    fn borrow(&mut self) -> bool {
+        if self.is_available {
+            self.is_available = false;
+            return true;
+        }
+        return false;
+    }
+    
+    fn return_item(&mut self) {
+        self.is_available = true;
+    }
+}
+
+// فئة الكتاب
+class Book extends LibraryItem {
+    pages: int,
+    isbn: string,
+    genre: string,
+}
+
+impl Book {
+    fn new(id: string, title: string, author: string, year: int, 
+           pages: int, isbn: string, genre: string) -> Book {
+        return Book {
+            id: id,
+            title: title,
+            author: author,
+            publication_year: year,
+            is_available: true,
+            pages: pages,
+            isbn: isbn,
+            genre: genre,
+        };
+    }
+    
+    override fn get_type(&self) -> string {
+        return "كتاب";
+    }
+    
+    override fn get_loan_period(&self) -> int {
+        return 14; // أسبوعان
+    }
+    
+    fn get_detailed_info(&self) -> string {
+        return self.get_info() + 
+               "\nعدد الصفحات: " + self.pages + 
+               "\nISBN: " + self.isbn + 
+               "\nالنوع: " + self.genre;
+    }
+}
+
+// فئة المجلة
+class Magazine extends LibraryItem {
+    issue_number: int,
+    month: string,
+}
+
+impl Magazine {
+    fn new(id: string, title: string, author: string, year: int,
+           issue_number: int, month: string) -> Magazine {
+        return Magazine {
+            id: id,
+            title: title,
+            author: author,
+            publication_year: year,
+            is_available: true,
+            issue_number: issue_number,
+            month: month,
+        };
+    }
+    
+    override fn get_type(&self) -> string {
+        return "مجلة";
+    }
+    
+    override fn get_loan_period(&self) -> int {
+        return 7; // أسبوع واحد
+    }
+}
+
+// فئة القرص المضغوط
+class DVD extends LibraryItem {
+    duration_minutes: int,
+    director: string,
+    rating: string,
+}
+
+impl DVD {
+    fn new(id: string, title: string, director: string, year: int,
+           duration: int, rating: string) -> DVD {
+        return DVD {
+            id: id,
+            title: title,
+            author: director,
+            publication_year: year,
+            is_available: true,
+            duration_minutes: duration,
+            director: director,
+            rating: rating,
+        };
+    }
+    
+    override fn get_type(&self) -> string {
+        return "قرص مضغوط";
+    }
+    
+    override fn get_loan_period(&self) -> int {
+        return 3; // ثلاثة أيام
+    }
+}
+
+// فئة العضو
+class Member {
+    id: string,
+    name: string,
+    email: string,
+    phone: string,
+    borrowed_items: Vec<string>, // معرفات العناصر المُعارة
+    membership_date: Date,
+}
+
+impl Member {
+    fn new(id: string, name: string, email: string, phone: string) -> Member {
+        return Member {
+            id: id,
+            name: name,
+            email: email,
+            phone: phone,
+            borrowed_items: Vec::new(),
+            membership_date: Date::now(),
+        };
+    }
+    
+    fn can_borrow(&self) -> bool {
+        return self.borrowed_items.len() < 5; // حد أقصى 5 عناصر
+    }
+    
+    fn add_borrowed_item(&mut self, item_id: string) {
+        self.borrowed_items.push(item_id);
+    }
+    
+    fn remove_borrowed_item(&mut self, item_id: string) {
+        self.borrowed_items.retain(|id| id != &item_id);
+    }
+    
+    fn get_borrowed_count(&self) -> int {
+        return self.borrowed_items.len();
+    }
+}
+
+// فئة نظام المكتبة
+class LibrarySystem {
+    items: HashMap<string, Box<dyn LibraryItem>>,
+    members: HashMap<string, Member>,
+    loans: HashMap<string, (string, Date)>, // item_id -> (member_id, due_date)
+}
+
+impl LibrarySystem {
+    fn new() -> LibrarySystem {
+        return LibrarySystem {
+            items: HashMap::new(),
+            members: HashMap::new(),
+            loans: HashMap::new(),
+        };
+    }
+    
+    fn add_item(&mut self, item: Box<dyn LibraryItem>) {
+        let item_id = item.id.clone();
+        self.items.insert(item_id, item);
+        println("تم إضافة عنصر جديد للمكتبة");
+    }
+    
+    fn register_member(&mut self, member: Member) {
+        let member_id = member.id.clone();
+        self.members.insert(member_id, member);
+        println("تم تسجيل عضو جديد");
+    }
+    
+    fn borrow_item(&mut self, member_id: string, item_id: string) -> bool {
+        // التحقق من وجود العضو والعنصر
+        if !self.members.contains_key(&member_id) || !self.items.contains_key(&item_id) {
+            println("العضو أو العنصر غير موجود");
+            return false;
+        }
+        
+        let member = self.members.get_mut(&member_id).unwrap();
+        if !member.can_borrow() {
+            println("العضو وصل للحد الأقصى من الاستعارة");
+            return false;
+        }
+        
+        let item = self.items.get_mut(&item_id).unwrap();
+        if !item.borrow() {
+            println("العنصر غير متاح للاستعارة");
+            return false;
+        }
+        
+        // حساب تاريخ الإرجاع
+        let loan_period = item.get_loan_period();
+        let due_date = Date::now().add_days(loan_period);
+        
+        // تسجيل الاستعارة
+        member.add_borrowed_item(item_id.clone());
+        self.loans.insert(item_id.clone(), (member_id.clone(), due_date));
+        
+        println("تم استعارة " + item.get_type() + ": " + item.title);
+        return true;
+    }
+    
+    fn return_item(&mut self, item_id: string) -> bool {
+        if !self.loans.contains_key(&item_id) {
+            println("هذا العنصر غير مُعار");
+            return false;
+        }
+        
+        let (member_id, _) = self.loans.remove(&item_id).unwrap();
+        
+        // إرجاع العنصر
+        let item = self.items.get_mut(&item_id).unwrap();
+        item.return_item();
+        
+        // إزالة من قائمة العضو
+        let member = self.members.get_mut(&member_id).unwrap();
+        member.remove_borrowed_item(item_id.clone());
+        
+        println("تم إرجاع " + item.get_type() + ": " + item.title);
+        return true;
+    }
+    
+    fn search_by_title(&self, title: string) -> Vec<string> {
+        let mut results = Vec::new();
+        for (id, item) in &self.items {
+            if item.title.contains(&title) {
+                results.push(id.clone());
+            }
+        }
+        return results;
+    }
+    
+    fn get_member_info(&self, member_id: string) -> string {
+        if let Some(member) = self.members.get(&member_id) {
+            return "العضو: " + member.name + 
+                   "\nالبريد: " + member.email + 
+                   "\nعدد العناصر المُعارة: " + member.get_borrowed_count();
+        }
+        return "العضو غير موجود";
+    }
+}
+
+fn main() -> int {
+    println("=== نظام إدارة المكتبة ===");
+    
+    // إنشاء نظام المكتبة
+    let mut library = LibrarySystem::new();
+    
+    // إضافة عناصر للمكتبة
+    let book1 = Book::new("B001", "الأسود يليق بك", "أحلام مستغانمي", 2012, 
+                         320, "978-123456789", "رواية");
+    let magazine1 = Magazine::new("M001", "مجلة العلوم", "فريق التحرير", 2023, 156, "يناير");
+    let dvd1 = DVD::new("D001", "الرسالة", "مصطفى العقاد", 1976, 180, "عائلي");
+    
+    library.add_item(Box::new(book1));
+    library.add_item(Box::new(magazine1));
+    library.add_item(Box::new(dvd1));
+    
+    // تسجيل أعضاء
+    let member1 = Member::new("U001", "أحمد محمد", "ahmed@email.com", "123456789");
+    let member2 = Member::new("U002", "فاطمة علي", "fatima@email.com", "987654321");
+    
+    library.register_member(member1);
+    library.register_member(member2);
+    
+    // اختبار الاستعارة
+    println("\n=== اختبار الاستعارة ===");
+    library.borrow_item("U001", "B001");
+    library.borrow_item("U002", "M001");
+    library.borrow_item("U001", "D001");
+    
+    // عرض معلومات الأعضاء
+    println("\n=== معلومات الأعضاء ===");
+    println(library.get_member_info("U001"));
+    println(library.get_member_info("U002"));
+    
+    // اختبار الإرجاع
+    println("\n=== اختبار الإرجاع ===");
+    library.return_item("B001");
+    
+    // البحث
+    println("\n=== البحث ===");
+    let search_results = library.search_by_title("الأسود");
+    println("نتائج البحث: " + search_results.len() + " عنصر");
+    
+    return 0;
+}

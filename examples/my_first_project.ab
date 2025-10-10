@@ -1,0 +1,210 @@
+// مشروعي الأول بلغة البيان
+// My First AlBayan Project
+
+// دالة حساب راتب الموظف
+fn calculate_employee_salary(basic_salary: int, overtime_hours: int, hourly_rate: int) -> int {
+    let overtime_pay = overtime_hours * hourly_rate;
+    let gross_salary = basic_salary + overtime_pay;
+    
+    // خصم التأمين والضرائب
+    let insurance = gross_salary * 9 / 100;
+    let tax = gross_salary * 5 / 100;
+    let total_deductions = insurance + tax;
+    
+    let net_salary = gross_salary - total_deductions;
+    return net_salary;
+}
+
+// دالة حساب تكلفة الرحلة
+fn calculate_trip_cost(distance_km: int, fuel_price_per_liter: int, car_efficiency: int) -> int {
+    let fuel_needed = distance_km / car_efficiency;
+    let fuel_cost = fuel_needed * fuel_price_per_liter;
+    
+    // إضافة تكاليف أخرى (طعام، إقامة)
+    let other_costs = distance_km * 2; // تقدير 2 ريال لكل كيلومتر
+    
+    let total_cost = fuel_cost + other_costs;
+    return total_cost;
+}
+
+// دالة تقييم أداء الطالب
+fn evaluate_student_performance(math: int, science: int, arabic: int, english: int) -> string {
+    let total_score = math + science + arabic + english;
+    let average = total_score / 4;
+    
+    if average >= 90 {
+        return "متفوق";
+    }
+    if average >= 80 {
+        return "ممتاز";
+    }
+    if average >= 70 {
+        return "جيد";
+    }
+    if average >= 60 {
+        return "مقبول";
+    }
+    return "يحتاج دعم";
+}
+
+// دالة حساب الاستثمار
+fn calculate_investment_return(initial_amount: int, annual_rate: int, years: int) -> int {
+    let total_return = initial_amount * annual_rate * years / 100;
+    let final_amount = initial_amount + total_return;
+    return final_amount;
+}
+
+// دالة حساب مؤشر كتلة الجسم
+fn calculate_bmi(weight_kg: int, height_cm: int) -> int {
+    let height_m = height_cm / 100;
+    let bmi = weight_kg / (height_m * height_m);
+    return bmi;
+}
+
+// دالة تصنيف مؤشر كتلة الجسم
+fn classify_bmi(bmi: int) -> string {
+    if bmi < 18 {
+        return "نحيف";
+    }
+    if bmi < 25 {
+        return "طبيعي";
+    }
+    if bmi < 30 {
+        return "زيادة وزن";
+    }
+    return "سمنة";
+}
+
+// دالة حساب فاتورة الكهرباء
+fn calculate_electricity_bill(units_consumed: int, rate_per_unit: int) -> int {
+    let basic_charge = units_consumed * rate_per_unit;
+    
+    // إضافة رسوم الخدمة
+    let service_charge = 50;
+    let vat = basic_charge * 15 / 100;
+    
+    let total_bill = basic_charge + service_charge + vat;
+    return total_bill;
+}
+
+// دالة حساب المسافة بين نقطتين (مبسطة)
+fn calculate_distance(x1: int, y1: int, x2: int, y2: int) -> int {
+    let dx = x2 - x1;
+    let dy = y2 - y1;
+    
+    // حساب تقريبي للمسافة
+    if dx < 0 {
+        let dx = 0 - dx;
+    }
+    if dy < 0 {
+        let dy = 0 - dy;
+    }
+    
+    let distance = dx + dy; // مسافة مانهاتن
+    return distance;
+}
+
+// دالة حساب العمر بالأيام
+fn calculate_age_in_days(birth_year: int, current_year: int) -> int {
+    let age_years = current_year - birth_year;
+    let age_days = age_years * 365;
+    return age_days;
+}
+
+// دالة تحويل العملة (مبسطة)
+fn convert_currency(amount_sar: int, exchange_rate: int) -> int {
+    let amount_usd = amount_sar * 100 / exchange_rate;
+    return amount_usd;
+}
+
+fn main() -> int {
+    // مثال 1: حساب راتب موظف
+    let basic = 8000;
+    let overtime = 20;
+    let rate = 50;
+    let employee_salary = basic + (overtime * rate);
+    let insurance = employee_salary * 9 / 100;
+    let tax = employee_salary * 5 / 100;
+    let net_salary = employee_salary - insurance - tax;
+    
+    // مثال 2: تكلفة رحلة
+    let trip_distance = 400;
+    let fuel_price = 2;
+    let car_efficiency = 15;
+    let fuel_needed = trip_distance / car_efficiency;
+    let fuel_cost = fuel_needed * fuel_price;
+    let other_costs = trip_distance * 2;
+    let total_trip_cost = fuel_cost + other_costs;
+    
+    // مثال 3: تقييم طالب
+    let math_score = 85;
+    let science_score = 90;
+    let arabic_score = 88;
+    let english_score = 82;
+    let total_scores = math_score + science_score + arabic_score + english_score;
+    let student_average = total_scores / 4;
+    
+    // مثال 4: استثمار
+    let investment = 50000;
+    let return_rate = 8;
+    let investment_years = 5;
+    let investment_return = investment * return_rate * investment_years / 100;
+    let final_investment = investment + investment_return;
+    
+    // مثال 5: مؤشر كتلة الجسم
+    let weight = 75;
+    let height = 175;
+    let height_m = height / 100;
+    let bmi = weight / (height_m * height_m);
+    
+    // مثال 6: فاتورة كهرباء
+    let electricity_units = 800;
+    let unit_rate = 3;
+    let basic_charge = electricity_units * unit_rate;
+    let service_charge = 50;
+    let vat = basic_charge * 15 / 100;
+    let electricity_bill = basic_charge + service_charge + vat;
+    
+    // مثال 7: حساب المسافة
+    let point1_x = 10;
+    let point1_y = 20;
+    let point2_x = 30;
+    let point2_y = 50;
+    let dx = point2_x - point1_x;
+    let dy = point2_y - point1_y;
+    let distance = dx + dy;
+    
+    // مثال 8: حساب العمر
+    let birth_year = 1990;
+    let current_year = 2024;
+    let age_years = current_year - birth_year;
+    let age_days = age_years * 365;
+    
+    // مثال 9: تحويل عملة
+    let amount_sar = 1000;
+    let exchange_rate = 375; // 1 دولار = 3.75 ريال
+    let amount_usd = amount_sar * 100 / exchange_rate;
+    
+    // مثال 10: حسابات متنوعة
+    let monthly_income = 12000;
+    let monthly_expenses = 8000;
+    let monthly_savings = monthly_income - monthly_expenses;
+    let yearly_savings = monthly_savings * 12;
+    
+    let loan_amount = 300000;
+    let loan_rate = 5;
+    let loan_years = 20;
+    let total_interest = loan_amount * loan_rate * loan_years / 100;
+    let total_loan = loan_amount + total_interest;
+    let monthly_payment = total_loan / (loan_years * 12);
+    
+    // حساب النتيجة الإجمالية
+    let salary_group = net_salary + student_average;
+    let financial_group = final_investment + electricity_bill;
+    let calculation_group = distance + age_days + amount_usd;
+    let savings_group = yearly_savings + monthly_payment;
+    
+    let final_result = salary_group + financial_group + calculation_group + savings_group;
+    
+    return final_result;
+}

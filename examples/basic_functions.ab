@@ -1,0 +1,364 @@
+// الدوال الأساسية - مثال شامل
+// Basic Functions - Comprehensive example
+
+// دوال رياضية بسيطة
+fn add(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn subtract(a: int, b: int) -> int {
+    return a - b;
+}
+
+fn multiply(a: int, b: int) -> int {
+    return a * b;
+}
+
+fn divide(a: int, b: int) -> int {
+    if b != 0 {
+        return a / b;
+    }
+    return 0;
+}
+
+// دالة للقوة (بدون حلقات)
+fn power_simple(base: int, exp: int) -> int {
+    if exp == 0 {
+        return 1;
+    }
+    if exp == 1 {
+        return base;
+    }
+    if exp == 2 {
+        return base * base;
+    }
+    if exp == 3 {
+        return base * base * base;
+    }
+    return base * base * base * base; // للقوى الأعلى
+}
+
+// دوال للمقارنة
+fn max_two(a: int, b: int) -> int {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fn min_two(a: int, b: int) -> int {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+fn abs_value(x: int) -> int {
+    if x < 0 {
+        return -x;
+    }
+    return x;
+}
+
+// دوال للتحقق
+fn is_even(n: int) -> bool {
+    return n % 2 == 0;
+}
+
+fn is_odd(n: int) -> bool {
+    return n % 2 != 0;
+}
+
+fn is_positive(n: int) -> bool {
+    return n > 0;
+}
+
+fn is_negative(n: int) -> bool {
+    return n < 0;
+}
+
+fn is_zero(n: int) -> bool {
+    return n == 0;
+}
+
+// دوال للنصوص
+fn greet(name: string) -> string {
+    return "مرحبا " + name + "!";
+}
+
+fn farewell(name: string) -> string {
+    return "وداعا " + name + "، إلى اللقاء!";
+}
+
+fn create_message(prefix: string, content: string, suffix: string) -> string {
+    return prefix + " " + content + " " + suffix;
+}
+
+// دوال للحسابات المتقدمة
+fn calculate_area_rectangle(width: int, height: int) -> int {
+    return multiply(width, height);
+}
+
+fn calculate_perimeter_rectangle(width: int, height: int) -> int {
+    return multiply(add(width, height), 2);
+}
+
+fn calculate_area_triangle(base: int, height: int) -> int {
+    return divide(multiply(base, height), 2);
+}
+
+fn calculate_circle_area_approx(radius: int) -> int {
+    // تقريب لمساحة الدائرة (π ≈ 3)
+    return multiply(3, multiply(radius, radius));
+}
+
+// دوال للتحويل
+fn celsius_to_fahrenheit(celsius: int) -> int {
+    return add(multiply(celsius, 9) / 5, 32);
+}
+
+fn fahrenheit_to_celsius(fahrenheit: int) -> int {
+    return multiply(subtract(fahrenheit, 32), 5) / 9;
+}
+
+fn meters_to_centimeters(meters: int) -> int {
+    return multiply(meters, 100);
+}
+
+fn centimeters_to_meters(centimeters: int) -> int {
+    return divide(centimeters, 100);
+}
+
+// دوال للعمليات المنطقية
+fn logical_and(a: bool, b: bool) -> bool {
+    return a && b;
+}
+
+fn logical_or(a: bool, b: bool) -> bool {
+    return a || b;
+}
+
+fn logical_not(a: bool) -> bool {
+    return !a;
+}
+
+fn logical_xor(a: bool, b: bool) -> bool {
+    return (a || b) && !(a && b);
+}
+
+// دوال للتصنيف
+fn classify_number(n: int) -> string {
+    if is_zero(n) {
+        return "صفر";
+    }
+    if is_positive(n) {
+        if is_even(n) {
+            return "موجب زوجي";
+        } else {
+            return "موجب فردي";
+        }
+    } else {
+        if is_even(n) {
+            return "سالب زوجي";
+        } else {
+            return "سالب فردي";
+        }
+    }
+}
+
+fn classify_temperature(temp: int) -> string {
+    if temp < 0 {
+        return "متجمد";
+    }
+    if temp < 10 {
+        return "بارد جداً";
+    }
+    if temp < 20 {
+        return "بارد";
+    }
+    if temp < 30 {
+        return "معتدل";
+    }
+    if temp < 40 {
+        return "دافئ";
+    }
+    return "حار";
+}
+
+fn classify_grade(grade: int) -> string {
+    if grade >= 90 {
+        return "ممتاز";
+    }
+    if grade >= 80 {
+        return "جيد جداً";
+    }
+    if grade >= 70 {
+        return "جيد";
+    }
+    if grade >= 60 {
+        return "مقبول";
+    }
+    return "راسب";
+}
+
+// دوال للحسابات المالية
+fn calculate_simple_interest(principal: int, rate: int, time: int) -> int {
+    return multiply(multiply(principal, rate), time) / 100;
+}
+
+fn calculate_total_amount(principal: int, interest: int) -> int {
+    return add(principal, interest);
+}
+
+fn calculate_discount(price: int, discount_percent: int) -> int {
+    return multiply(price, discount_percent) / 100;
+}
+
+fn calculate_final_price(price: int, discount: int) -> int {
+    return subtract(price, discount);
+}
+
+// دوال للإحصائيات البسيطة
+fn average_two(a: int, b: int) -> int {
+    return divide(add(a, b), 2);
+}
+
+fn average_three(a: int, b: int, c: int) -> int {
+    return divide(add(add(a, b), c), 3);
+}
+
+fn range_two(a: int, b: int) -> int {
+    return abs_value(subtract(a, b));
+}
+
+fn sum_of_squares_two(a: int, b: int) -> int {
+    return add(multiply(a, a), multiply(b, b));
+}
+
+// دوال للتحقق من النطاقات
+fn is_in_range(value: int, min_val: int, max_val: int) -> bool {
+    return value >= min_val && value <= max_val;
+}
+
+fn is_valid_percentage(value: int) -> bool {
+    return is_in_range(value, 0, 100);
+}
+
+fn is_valid_grade(grade: int) -> bool {
+    return is_in_range(grade, 0, 100);
+}
+
+fn is_adult_age(age: int) -> bool {
+    return age >= 18;
+}
+
+// دوال للتنسيق والعرض
+fn format_currency(amount: int) -> string {
+    return amount + " ريال";
+}
+
+fn format_percentage(value: int) -> string {
+    return value + "%";
+}
+
+fn format_temperature(temp: int) -> string {
+    return temp + "°C";
+}
+
+fn format_distance(distance: int) -> string {
+    return distance + " متر";
+}
+
+// دالة لاختبار جميع الدوال
+fn test_all_functions() {
+    print("=== اختبار الدوال الرياضية ===");
+    print("5 + 3 = " + add(5, 3));
+    print("10 - 4 = " + subtract(10, 4));
+    print("6 * 7 = " + multiply(6, 7));
+    print("15 / 3 = " + divide(15, 3));
+    print("2^3 = " + power_simple(2, 3));
+    
+    print("\n=== اختبار دوال المقارنة ===");
+    print("الحد الأقصى بين 8 و 12: " + max_two(8, 12));
+    print("الحد الأدنى بين 8 و 12: " + min_two(8, 12));
+    print("القيمة المطلقة لـ -7: " + abs_value(-7));
+    
+    print("\n=== اختبار دوال التحقق ===");
+    print("هل 6 زوجي؟ " + is_even(6));
+    print("هل 7 فردي؟ " + is_odd(7));
+    print("هل 5 موجب؟ " + is_positive(5));
+    print("هل -3 سالب؟ " + is_negative(-3));
+    
+    print("\n=== اختبار دوال النصوص ===");
+    print(greet("أحمد"));
+    print(farewell("فاطمة"));
+    print(create_message("مرحبا", "كيف حالك؟", "أتمنى أن تكون بخير"));
+    
+    print("\n=== اختبار الحسابات الهندسية ===");
+    print("مساحة مستطيل 5×8: " + calculate_area_rectangle(5, 8));
+    print("محيط مستطيل 5×8: " + calculate_perimeter_rectangle(5, 8));
+    print("مساحة مثلث قاعدة 6 وارتفاع 4: " + calculate_area_triangle(6, 4));
+    
+    print("\n=== اختبار التحويلات ===");
+    print("25°C بالفهرنهايت: " + celsius_to_fahrenheit(25));
+    print("77°F بالسلزيوس: " + fahrenheit_to_celsius(77));
+    print("3 متر بالسنتيمتر: " + meters_to_centimeters(3));
+    
+    print("\n=== اختبار التصنيف ===");
+    print("تصنيف العدد 8: " + classify_number(8));
+    print("تصنيف العدد -5: " + classify_number(-5));
+    print("تصنيف درجة الحرارة 25: " + classify_temperature(25));
+    print("تصنيف الدرجة 85: " + classify_grade(85));
+    
+    print("\n=== اختبار الحسابات المالية ===");
+    let principal = 1000;
+    let rate = 5;
+    let time = 2;
+    let interest = calculate_simple_interest(principal, rate, time);
+    print("الفائدة البسيطة لـ " + principal + " ريال بمعدل " + rate + "% لمدة " + time + " سنة: " + interest);
+    print("المبلغ الإجمالي: " + calculate_total_amount(principal, interest));
+    
+    let price = 200;
+    let discount_percent = 15;
+    let discount = calculate_discount(price, discount_percent);
+    print("خصم " + discount_percent + "% على " + price + " ريال: " + discount + " ريال");
+    print("السعر النهائي: " + calculate_final_price(price, discount) + " ريال");
+    
+    print("\n=== اختبار الإحصائيات ===");
+    print("متوسط 10 و 20: " + average_two(10, 20));
+    print("متوسط 5، 10، 15: " + average_three(5, 10, 15));
+    print("المدى بين 8 و 15: " + range_two(8, 15));
+    
+    print("\n=== اختبار التحقق من النطاقات ===");
+    print("هل 75 في النطاق 0-100؟ " + is_in_range(75, 0, 100));
+    print("هل 85 درجة صالحة؟ " + is_valid_grade(85));
+    print("هل عمر 20 سنة بالغ؟ " + is_adult_age(20));
+    
+    print("\n=== اختبار التنسيق ===");
+    print(format_currency(150));
+    print(format_percentage(75));
+    print(format_temperature(30));
+    print(format_distance(500));
+}
+
+fn main() -> int {
+    print("=== مثال الدوال الأساسية ===");
+    
+    test_all_functions();
+    
+    print("\n=== مثال تطبيقي: حاسبة بسيطة ===");
+    let num1 = 15;
+    let num2 = 8;
+    
+    print("العدد الأول: " + num1);
+    print("العدد الثاني: " + num2);
+    print("الجمع: " + add(num1, num2));
+    print("الطرح: " + subtract(num1, num2));
+    print("الضرب: " + multiply(num1, num2));
+    print("القسمة: " + divide(num1, num2));
+    print("الحد الأقصى: " + max_two(num1, num2));
+    print("الحد الأدنى: " + min_two(num1, num2));
+    print("المتوسط: " + average_two(num1, num2));
+    
+    return 0;
+}

@@ -1,0 +1,227 @@
+// الرياضيات الأساسية - مثال بسيط جداً
+// Basic Math - Very simple example
+
+// دوال العمليات الأساسية
+fn add_two_numbers(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn subtract_two_numbers(a: int, b: int) -> int {
+    return a - b;
+}
+
+fn multiply_two_numbers(a: int, b: int) -> int {
+    return a * b;
+}
+
+fn divide_two_numbers(a: int, b: int) -> int {
+    return a / b;
+}
+
+// دوال المقارنة
+fn get_maximum(a: int, b: int) -> int {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fn get_minimum(a: int, b: int) -> int {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+// دوال التحقق
+fn is_positive_number(n: int) -> bool {
+    return n > 0;
+}
+
+fn is_negative_number(n: int) -> bool {
+    return n < 0;
+}
+
+fn is_zero_number(n: int) -> bool {
+    return n == 0;
+}
+
+// دوال القوة
+fn get_square(n: int) -> int {
+    return n * n;
+}
+
+fn get_cube(n: int) -> int {
+    return n * n * n;
+}
+
+// دوال الحسابات الهندسية
+fn get_rectangle_area(width: int, height: int) -> int {
+    return width * height;
+}
+
+fn get_rectangle_perimeter(width: int, height: int) -> int {
+    return (width + height) * 2;
+}
+
+fn get_triangle_area(base: int, height: int) -> int {
+    return (base * height) / 2;
+}
+
+// دوال التحويل
+fn convert_celsius_to_fahrenheit(celsius: int) -> int {
+    return (celsius * 9) / 5 + 32;
+}
+
+fn convert_meters_to_centimeters(meters: int) -> int {
+    return meters * 100;
+}
+
+// دوال التصنيف
+fn get_number_type(n: int) -> string {
+    if n > 0 {
+        return "موجب";
+    }
+    if n < 0 {
+        return "سالب";
+    }
+    return "صفر";
+}
+
+fn get_grade_level(grade: int) -> string {
+    if grade >= 90 {
+        return "ممتاز";
+    }
+    if grade >= 80 {
+        return "جيد جداً";
+    }
+    if grade >= 70 {
+        return "جيد";
+    }
+    if grade >= 60 {
+        return "مقبول";
+    }
+    return "راسب";
+}
+
+// دوال الحسابات المالية
+fn get_simple_interest(principal: int, rate: int, time: int) -> int {
+    return (principal * rate * time) / 100;
+}
+
+fn get_discount_amount(price: int, discount_percent: int) -> int {
+    return (price * discount_percent) / 100;
+}
+
+fn main() -> int {
+    print("=== الرياضيات الأساسية ===");
+    
+    // تعريف الأرقام
+    let first_number = 15;
+    let second_number = 8;
+    
+    print("العدد الأول: " + first_number);
+    print("العدد الثاني: " + second_number);
+    print("");
+    
+    // العمليات الأساسية
+    print("=== العمليات الأساسية ===");
+    print("الجمع: " + first_number + " + " + second_number + " = " + add_two_numbers(first_number, second_number));
+    print("الطرح: " + first_number + " - " + second_number + " = " + subtract_two_numbers(first_number, second_number));
+    print("الضرب: " + first_number + " × " + second_number + " = " + multiply_two_numbers(first_number, second_number));
+    print("القسمة: " + first_number + " ÷ " + second_number + " = " + divide_two_numbers(first_number, second_number));
+    print("");
+    
+    // المقارنة
+    print("=== المقارنة ===");
+    print("الحد الأقصى: " + get_maximum(first_number, second_number));
+    print("الحد الأدنى: " + get_minimum(first_number, second_number));
+    print("");
+    
+    // القوى
+    print("=== القوى ===");
+    print("مربع " + first_number + " = " + get_square(first_number));
+    print("مربع " + second_number + " = " + get_square(second_number));
+    print("مكعب 5 = " + get_cube(5));
+    print("");
+    
+    // الحسابات الهندسية
+    print("=== الحسابات الهندسية ===");
+    let rect_width = 6;
+    let rect_height = 4;
+    print("مساحة مستطيل " + rect_width + "×" + rect_height + " = " + get_rectangle_area(rect_width, rect_height));
+    print("محيط مستطيل " + rect_width + "×" + rect_height + " = " + get_rectangle_perimeter(rect_width, rect_height));
+    
+    let tri_base = 8;
+    let tri_height = 5;
+    print("مساحة مثلث قاعدة " + tri_base + " وارتفاع " + tri_height + " = " + get_triangle_area(tri_base, tri_height));
+    print("");
+    
+    // التحويلات
+    print("=== التحويلات ===");
+    let temp_c = 25;
+    print(temp_c + "°C = " + convert_celsius_to_fahrenheit(temp_c) + "°F");
+    
+    let distance_m = 3;
+    print(distance_m + " متر = " + convert_meters_to_centimeters(distance_m) + " سم");
+    print("");
+    
+    // التصنيف
+    print("=== التصنيف ===");
+    print("تصنيف الأرقام:");
+    print("10: " + get_number_type(10));
+    print("-5: " + get_number_type(-5));
+    print("0: " + get_number_type(0));
+    print("");
+    
+    print("تصنيف الدرجات:");
+    print("95: " + get_grade_level(95));
+    print("85: " + get_grade_level(85));
+    print("75: " + get_grade_level(75));
+    print("65: " + get_grade_level(65));
+    print("45: " + get_grade_level(45));
+    print("");
+    
+    // الحسابات المالية
+    print("=== الحسابات المالية ===");
+    let money_principal = 1000;
+    let money_rate = 5;
+    let money_time = 2;
+    print("الفائدة البسيطة لـ " + money_principal + " ريال بمعدل " + money_rate + "% لمدة " + money_time + " سنة = " + get_simple_interest(money_principal, money_rate, money_time) + " ريال");
+    
+    let item_price = 200;
+    let discount_rate = 15;
+    print("خصم " + discount_rate + "% على " + item_price + " ريال = " + get_discount_amount(item_price, discount_rate) + " ريال");
+    print("");
+    
+    // اختبار التحقق
+    print("=== اختبار التحقق ===");
+    print("هل 10 موجب؟ " + is_positive_number(10));
+    print("هل -5 سالب؟ " + is_negative_number(-5));
+    print("هل 0 صفر؟ " + is_zero_number(0));
+    print("");
+    
+    // مثال تطبيقي: حساب تكلفة رحلة
+    print("=== مثال تطبيقي: حساب تكلفة رحلة ===");
+    let ticket_price = 500;
+    let hotel_price = 300;
+    let food_price = 200;
+    
+    print("سعر التذكرة: " + ticket_price + " ريال");
+    print("سعر الفندق: " + hotel_price + " ريال");
+    print("تكلفة الطعام: " + food_price + " ريال");
+    
+    let total_before_discount = add_two_numbers(add_two_numbers(ticket_price, hotel_price), food_price);
+    print("التكلفة الإجمالية قبل الخصم: " + total_before_discount + " ريال");
+    
+    let discount_amount = get_discount_amount(total_before_discount, 10);
+    print("خصم 10%: " + discount_amount + " ريال");
+    
+    let final_cost = subtract_two_numbers(total_before_discount, discount_amount);
+    print("التكلفة النهائية: " + final_cost + " ريال");
+    print("");
+    
+    print("=== انتهى البرنامج ===");
+    
+    return 0;
+}

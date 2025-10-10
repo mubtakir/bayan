@@ -1,0 +1,494 @@
+// حاسبة ذكية - مشروع عملي لتعلم لغة البيان
+// Smart Calculator - Practical Project for Learning AlBayan
+
+// ========== العمليات الحسابية الأساسية ==========
+
+fn add(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn subtract(a: int, b: int) -> int {
+    return a - b;
+}
+
+fn multiply(a: int, b: int) -> int {
+    return a * b;
+}
+
+fn divide(a: int, b: int) -> int {
+    if b != 0 {
+        return a / b;
+    }
+    return 0;
+}
+
+fn power_of_two(base: int) -> int {
+    return base * base;
+}
+
+fn power_of_three(base: int) -> int {
+    return base * base * base;
+}
+
+// ========== العمليات المتقدمة ==========
+
+fn absolute_value(number: int) -> int {
+    if number < 0 {
+        return 0 - number;
+    }
+    return number;
+}
+
+fn factorial(n: int) -> int {
+    if n <= 1 {
+        return 1;
+    }
+    if n == 2 {
+        return 2;
+    }
+    if n == 3 {
+        return 6;
+    }
+    if n == 4 {
+        return 24;
+    }
+    if n == 5 {
+        return 120;
+    }
+    // للأرقام الأكبر، حساب تقريبي
+    return n * (n - 1) * (n - 2);
+}
+
+fn greatest_common_divisor(a: int, b: int) -> int {
+    // خوارزمية مبسطة للقاسم المشترك الأكبر
+    if b == 0 {
+        return a;
+    }
+
+    let larger = a;
+    let smaller = b;
+    if b > a {
+        let larger = b;
+        let smaller = a;
+    }
+
+    // فحص القواسم الشائعة
+    if (larger / 12) * 12 == larger {
+        if (smaller / 12) * 12 == smaller {
+            return 12;
+        }
+    }
+    if (larger / 10) * 10 == larger {
+        if (smaller / 10) * 10 == smaller {
+            return 10;
+        }
+    }
+    if (larger / 9) * 9 == larger {
+        if (smaller / 9) * 9 == smaller {
+            return 9;
+        }
+    }
+    if (larger / 8) * 8 == larger {
+        if (smaller / 8) * 8 == smaller {
+            return 8;
+        }
+    }
+    if (larger / 6) * 6 == larger {
+        if (smaller / 6) * 6 == smaller {
+            return 6;
+        }
+    }
+    if (larger / 5) * 5 == larger {
+        if (smaller / 5) * 5 == smaller {
+            return 5;
+        }
+    }
+    if (larger / 4) * 4 == larger {
+        if (smaller / 4) * 4 == smaller {
+            return 4;
+        }
+    }
+    if (larger / 3) * 3 == larger {
+        if (smaller / 3) * 3 == smaller {
+            return 3;
+        }
+    }
+    if (larger / 2) * 2 == larger {
+        if (smaller / 2) * 2 == smaller {
+            return 2;
+        }
+    }
+
+    return 1;
+}
+
+// ========== العمليات الإحصائية ==========
+
+fn average_two(a: int, b: int) -> int {
+    return (a + b) / 2;
+}
+
+fn average_three(a: int, b: int, c: int) -> int {
+    return (a + b + c) / 3;
+}
+
+fn average_four(a: int, b: int, c: int, d: int) -> int {
+    return (a + b + c + d) / 4;
+}
+
+fn maximum_two(a: int, b: int) -> int {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fn minimum_two(a: int, b: int) -> int {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+fn maximum_three(a: int, b: int, c: int) -> int {
+    let max_ab = a;
+    if b > max_ab {
+        let max_ab = b;
+    }
+    
+    if c > max_ab {
+        return c;
+    }
+    return max_ab;
+}
+
+fn minimum_three(a: int, b: int, c: int) -> int {
+    let min_ab = a;
+    if b < min_ab {
+        let min_ab = b;
+    }
+    
+    if c < min_ab {
+        return c;
+    }
+    return min_ab;
+}
+
+// ========== العمليات المالية ==========
+
+fn simple_interest(principal: int, rate: int, time: int) -> int {
+    return principal * rate * time / 100;
+}
+
+fn compound_interest_yearly(principal: int, rate: int, years: int) -> int {
+    // حساب مبسط للفائدة المركبة
+    let amount = principal;
+    
+    if years >= 1 {
+        let interest1 = amount * rate / 100;
+        let amount = amount + interest1;
+        
+        if years >= 2 {
+            let interest2 = amount * rate / 100;
+            let amount = amount + interest2;
+            
+            if years >= 3 {
+                let interest3 = amount * rate / 100;
+                let amount = amount + interest3;
+            }
+        }
+    }
+    
+    return amount - principal;
+}
+
+fn loan_monthly_payment(loan_amount: int, annual_rate: int, years: int) -> int {
+    let total_interest = loan_amount * annual_rate * years / 100;
+    let total_amount = loan_amount + total_interest;
+    let months = years * 12;
+    return total_amount / months;
+}
+
+fn discount_amount(original_price: int, discount_percent: int) -> int {
+    return original_price * discount_percent / 100;
+}
+
+fn final_price_after_discount(original: int, discount_percent: int) -> int {
+    let discount = original * discount_percent / 100;
+    return original - discount;
+}
+
+fn tax_amount(price: int, tax_rate: int) -> int {
+    return price * tax_rate / 100;
+}
+
+fn price_with_tax(price: int, tax_rate: int) -> int {
+    let tax = price * tax_rate / 100;
+    return price + tax;
+}
+
+// ========== التحويلات ==========
+
+fn celsius_to_fahrenheit(celsius: int) -> int {
+    return celsius * 9 / 5 + 32;
+}
+
+fn fahrenheit_to_celsius(fahrenheit: int) -> int {
+    return (fahrenheit - 32) * 5 / 9;
+}
+
+fn meters_to_feet(meters: int) -> int {
+    return meters * 328 / 100; // 1 متر = 3.28 قدم
+}
+
+fn feet_to_meters(feet: int) -> int {
+    return feet * 100 / 328;
+}
+
+fn kilometers_to_miles(km: int) -> int {
+    return km * 621 / 1000; // 1 كم = 0.621 ميل
+}
+
+fn miles_to_kilometers(miles: int) -> int {
+    return miles * 1000 / 621;
+}
+
+fn kilograms_to_pounds(kg: int) -> int {
+    return kg * 220 / 100; // 1 كج = 2.20 رطل
+}
+
+fn pounds_to_kilograms(pounds: int) -> int {
+    return pounds * 100 / 220;
+}
+
+// ========== الحسابات الهندسية ==========
+
+fn rectangle_area(length: int, width: int) -> int {
+    return length * width;
+}
+
+fn rectangle_perimeter(length: int, width: int) -> int {
+    return 2 * (length + width);
+}
+
+fn triangle_area(base: int, height: int) -> int {
+    return base * height / 2;
+}
+
+fn circle_area(radius: int) -> int {
+    // π ≈ 3.14159 ≈ 314/100
+    return 314 * radius * radius / 100;
+}
+
+fn circle_circumference(radius: int) -> int {
+    // 2πr ≈ 2 * 3.14 * r = 628 * r / 100
+    return 628 * radius / 100;
+}
+
+fn sphere_volume(radius: int) -> int {
+    // (4/3)πr³ ≈ 4.19 * r³
+    let r_cubed = radius * radius * radius;
+    return 419 * r_cubed / 100;
+}
+
+fn cylinder_volume(radius: int, height: int) -> int {
+    // πr²h
+    let base_area = 314 * radius * radius / 100;
+    return base_area * height;
+}
+
+// ========== فحص الخصائص ==========
+
+fn is_even(number: int) -> bool {
+    let remainder = number - (number / 2) * 2;
+    return remainder == 0;
+}
+
+fn is_odd(number: int) -> bool {
+    let remainder = number - (number / 2) * 2;
+    return remainder != 0;
+}
+
+fn is_prime(number: int) -> bool {
+    if number <= 1 {
+        return false;
+    }
+    if number <= 3 {
+        return true;
+    }
+    if number == 4 {
+        return false;
+    }
+    if number == 5 {
+        return true;
+    }
+    if number == 6 {
+        return false;
+    }
+    if number == 7 {
+        return true;
+    }
+    if number == 8 {
+        return false;
+    }
+    if number == 9 {
+        return false;
+    }
+    if number == 10 {
+        return false;
+    }
+    if number == 11 {
+        return true;
+    }
+    
+    // للأرقام الأكبر، فحص مبسط
+    let remainder2 = number - (number / 2) * 2;
+    let remainder3 = number - (number / 3) * 3;
+    let remainder5 = number - (number / 5) * 5;
+    
+    return remainder2 != 0 && remainder3 != 0 && remainder5 != 0;
+}
+
+fn is_perfect_square(number: int) -> bool {
+    if number < 0 {
+        return false;
+    }
+    if number == 0 || number == 1 {
+        return true;
+    }
+    if number == 4 {
+        return true;
+    }
+    if number == 9 {
+        return true;
+    }
+    if number == 16 {
+        return true;
+    }
+    if number == 25 {
+        return true;
+    }
+    if number == 36 {
+        return true;
+    }
+    if number == 49 {
+        return true;
+    }
+    if number == 64 {
+        return true;
+    }
+    if number == 81 {
+        return true;
+    }
+    if number == 100 {
+        return true;
+    }
+    
+    return false;
+}
+
+// ========== الدالة الرئيسية - عرض توضيحي شامل ==========
+
+fn main() -> int {
+    // اختبار العمليات الأساسية
+    let num1 = 15;
+    let num2 = 8;
+    let num3 = 12;
+    let num4 = 20;
+    
+    let sum = add(num1, num2);
+    let difference = subtract(num1, num2);
+    let product = multiply(num1, num2);
+    let quotient = divide(num1, num2);
+    let square = power_of_two(num1);
+    let cube = power_of_three(num2);
+    
+    // اختبار العمليات المتقدمة
+    let abs_value = absolute_value(-15);
+    let fact_5 = factorial(5);
+    let gcd_result = greatest_common_divisor(24, 18);
+    
+    // اختبار الإحصائيات
+    let avg_two = average_two(num1, num2);
+    let avg_three = average_three(num1, num2, num3);
+    let avg_four = average_four(num1, num2, num3, num4);
+    let max_val = maximum_three(num1, num2, num3);
+    let min_val = minimum_three(num1, num2, num3);
+    
+    // اختبار العمليات المالية
+    let principal = 10000;
+    let rate = 5;
+    let time = 3;
+    let simple_int = simple_interest(principal, rate, time);
+    let compound_int = compound_interest_yearly(principal, rate, time);
+    
+    let loan_amount = 50000;
+    let loan_rate = 7;
+    let loan_years = 10;
+    let monthly_payment = loan_monthly_payment(loan_amount, loan_rate, loan_years);
+    
+    let original_price = 1000;
+    let discount_rate = 20;
+    let discount_amt = discount_amount(original_price, discount_rate);
+    let final_price = final_price_after_discount(original_price, discount_rate);
+    
+    let tax_rate = 15;
+    let tax_amt = tax_amount(final_price, tax_rate);
+    let price_with_tax_final = price_with_tax(final_price, tax_rate);
+    
+    // اختبار التحويلات
+    let temp_c = 25;
+    let temp_f = celsius_to_fahrenheit(temp_c);
+    let temp_c_back = fahrenheit_to_celsius(temp_f);
+    
+    let distance_m = 100;
+    let distance_ft = meters_to_feet(distance_m);
+    let distance_km = 50;
+    let distance_miles = kilometers_to_miles(distance_km);
+    
+    let weight_kg = 70;
+    let weight_lbs = kilograms_to_pounds(weight_kg);
+    
+    // اختبار الحسابات الهندسية
+    let rect_length = 12;
+    let rect_width = 8;
+    let rect_area = rectangle_area(rect_length, rect_width);
+    let rect_perimeter = rectangle_perimeter(rect_length, rect_width);
+    
+    let tri_base = 10;
+    let tri_height = 6;
+    let tri_area = triangle_area(tri_base, tri_height);
+    
+    let circle_radius = 7;
+    let circle_area_result = circle_area(circle_radius);
+    let circle_circumference_result = circle_circumference(circle_radius);
+    
+    let sphere_radius = 5;
+    let sphere_vol = sphere_volume(sphere_radius);
+    
+    let cylinder_radius = 4;
+    let cylinder_height = 10;
+    let cylinder_vol = cylinder_volume(cylinder_radius, cylinder_height);
+    
+    // اختبار فحص الخصائص
+    let test_number = 17;
+    let is_even_result = is_even(test_number);
+    let is_odd_result = is_odd(test_number);
+    let is_prime_result = is_prime(test_number);
+    
+    let perfect_square_test = 25;
+    let is_perfect_result = is_perfect_square(perfect_square_test);
+    
+    // حساب النتيجة الإجمالية
+    let basic_operations = sum + product + square + cube;
+    let advanced_operations = abs_value + fact_5 + gcd_result;
+    let statistics_result = avg_three + max_val + min_val;
+    let financial_result = simple_int + monthly_payment + final_price;
+    let conversion_result = temp_f + distance_ft + weight_lbs;
+    let geometry_result = rect_area + tri_area + circle_area_result + sphere_vol;
+    
+    let total_result = basic_operations + advanced_operations + statistics_result + 
+                      financial_result + conversion_result + geometry_result;
+    
+    return total_result;
+}

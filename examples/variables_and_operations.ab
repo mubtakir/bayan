@@ -1,0 +1,247 @@
+// المتغيرات والعمليات - مثال بسيط بدون استدعاء دوال
+// Variables and Operations - Simple example without function calls
+
+fn add_numbers(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn subtract_numbers(a: int, b: int) -> int {
+    return a - b;
+}
+
+fn multiply_numbers(a: int, b: int) -> int {
+    return a * b;
+}
+
+fn divide_numbers(a: int, b: int) -> int {
+    return a / b;
+}
+
+fn get_maximum(a: int, b: int) -> int {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fn get_minimum(a: int, b: int) -> int {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+fn calculate_square(n: int) -> int {
+    return n * n;
+}
+
+fn calculate_cube(n: int) -> int {
+    return n * n * n;
+}
+
+fn is_positive(n: int) -> bool {
+    return n > 0;
+}
+
+fn is_negative(n: int) -> bool {
+    return n < 0;
+}
+
+fn is_zero(n: int) -> bool {
+    return n == 0;
+}
+
+fn classify_number(n: int) -> string {
+    if n > 0 {
+        return "موجب";
+    }
+    if n < 0 {
+        return "سالب";
+    }
+    return "صفر";
+}
+
+fn classify_grade(grade: int) -> string {
+    if grade >= 90 {
+        return "ممتاز";
+    }
+    if grade >= 80 {
+        return "جيد جداً";
+    }
+    if grade >= 70 {
+        return "جيد";
+    }
+    if grade >= 60 {
+        return "مقبول";
+    }
+    return "راسب";
+}
+
+fn rectangle_area(width: int, height: int) -> int {
+    return width * height;
+}
+
+fn rectangle_perimeter(width: int, height: int) -> int {
+    return (width + height) * 2;
+}
+
+fn triangle_area(base: int, height: int) -> int {
+    return (base * height) / 2;
+}
+
+fn celsius_to_fahrenheit(celsius: int) -> int {
+    return (celsius * 9) / 5 + 32;
+}
+
+fn meters_to_centimeters(meters: int) -> int {
+    return meters * 100;
+}
+
+fn simple_interest(principal: int, rate: int, time: int) -> int {
+    return (principal * rate * time) / 100;
+}
+
+fn discount_amount(price: int, percent: int) -> int {
+    return (price * percent) / 100;
+}
+
+fn main() -> int {
+    // تعريف المتغيرات الأساسية
+    let first_number = 15;
+    let second_number = 8;
+    let third_number = 12;
+    
+    // العمليات الحسابية الأساسية
+    let sum = first_number + second_number;
+    let difference = first_number - second_number;
+    let product = first_number * second_number;
+    let quotient = first_number / second_number;
+    
+    // عمليات المقارنة
+    let is_first_greater = first_number > second_number;
+    let is_second_smaller = second_number < third_number;
+    let are_equal = first_number == second_number;
+    
+    // عمليات القوة
+    let square_first = first_number * first_number;
+    let square_second = second_number * second_number;
+    let cube_small = 3 * 3 * 3;
+    
+    // الحسابات الهندسية
+    let rect_width = 6;
+    let rect_height = 4;
+    let rect_area = rect_width * rect_height;
+    let rect_perimeter = (rect_width + rect_height) * 2;
+    
+    let tri_base = 8;
+    let tri_height = 5;
+    let tri_area = (tri_base * tri_height) / 2;
+    
+    // التحويلات
+    let temp_celsius = 25;
+    let temp_fahrenheit = (temp_celsius * 9) / 5 + 32;
+    
+    let distance_meters = 3;
+    let distance_cm = distance_meters * 100;
+    
+    // الحسابات المالية
+    let principal_amount = 1000;
+    let interest_rate = 5;
+    let time_years = 2;
+    let interest = (principal_amount * interest_rate * time_years) / 100;
+    let total_amount = principal_amount + interest;
+    
+    let item_price = 200;
+    let discount_percent = 15;
+    let discount = (item_price * discount_percent) / 100;
+    let final_price = item_price - discount;
+    
+    // حسابات الدرجات
+    let math_grade = 85;
+    let science_grade = 90;
+    let english_grade = 78;
+    let total_grades = math_grade + science_grade + english_grade;
+    let average_grade = total_grades / 3;
+    
+    // التحقق من الشروط
+    let is_passing_grade = average_grade >= 60;
+    let is_excellent = average_grade >= 90;
+    let is_good = average_grade >= 80;
+    
+    // حسابات متقدمة
+    let sum_of_squares = (first_number * first_number) + (second_number * second_number);
+    let difference_of_squares = (first_number * first_number) - (second_number * second_number);
+    
+    // حسابات الوقت
+    let hours = 3;
+    let minutes_from_hours = hours * 60;
+    let seconds_from_minutes = minutes_from_hours * 60;
+    
+    // حسابات المسافة
+    let kilometers = 5;
+    let meters_from_km = kilometers * 1000;
+    let centimeters_from_m = meters_from_km * 100;
+    
+    // حسابات الوزن (تحويل تقريبي)
+    let kilograms = 70;
+    let grams = kilograms * 1000;
+    let pounds_approx = kilograms * 2; // تقريب بسيط
+    
+    // حسابات السرعة
+    let distance_km = 120;
+    let time_hours = 2;
+    let speed_kmh = distance_km / time_hours;
+    
+    // حسابات الطاقة (تقريبية)
+    let voltage = 220;
+    let current = 5;
+    let power = voltage * current;
+    
+    // حسابات الهندسة المتقدمة
+    let circle_radius = 7;
+    let circle_area_approx = 3 * circle_radius * circle_radius; // π ≈ 3
+    let circle_circumference_approx = 2 * 3 * circle_radius; // 2π ≈ 6
+    
+    // حسابات الإحصاء البسيطة
+    let data_point1 = 10;
+    let data_point2 = 15;
+    let data_point3 = 20;
+    let data_point4 = 25;
+    let data_point5 = 30;
+    
+    let data_sum = data_point1 + data_point2 + data_point3 + data_point4 + data_point5;
+    let data_average = data_sum / 5;
+    let data_range = data_point5 - data_point1;
+    
+    // حسابات النسب المئوية
+    let total_students = 100;
+    let passed_students = 85;
+    let pass_percentage = (passed_students * 100) / total_students;
+    
+    let total_budget = 10000;
+    let spent_amount = 7500;
+    let remaining_budget = total_budget - spent_amount;
+    let spent_percentage = (spent_amount * 100) / total_budget;
+    
+    // حسابات التجارة
+    let cost_price = 80;
+    let selling_price = 100;
+    let profit = selling_price - cost_price;
+    let profit_percentage = (profit * 100) / cost_price;
+    
+    // حسابات الضرائب
+    let salary = 5000;
+    let tax_rate = 10;
+    let tax_amount = (salary * tax_rate) / 100;
+    let net_salary = salary - tax_amount;
+    
+    // حسابات الاستهلاك
+    let monthly_consumption = 500;
+    let yearly_consumption = monthly_consumption * 12;
+    let daily_consumption = monthly_consumption / 30;
+    
+    // النتيجة النهائية
+    let final_result = sum + product - difference;
+    
+    return final_result;
+}

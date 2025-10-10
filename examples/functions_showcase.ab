@@ -1,0 +1,438 @@
+// عرض شامل للدوال - مثال متقدم بدون هياكل
+// Comprehensive Functions Showcase - Advanced example without structs
+
+// دوال العمليات الحسابية الأساسية
+fn add(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn subtract(a: int, b: int) -> int {
+    return a - b;
+}
+
+fn multiply(a: int, b: int) -> int {
+    return a * b;
+}
+
+fn divide(a: int, b: int) -> int {
+    if b != 0 {
+        return a / b;
+    }
+    return 0;
+}
+
+// دوال المقارنة والاختيار
+fn maximum(a: int, b: int) -> int {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fn minimum(a: int, b: int) -> int {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+fn absolute_value(x: int) -> int {
+    if x < 0 {
+        return -x;
+    }
+    return x;
+}
+
+// دوال التحقق والاختبار
+fn is_positive(n: int) -> bool {
+    return n > 0;
+}
+
+fn is_negative(n: int) -> bool {
+    return n < 0;
+}
+
+fn is_zero(n: int) -> bool {
+    return n == 0;
+}
+
+fn is_even(n: int) -> bool {
+    let remainder = n - (n / 2) * 2;
+    return remainder == 0;
+}
+
+fn is_odd(n: int) -> bool {
+    let remainder = n - (n / 2) * 2;
+    return remainder != 0;
+}
+
+// دوال القوة والجذور
+fn square(n: int) -> int {
+    return n * n;
+}
+
+fn cube(n: int) -> int {
+    return n * n * n;
+}
+
+fn power_of_two(exponent: int) -> int {
+    if exponent == 0 {
+        return 1;
+    }
+    if exponent == 1 {
+        return 2;
+    }
+    if exponent == 2 {
+        return 4;
+    }
+    if exponent == 3 {
+        return 8;
+    }
+    if exponent == 4 {
+        return 16;
+    }
+    if exponent == 5 {
+        return 32;
+    }
+    return 64; // للقوى الأعلى
+}
+
+// دوال الحسابات الهندسية
+fn rectangle_area(width: int, height: int) -> int {
+    return width * height;
+}
+
+fn rectangle_perimeter(width: int, height: int) -> int {
+    return (width + height) * 2;
+}
+
+fn triangle_area(base: int, height: int) -> int {
+    return (base * height) / 2;
+}
+
+fn circle_area_approx(radius: int) -> int {
+    // π ≈ 3
+    return 3 * radius * radius;
+}
+
+fn circle_circumference_approx(radius: int) -> int {
+    // 2π ≈ 6
+    return 6 * radius;
+}
+
+// دوال التحويل
+fn celsius_to_fahrenheit(celsius: int) -> int {
+    return (celsius * 9) / 5 + 32;
+}
+
+fn fahrenheit_to_celsius(fahrenheit: int) -> int {
+    return ((fahrenheit - 32) * 5) / 9;
+}
+
+fn meters_to_centimeters(meters: int) -> int {
+    return meters * 100;
+}
+
+fn centimeters_to_meters(centimeters: int) -> int {
+    return centimeters / 100;
+}
+
+fn kilometers_to_meters(kilometers: int) -> int {
+    return kilometers * 1000;
+}
+
+fn hours_to_minutes(hours: int) -> int {
+    return hours * 60;
+}
+
+fn minutes_to_seconds(minutes: int) -> int {
+    return minutes * 60;
+}
+
+// دوال التصنيف والتقييم
+fn classify_number(n: int) -> string {
+    if n > 0 {
+        return "موجب";
+    }
+    if n < 0 {
+        return "سالب";
+    }
+    return "صفر";
+}
+
+fn classify_grade(grade: int) -> string {
+    if grade >= 90 {
+        return "ممتاز";
+    }
+    if grade >= 80 {
+        return "جيد جداً";
+    }
+    if grade >= 70 {
+        return "جيد";
+    }
+    if grade >= 60 {
+        return "مقبول";
+    }
+    return "راسب";
+}
+
+fn classify_temperature(temp: int) -> string {
+    if temp < 0 {
+        return "متجمد";
+    }
+    if temp < 10 {
+        return "بارد جداً";
+    }
+    if temp < 20 {
+        return "بارد";
+    }
+    if temp < 30 {
+        return "معتدل";
+    }
+    if temp < 40 {
+        return "دافئ";
+    }
+    return "حار";
+}
+
+fn classify_age(age: int) -> string {
+    if age < 13 {
+        return "طفل";
+    }
+    if age < 20 {
+        return "مراهق";
+    }
+    if age < 60 {
+        return "بالغ";
+    }
+    return "كبير السن";
+}
+
+// دوال الحسابات المالية
+fn simple_interest(principal: int, rate: int, time: int) -> int {
+    return (principal * rate * time) / 100;
+}
+
+fn compound_interest_approx(principal: int, rate: int, time: int) -> int {
+    // تقريب بسيط للفائدة المركبة
+    let simple = simple_interest(principal, rate, time);
+    let bonus = (simple * rate) / 200; // تقريب للمكون المركب
+    return simple + bonus;
+}
+
+fn discount_amount(price: int, discount_percent: int) -> int {
+    return (price * discount_percent) / 100;
+}
+
+fn final_price_after_discount(price: int, discount_percent: int) -> int {
+    let discount = discount_amount(price, discount_percent);
+    return price - discount;
+}
+
+fn tax_amount(price: int, tax_percent: int) -> int {
+    return (price * tax_percent) / 100;
+}
+
+fn final_price_with_tax(price: int, tax_percent: int) -> int {
+    let tax = tax_amount(price, tax_percent);
+    return price + tax;
+}
+
+// دوال الإحصاء والتحليل
+fn average_two(a: int, b: int) -> int {
+    return (a + b) / 2;
+}
+
+fn average_three(a: int, b: int, c: int) -> int {
+    return (a + b + c) / 3;
+}
+
+fn average_four(a: int, b: int, c: int, d: int) -> int {
+    return (a + b + c + d) / 4;
+}
+
+fn range_two(a: int, b: int) -> int {
+    return absolute_value(a - b);
+}
+
+fn sum_of_squares_two(a: int, b: int) -> int {
+    return square(a) + square(b);
+}
+
+fn sum_of_cubes_two(a: int, b: int) -> int {
+    return cube(a) + cube(b);
+}
+
+// دوال التحقق من النطاقات
+fn is_in_range(value: int, min_val: int, max_val: int) -> bool {
+    return value >= min_val && value <= max_val;
+}
+
+fn is_valid_percentage(value: int) -> bool {
+    return is_in_range(value, 0, 100);
+}
+
+fn is_valid_grade(grade: int) -> bool {
+    return is_in_range(grade, 0, 100);
+}
+
+fn is_adult_age(age: int) -> bool {
+    return age >= 18;
+}
+
+fn is_retirement_age(age: int) -> bool {
+    return age >= 60;
+}
+
+// دوال الحسابات المتقدمة
+fn factorial_small(n: int) -> int {
+    if n <= 1 {
+        return 1;
+    }
+    if n == 2 {
+        return 2;
+    }
+    if n == 3 {
+        return 6;
+    }
+    if n == 4 {
+        return 24;
+    }
+    if n == 5 {
+        return 120;
+    }
+    return 720; // 6! للقيم الأكبر
+}
+
+fn fibonacci_small(n: int) -> int {
+    if n <= 1 {
+        return n;
+    }
+    if n == 2 {
+        return 1;
+    }
+    if n == 3 {
+        return 2;
+    }
+    if n == 4 {
+        return 3;
+    }
+    if n == 5 {
+        return 5;
+    }
+    if n == 6 {
+        return 8;
+    }
+    return 13; // للقيم الأكبر
+}
+
+// دوال التحويل المتقدمة
+fn binary_to_decimal_small(binary: int) -> int {
+    // تحويل بسيط للأرقام الثنائية الصغيرة
+    if binary == 0 {
+        return 0;
+    }
+    if binary == 1 {
+        return 1;
+    }
+    if binary == 10 {
+        return 2;
+    }
+    if binary == 11 {
+        return 3;
+    }
+    if binary == 100 {
+        return 4;
+    }
+    if binary == 101 {
+        return 5;
+    }
+    if binary == 110 {
+        return 6;
+    }
+    if binary == 111 {
+        return 7;
+    }
+    return 8; // للقيم الأكبر
+}
+
+// دوال المقارنة المتقدمة
+fn maximum_three(a: int, b: int, c: int) -> int {
+    let max_ab = maximum(a, b);
+    return maximum(max_ab, c);
+}
+
+fn minimum_three(a: int, b: int, c: int) -> int {
+    let min_ab = minimum(a, b);
+    return minimum(min_ab, c);
+}
+
+fn maximum_four(a: int, b: int, c: int, d: int) -> int {
+    let max_abc = maximum_three(a, b, c);
+    return maximum(max_abc, d);
+}
+
+fn minimum_four(a: int, b: int, c: int, d: int) -> int {
+    let min_abc = minimum_three(a, b, c);
+    return minimum(min_abc, d);
+}
+
+fn main() -> int {
+    // اختبار العمليات الأساسية
+    let num1 = 15;
+    let num2 = 8;
+    let num3 = 12;
+    let num4 = 20;
+    
+    let sum = add(num1, num2);
+    let difference = subtract(num1, num2);
+    let product = multiply(num1, num2);
+    let quotient = divide(num1, num2);
+    
+    // اختبار المقارنة
+    let max_two = maximum(num1, num2);
+    let min_two = minimum(num1, num2);
+    let max_three = maximum_three(num1, num2, num3);
+    let min_four = minimum_four(num1, num2, num3, num4);
+    
+    // اختبار القوى
+    let square_num1 = square(num1);
+    let cube_num2 = cube(num2);
+    let power_result = power_of_two(4);
+    
+    // اختبار الحسابات الهندسية
+    let rect_area = rectangle_area(6, 4);
+    let tri_area = triangle_area(8, 5);
+    let circle_area = circle_area_approx(3);
+    
+    // اختبار التحويلات
+    let temp_f = celsius_to_fahrenheit(25);
+    let distance_cm = meters_to_centimeters(3);
+    let time_minutes = hours_to_minutes(2);
+    
+    // اختبار الحسابات المالية
+    let interest = simple_interest(1000, 5, 2);
+    let discount = discount_amount(200, 15);
+    let final_price = final_price_after_discount(200, 15);
+    
+    // اختبار الإحصاء
+    let avg_two = average_two(num1, num2);
+    let avg_three = average_three(num1, num2, num3);
+    let range_result = range_two(num1, num2);
+    
+    // اختبار التحقق
+    let is_pos = is_positive(num1);
+    let is_even_num = is_even(num2);
+    let is_valid = is_valid_grade(85);
+    let is_adult = is_adult_age(25);
+    
+    // اختبار الحسابات المتقدمة
+    let fact_result = factorial_small(5);
+    let fib_result = fibonacci_small(6);
+    let binary_result = binary_to_decimal_small(101);
+    
+    // النتيجة النهائية
+    let final_result = sum + product + max_three + rect_area + interest;
+    
+    return final_result;
+}

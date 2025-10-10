@@ -1,0 +1,277 @@
+// نظام التداول المالي الذكي - Smart Financial Trading System
+// مثال عملي لاستخدام الذكاء الاصطناعي في التحليل المالي والتداول
+
+// ========== تحليل السوق المالي بالنواة التفكيرية ==========
+fn financial_market_analysis(price_data: int, volume: int, market_sentiment: int) -> int {
+    // الطبقة الرياضية - تحليل البيانات المالية
+    let mathematical_analysis = price_data * volume / 1000;
+    
+    // الطبقة اللغوية - تحليل الأخبار والتقارير
+    let news_impact = market_sentiment;
+    if market_sentiment > 80 {
+        news_impact = market_sentiment + 200; // أخبار إيجابية قوية
+    } else {
+        if market_sentiment < 20 {
+            news_impact = market_sentiment - 150; // أخبار سلبية
+        }
+    }
+    
+    // الطبقة المنطقية - استنتاج الاتجاهات
+    let trend_analysis = mathematical_analysis + news_impact;
+    
+    // الطبقة الفيزيائية - تحليل قوى العرض والطلب
+    let supply_demand = volume;
+    if volume > 1000000 {
+        supply_demand = volume / 1000 + 500; // حجم تداول عالي
+    }
+    
+    // الطبقة الدلالية - فهم سياق السوق
+    let market_context = trend_analysis + supply_demand;
+    
+    // الطبقة البصرية - تحليل الرسوم البيانية
+    let chart_analysis = market_context + (price_data / 100);
+    
+    // الطبقة الرمزية - ربط المؤشرات الفنية
+    let technical_indicators = chart_analysis + 100;
+    
+    // الطبقة التفسيرية - تفسير الإشارات
+    let signal_interpretation = technical_indicators + (market_sentiment / 10);
+    
+    return signal_interpretation;
+}
+
+// ========== نظام إدارة المخاطر الذكي ==========
+fn intelligent_risk_management(portfolio_value: int, position_size: int, volatility: int) -> int {
+    // تحليل التقلبات
+    let volatility_risk = volatility;
+    if volatility > 50 {
+        volatility_risk = volatility + 200; // تقلبات عالية
+    } else {
+        if volatility > 30 {
+            volatility_risk = volatility + 100; // تقلبات متوسطة
+        }
+    }
+    
+    // تحليل حجم المركز
+    let position_risk = position_size * 100 / portfolio_value;
+    if position_risk > 20 {
+        position_risk = position_risk + 300; // مخاطرة عالية
+    } else {
+        if position_risk > 10 {
+            position_risk = position_risk + 150; // مخاطرة متوسطة
+        }
+    }
+    
+    // حساب المخاطر الإجمالية
+    let total_risk = volatility_risk + position_risk;
+    
+    // تطبيق نظام الخبير/المستكشف
+    let risk_confidence = 100 - (total_risk / 10);
+    let risk_level = total_risk / 5;
+    
+    let risk_decision = 0;
+    if risk_confidence > 70 {
+        risk_decision = 1; // مخاطرة مقبولة
+    } else {
+        if risk_confidence > 50 {
+            risk_decision = 2; // مخاطرة متوسطة - حذر
+        } else {
+            risk_decision = 3; // مخاطرة عالية - تجنب
+        }
+    }
+    
+    let risk_management_score = total_risk + (risk_decision * 100);
+    return risk_management_score;
+}
+
+// ========== نظام التنبؤ بالأسعار ==========
+fn price_prediction_system(historical_prices: int, moving_average: int, rsi: int, macd: int) -> int {
+    // تحليل المتوسطات المتحركة
+    let ma_signal = 0;
+    if historical_prices > moving_average {
+        ma_signal = 100; // إشارة صعود
+    } else {
+        ma_signal = -100; // إشارة هبوط
+    }
+    
+    // تحليل مؤشر القوة النسبية RSI
+    let rsi_signal = 0;
+    if rsi > 70 {
+        rsi_signal = -150; // منطقة تشبع شرائي
+    } else {
+        if rsi < 30 {
+            rsi_signal = 150; // منطقة تشبع بيعي
+        }
+    }
+    
+    // تحليل مؤشر MACD
+    let macd_signal = macd;
+    if macd > 0 {
+        macd_signal = macd + 100; // إشارة إيجابية
+    } else {
+        macd_signal = macd - 100; // إشارة سلبية
+    }
+    
+    // دمج الإشارات
+    let combined_signals = ma_signal + rsi_signal + macd_signal;
+    
+    // تطبيق النواة التفكيرية للتنبؤ
+    let prediction_analysis = financial_market_analysis(historical_prices, combined_signals, 60);
+    
+    let final_prediction = combined_signals + prediction_analysis;
+    return final_prediction;
+}
+
+// ========== نظام التداول الآلي ==========
+fn automated_trading_system(market_signal: int, risk_level: int, account_balance: int) -> int {
+    // تحليل الإشارة
+    let signal_strength = market_signal;
+    if market_signal > 500 {
+        signal_strength = market_signal + 200; // إشارة قوية
+    } else {
+        if market_signal < -500 {
+            signal_strength = market_signal - 200; // إشارة هبوط قوية
+        }
+    }
+    
+    // تحديد حجم الصفقة
+    let trade_size = account_balance / 20; // 5% من الرصيد
+    if risk_level > 300 {
+        trade_size = account_balance / 50; // 2% في حالة المخاطر العالية
+    } else {
+        if risk_level < 100 {
+            trade_size = account_balance / 10; // 10% في حالة المخاطر المنخفضة
+        }
+    }
+    
+    // قرار التداول
+    let trading_decision = 0;
+    if signal_strength > 300 {
+        trading_decision = 1; // شراء
+    } else {
+        if signal_strength < -300 {
+            trading_decision = 2; // بيع
+        } else {
+            trading_decision = 3; // انتظار
+        }
+    }
+    
+    let automated_trade_result = signal_strength + trade_size + (trading_decision * 100);
+    return automated_trade_result;
+}
+
+// ========== تحليل المحفظة الاستثمارية ==========
+fn portfolio_analysis_system(stock_allocation: int, bond_allocation: int, crypto_allocation: int, cash_allocation: int) -> int {
+    // تحليل التنويع
+    let total_allocation = stock_allocation + bond_allocation + crypto_allocation + cash_allocation;
+    
+    // تقييم توزيع الأصول
+    let diversification_score = 0;
+    if stock_allocation > 70 {
+        diversification_score = diversification_score - 100; // تركيز عالي في الأسهم
+    }
+    if crypto_allocation > 20 {
+        diversification_score = diversification_score - 150; // تركيز عالي في العملات المشفرة
+    }
+    if cash_allocation > 30 {
+        diversification_score = diversification_score - 50; // نقد كثير
+    }
+    
+    // تحليل المخاطر والعوائد
+    let risk_return_balance = (stock_allocation * 3) + (bond_allocation * 1) + (crypto_allocation * 5) + (cash_allocation * 0);
+    
+    // تطبيق إدارة المخاطر
+    let portfolio_risk = intelligent_risk_management(total_allocation * 1000, risk_return_balance, 40);
+    
+    let portfolio_score = diversification_score + risk_return_balance + portfolio_risk;
+    return portfolio_score;
+}
+
+// ========== نظام تحليل الشركات ==========
+fn company_analysis_system(revenue: int, profit_margin: int, debt_ratio: int, growth_rate: int) -> int {
+    // تحليل الإيرادات
+    let revenue_analysis = revenue;
+    if revenue > 1000000 {
+        revenue_analysis = revenue / 1000 + 500; // شركة كبيرة
+    }
+    
+    // تحليل هامش الربح
+    let profit_analysis = profit_margin;
+    if profit_margin > 20 {
+        profit_analysis = profit_margin + 200; // ربحية عالية
+    } else {
+        if profit_margin < 5 {
+            profit_analysis = profit_margin - 100; // ربحية منخفضة
+        }
+    }
+    
+    // تحليل نسبة الديون
+    let debt_analysis = debt_ratio;
+    if debt_ratio > 60 {
+        debt_analysis = debt_ratio + 300; // ديون عالية
+    } else {
+        if debt_ratio < 20 {
+            debt_analysis = debt_ratio - 50; // ديون منخفضة (جيد)
+        }
+    }
+    
+    // تحليل معدل النمو
+    let growth_analysis = growth_rate;
+    if growth_rate > 15 {
+        growth_analysis = growth_rate + 250; // نمو عالي
+    } else {
+        if growth_rate < 0 {
+            growth_analysis = growth_rate - 200; // نمو سلبي
+        }
+    }
+    
+    // التقييم الشامل
+    let fundamental_score = revenue_analysis + profit_analysis - debt_analysis + growth_analysis;
+    
+    return fundamental_score;
+}
+
+// ========== الدالة الرئيسية لنظام التداول الذكي ==========
+fn smart_trading_system_main() -> int {
+    // بيانات السوق الافتراضية
+    let current_price = 150;
+    let trading_volume = 2500000;
+    let market_sentiment = 75; // إيجابي
+    
+    // المؤشرات الفنية
+    let moving_average_20 = 145;
+    let rsi_value = 65;
+    let macd_value = 5;
+    
+    // بيانات المحفظة
+    let account_balance = 100000;
+    let stock_allocation = 60;
+    let bond_allocation = 25;
+    let crypto_allocation = 10;
+    let cash_allocation = 5;
+    
+    // بيانات الشركة للتحليل الأساسي
+    let company_revenue = 5000000;
+    let company_profit_margin = 18;
+    let company_debt_ratio = 35;
+    let company_growth_rate = 12;
+    
+    // تشغيل النظام
+    let market_analysis = financial_market_analysis(current_price, trading_volume, market_sentiment);
+    let price_prediction = price_prediction_system(current_price, moving_average_20, rsi_value, macd_value);
+    let risk_assessment = intelligent_risk_management(account_balance, 10000, 35);
+    let trading_signal = automated_trading_system(price_prediction, risk_assessment, account_balance);
+    let portfolio_evaluation = portfolio_analysis_system(stock_allocation, bond_allocation, crypto_allocation, cash_allocation);
+    let company_evaluation = company_analysis_system(company_revenue, company_profit_margin, company_debt_ratio, company_growth_rate);
+    
+    // النتيجة الشاملة
+    let comprehensive_trading_ai = market_analysis + price_prediction + trading_signal + portfolio_evaluation + company_evaluation;
+    
+    return comprehensive_trading_ai;
+}
+
+// تشغيل نظام التداول الذكي
+fn main() -> int {
+    let trading_result = smart_trading_system_main();
+    return trading_result;
+}

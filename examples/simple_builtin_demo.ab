@@ -1,0 +1,177 @@
+// مثال بسيط للمكتبات المدمجة
+// Simple Built-in Libraries Demo
+
+// ========== اختبار النواة التفكيرية ==========
+fn test_thinking_core() -> int {
+    // محاكاة النواة التفكيرية بدوال بسيطة
+    let input_data = 25;
+
+    // الطبقة الرياضية
+    let math_layer = input_data * 2;
+
+    // الطبقة اللغوية
+    let linguistic_layer = math_layer + 10;
+
+    // الطبقة المنطقية
+    let logical_layer = linguistic_layer * 3;
+
+    // الطبقة الفيزيائية
+    let physical_layer = logical_layer / 2;
+
+    // النتيجة النهائية
+    let final_analysis = physical_layer + 15;
+
+    return final_analysis;
+}
+
+// ========== اختبار نظام الخبير/المستكشف ==========
+fn test_expert_explorer() -> int {
+    let input_value = 42;
+    let confidence_threshold = 75;
+
+    // حساب مستوى الثقة
+    let confidence = input_value + 30; // = 72
+
+    if confidence > confidence_threshold {
+        // نمط الخبير - قرار سريع
+        let expert_decision = input_value * 2;
+        return expert_decision;
+    } else {
+        // نمط المستكشف - استكشاف
+        let exploration_path_1 = input_value + 10;
+        let exploration_path_2 = input_value + 20;
+        let exploration_path_3 = input_value + 30;
+
+        // اختيار أفضل مسار
+        let best_path = exploration_path_3; // الأعلى
+        return best_path;
+    }
+}
+
+// ========== اختبار المعادلات المتكيفة ==========
+fn test_adaptive_equations() -> int {
+    let x = 10;
+
+    // مكون سيغمويد مبسط
+    let alpha = 100;
+    let k = 1;
+    let x0 = 0;
+
+    let shifted_x = x - x0;
+    let exp_part = k * shifted_x;
+
+    // تقريب سيغمويد: alpha / (1 + exp_part/10)
+    let sigmoid_result = alpha * 10 / (10 + exp_part);
+
+    // مكون خطي
+    let slope = 2;
+    let intercept = 5;
+    let weight = 30;
+    let linear_result = weight * (slope * x + intercept) / 100;
+
+    // دمج المكونات
+    let total_result = sigmoid_result + linear_result;
+
+    return total_result;
+}
+
+// ========== نظام متكامل مبسط ==========
+fn integrated_simple_system() -> int {
+    // بيانات الدخل
+    let input_data = 20;
+
+    // تحليل بالنواة التفكيرية
+    let thinking_result = test_thinking_core();
+
+    // قرار بنظام الخبير/المستكشف
+    let expert_result = test_expert_explorer();
+
+    // تقييم بالمعادلات التكيفية
+    let equation_result = test_adaptive_equations();
+
+    // دمج النتائج
+    let integrated_output = (thinking_result + expert_result + equation_result) / 3;
+
+    return integrated_output;
+}
+
+// ========== تطبيق ذكي بسيط للتوصيات ==========
+fn simple_recommendation_system(user_preference: int) -> int {
+    // تحليل تفضيلات المستخدم
+    let preference_analysis = user_preference * 2 + 10;
+
+    // تحديد نمط التوصية
+    if preference_analysis > 50 {
+        // توصيات خبيرة - مبنية على الشعبية
+        let popular_recommendation = preference_analysis + 25;
+        return popular_recommendation;
+    } else {
+        // توصيات استكشافية - اكتشاف جديد
+        let exploratory_recommendation = preference_analysis * 3;
+        return exploratory_recommendation;
+    }
+}
+
+// ========== نظام تقييم ذكي ==========
+fn smart_evaluation_system(performance_score: int) -> int {
+    // تحليل الأداء
+    let base_analysis = performance_score + 5;
+
+    // تطبيق معادلة تكيفية مبسطة
+    let adaptation_factor = base_analysis / 10;
+    let adapted_score = base_analysis + adaptation_factor;
+
+    // تقييم الثقة
+    let confidence = adapted_score % 100;
+
+    if confidence > 70 {
+        // تقييم عالي الثقة
+        let high_confidence_result = adapted_score + 20;
+        return high_confidence_result;
+    } else {
+        // تقييم يحتاج مراجعة
+        let review_needed_result = adapted_score + 5;
+        return review_needed_result;
+    }
+}
+
+// ========== نظام تعلم بسيط ==========
+fn simple_learning_system(data1: int, data2: int, data3: int) -> int {
+    // حساب المتوسط
+    let sum = data1 + data2 + data3;
+    let average = sum / 3;
+
+    // تكيف بناءً على البيانات
+    let learning_rate = 10;
+    let adapted_result = average + learning_rate;
+
+    // تحسين النتيجة
+    let optimized_result = adapted_result * 110 / 100; // تحسين 10%
+
+    return optimized_result;
+}
+
+// ========== الدالة الرئيسية ==========
+fn main() -> int {
+    // اختبار المكونات الأساسية
+    let thinking_test = test_thinking_core();
+    let expert_test = test_expert_explorer();
+    let equations_test = test_adaptive_equations();
+
+    // اختبار النظام المتكامل
+    let integrated_test = integrated_simple_system();
+
+    // اختبار التطبيقات العملية
+    let recommendation_test = simple_recommendation_system(30);
+    let evaluation_test = smart_evaluation_system(85);
+
+    // اختبار نظام التعلم
+    let learning_test = simple_learning_system(70, 80, 90);
+
+    // النتيجة الإجمالية
+    let basic_sum = thinking_test + expert_test + equations_test + integrated_test;
+    let application_sum = recommendation_test + evaluation_test + learning_test;
+    let total_result = basic_sum + application_sum;
+
+    return total_result;
+}

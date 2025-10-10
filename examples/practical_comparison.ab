@@ -1,0 +1,342 @@
+// مثال عملي: مقارنة لغة البيان مع اللغات الأخرى
+// Practical Example: AlBayan vs Other Languages Comparison
+
+// ========== مثال 1: حساب الفوائد المصرفية ==========
+// Banking Interest Calculation
+
+// دالة حساب الفائدة البسيطة
+fn simple_interest(principal: int, rate: int, time: int) -> int {
+    return principal * rate * time / 100;
+}
+
+// دالة حساب الفائدة المركبة (مبسطة)
+fn compound_interest(principal: int, rate: int, time: int) -> int {
+    // حساب مبسط للفائدة المركبة لسنة واحدة
+    let interest_year1 = principal * rate / 100;
+    let amount_year1 = principal + interest_year1;
+
+    if time >= 2 {
+        let interest_year2 = amount_year1 * rate / 100;
+        let amount_year2 = amount_year1 + interest_year2;
+
+        if time >= 3 {
+            let interest_year3 = amount_year2 * rate / 100;
+            let amount_year3 = amount_year2 + interest_year3;
+            return amount_year3 - principal;
+        }
+        return amount_year2 - principal;
+    }
+
+    return interest_year1;
+}
+
+// دالة تصنيف نوع الحساب
+fn classify_account_type(balance: int) -> string {
+    if balance >= 100000 {
+        return "VIP";
+    }
+    if balance >= 50000 {
+        return "Gold";
+    }
+    if balance >= 10000 {
+        return "Silver";
+    }
+    return "Basic";
+}
+
+// ========== مثال 2: نظام تقييم الطلاب ==========
+// Student Grading System
+
+// دالة حساب المعدل
+fn calculate_gpa(math: int, science: int, arabic: int, english: int) -> int {
+    let total = math + science + arabic + english;
+    return total / 4;
+}
+
+// دالة تحديد التقدير
+fn get_grade_letter(score: int) -> string {
+    if score >= 90 {
+        return "A+";
+    }
+    if score >= 85 {
+        return "A";
+    }
+    if score >= 80 {
+        return "B+";
+    }
+    if score >= 75 {
+        return "B";
+    }
+    if score >= 70 {
+        return "C+";
+    }
+    if score >= 65 {
+        return "C";
+    }
+    if score >= 60 {
+        return "D";
+    }
+    return "F";
+}
+
+// دالة تحديد حالة النجاح
+fn determine_pass_status(gpa: int) -> string {
+    if gpa >= 60 {
+        return "ناجح";
+    }
+    return "راسب";
+}
+
+// دالة حساب المنحة الدراسية
+fn calculate_scholarship(gpa: int, financial_need: int) -> int {
+    let scholarship = 0;
+
+    // منحة أكاديمية
+    if gpa >= 95 {
+        let scholarship = scholarship + 5000;
+        if financial_need >= 80 {
+            let scholarship = scholarship + 2000;
+            return scholarship;
+        }
+        if financial_need >= 60 {
+            let scholarship = scholarship + 1000;
+            return scholarship;
+        }
+        return scholarship;
+    }
+    if gpa >= 90 {
+        let scholarship = scholarship + 3000;
+        if financial_need >= 80 {
+            let scholarship = scholarship + 2000;
+            return scholarship;
+        }
+        if financial_need >= 60 {
+            let scholarship = scholarship + 1000;
+            return scholarship;
+        }
+        return scholarship;
+    }
+    if gpa >= 85 {
+        let scholarship = scholarship + 2000;
+        if financial_need >= 80 {
+            let scholarship = scholarship + 2000;
+            return scholarship;
+        }
+        if financial_need >= 60 {
+            let scholarship = scholarship + 1000;
+            return scholarship;
+        }
+        return scholarship;
+    }
+
+    // منحة الحاجة المالية فقط
+    if financial_need >= 80 {
+        let scholarship = scholarship + 2000;
+        return scholarship;
+    }
+    if financial_need >= 60 {
+        let scholarship = scholarship + 1000;
+        return scholarship;
+    }
+
+    return scholarship;
+}
+
+// ========== مثال 3: تحليل البيانات التجارية ==========
+// Business Data Analysis
+
+// دالة حساب الربح
+fn calculate_profit(revenue: int, costs: int) -> int {
+    return revenue - costs;
+}
+
+// دالة حساب هامش الربح
+fn calculate_profit_margin(revenue: int, costs: int) -> int {
+    let profit = calculate_profit(revenue, costs);
+    if revenue > 0 {
+        return profit * 100 / revenue;
+    }
+    return 0;
+}
+
+// دالة تصنيف الأداء التجاري
+fn classify_business_performance(profit_margin: int) -> string {
+    if profit_margin >= 30 {
+        return "ممتاز";
+    }
+    if profit_margin >= 20 {
+        return "جيد جداً";
+    }
+    if profit_margin >= 10 {
+        return "جيد";
+    }
+    if profit_margin >= 0 {
+        return "مقبول";
+    }
+    return "ضعيف";
+}
+
+// دالة حساب الضريبة
+fn calculate_tax(profit: int, tax_rate: int) -> int {
+    if profit > 0 {
+        return profit * tax_rate / 100;
+    }
+    return 0;
+}
+
+// دالة حساب صافي الربح بعد الضريبة
+fn calculate_net_profit(revenue: int, costs: int, tax_rate: int) -> int {
+    let gross_profit = calculate_profit(revenue, costs);
+    let tax = calculate_tax(gross_profit, tax_rate);
+    return gross_profit - tax;
+}
+
+// ========== مثال 4: نظام إدارة المخزون ==========
+// Inventory Management System
+
+// دالة حساب قيمة المخزون
+fn calculate_inventory_value(quantity: int, unit_price: int) -> int {
+    return quantity * unit_price;
+}
+
+// دالة تحديد مستوى المخزون
+fn check_inventory_level(current_stock: int, minimum_stock: int) -> string {
+    if current_stock <= minimum_stock {
+        return "منخفض";
+    }
+    if current_stock <= minimum_stock * 2 {
+        return "متوسط";
+    }
+    return "عالي";
+}
+
+// دالة حساب كمية الطلب المثلى
+fn calculate_reorder_quantity(daily_usage: int, lead_time: int, safety_stock: int) -> int {
+    let demand_during_lead_time = daily_usage * lead_time;
+    return demand_during_lead_time + safety_stock;
+}
+
+// دالة حساب تكلفة التخزين
+fn calculate_storage_cost(inventory_value: int, storage_rate: int) -> int {
+    return inventory_value * storage_rate / 100;
+}
+
+// ========== مثال 5: تحليل الاستثمار ==========
+// Investment Analysis
+
+// دالة حساب العائد على الاستثمار
+fn calculate_roi(initial_investment: int, final_value: int) -> int {
+    let gain = final_value - initial_investment;
+    if initial_investment > 0 {
+        return gain * 100 / initial_investment;
+    }
+    return 0;
+}
+
+// دالة تقييم المخاطر
+fn assess_risk_level(volatility: int, market_conditions: int) -> string {
+    let risk_score = volatility + market_conditions;
+    
+    if risk_score >= 80 {
+        return "عالي المخاطر";
+    }
+    if risk_score >= 60 {
+        return "متوسط المخاطر";
+    }
+    if risk_score >= 40 {
+        return "منخفض المخاطر";
+    }
+    return "آمن";
+}
+
+// دالة حساب التنويع المطلوب
+fn calculate_diversification(total_portfolio: int, single_investment: int) -> int {
+    if total_portfolio > 0 {
+        return single_investment * 100 / total_portfolio;
+    }
+    return 0;
+}
+
+// دالة توصية الاستثمار
+fn investment_recommendation(roi: int, risk_level: string, diversification: int) -> string {
+    if roi >= 15 {
+        if risk_level == "منخفض المخاطر" {
+            if diversification <= 20 {
+                return "استثمار ممتاز - موصى به بشدة";
+            }
+            return "استثمار جيد - لكن راجع التنويع";
+        }
+        return "عائد عالي لكن مخاطر عالية";
+    }
+    
+    if roi >= 8 {
+        if risk_level == "منخفض المخاطر" {
+            return "استثمار آمن ومعقول";
+        }
+        return "عائد متوسط مع مخاطر";
+    }
+    
+    return "استثمار غير موصى به";
+}
+
+// ========== الدالة الرئيسية: عرض جميع الأمثلة ==========
+
+fn main() -> int {
+    // مثال 1: البنوك
+    let principal = 10000;
+    let rate = 5;
+    let time = 3;
+    
+    let simple_int = simple_interest(principal, rate, time);
+    let compound_int = compound_interest(principal, rate, time);
+    let account_type = classify_account_type(principal);
+    
+    // مثال 2: التعليم
+    let math_score = 85;
+    let science_score = 90;
+    let arabic_score = 88;
+    let english_score = 82;
+    
+    let gpa = calculate_gpa(math_score, science_score, arabic_score, english_score);
+    let grade = get_grade_letter(gpa);
+    let status = determine_pass_status(gpa);
+    let scholarship = calculate_scholarship(gpa, 70);
+    
+    // مثال 3: الأعمال
+    let revenue = 100000;
+    let costs = 70000;
+    let tax_rate = 15;
+    
+    let profit = calculate_profit(revenue, costs);
+    let margin = calculate_profit_margin(revenue, costs);
+    let performance = classify_business_performance(margin);
+    let net_profit = calculate_net_profit(revenue, costs, tax_rate);
+    
+    // مثال 4: المخزون
+    let stock_quantity = 150;
+    let unit_price = 25;
+    let min_stock = 50;
+    let daily_usage = 10;
+    let lead_time = 7;
+    let safety_stock = 20;
+    
+    let inventory_value = calculate_inventory_value(stock_quantity, unit_price);
+    let stock_level = check_inventory_level(stock_quantity, min_stock);
+    let reorder_qty = calculate_reorder_quantity(daily_usage, lead_time, safety_stock);
+    
+    // مثال 5: الاستثمار
+    let initial_investment = 50000;
+    let final_value = 65000;
+    let volatility = 30;
+    let market_conditions = 25;
+    
+    let roi = calculate_roi(initial_investment, final_value);
+    let risk = assess_risk_level(volatility, market_conditions);
+    let diversification = calculate_diversification(200000, initial_investment);
+    let recommendation = investment_recommendation(roi, risk, diversification);
+    
+    // حساب النتيجة الإجمالية
+    let total_score = simple_int + compound_int + gpa + profit + roi;
+    
+    return total_score;
+}

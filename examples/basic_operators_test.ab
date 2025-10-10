@@ -1,0 +1,242 @@
+// اختبار العوامل الأساسية
+// Basic Operators Test
+
+fn test_arithmetic(a: int, b: int) -> int {
+    let sum = a + b;
+    let diff = a - b;
+    let product = a * b;
+    let quotient = a / b;
+    
+    let total = sum + diff + product + quotient;
+    return total;
+}
+
+fn test_comparisons(x: int, y: int) -> int {
+    let equal = x == y;
+    let not_equal = x != y;
+    let less = x < y;
+    let greater = x > y;
+    let less_equal = x <= y;
+    let greater_equal = x >= y;
+    
+    if equal {
+        return 1;
+    }
+    
+    if not_equal {
+        return 2;
+    }
+    
+    if less {
+        return 3;
+    }
+    
+    if greater {
+        return 4;
+    }
+    
+    if less_equal {
+        return 5;
+    }
+    
+    if greater_equal {
+        return 6;
+    }
+    
+    return 0;
+}
+
+fn test_nested_conditions(p: int, q: int, r: int) -> int {
+    let p_positive = p > 0;
+    let q_positive = q > 0;
+    let r_positive = r > 0;
+    
+    if p_positive {
+        if q_positive {
+            if r_positive {
+                return 1; // all positive
+            }
+            return 2; // p and q positive
+        }
+        if r_positive {
+            return 3; // p and r positive
+        }
+        return 4; // only p positive
+    }
+    
+    if q_positive {
+        if r_positive {
+            return 5; // q and r positive
+        }
+        return 6; // only q positive
+    }
+    
+    if r_positive {
+        return 7; // only r positive
+    }
+    
+    return 8; // all negative or zero
+}
+
+fn calculate_score(base: int, multiplier: int, bonus: int) -> int {
+    let base_score = base * multiplier;
+    let final_score = base_score + bonus;
+    
+    let is_high_score = final_score > 100;
+    let is_perfect_score = final_score > 200;
+    
+    if is_perfect_score {
+        let final_score = final_score + 50;
+    }
+    
+    if is_high_score {
+        let final_score = final_score + 25;
+    }
+    
+    return final_score;
+}
+
+fn fibonacci_simple(n: int) -> int {
+    if n <= 1 {
+        return n;
+    }
+    
+    if n == 2 {
+        return 1;
+    }
+    
+    if n == 3 {
+        return 2;
+    }
+    
+    if n == 4 {
+        return 3;
+    }
+    
+    if n == 5 {
+        return 5;
+    }
+    
+    if n == 6 {
+        return 8;
+    }
+    
+    return 13; // for n >= 7
+}
+
+fn power_simple(base: int, exp: int) -> int {
+    if exp == 0 {
+        return 1;
+    }
+    
+    if exp == 1 {
+        return base;
+    }
+    
+    if exp == 2 {
+        return base * base;
+    }
+    
+    if exp == 3 {
+        let temp = base * base;
+        return temp * base;
+    }
+    
+    if exp == 4 {
+        let temp = base * base;
+        let temp2 = temp * temp;
+        return temp2;
+    }
+    
+    // For higher powers, approximate
+    let temp = base * base * base * base;
+    return temp;
+}
+
+fn data_analysis(value1: int, value2: int, value3: int) -> int {
+    // Calculate average
+    let sum = value1 + value2 + value3;
+    let average = sum / 3;
+    
+    // Find maximum
+    let max_val = value1;
+    if value2 > max_val {
+        let max_val = value2;
+    }
+    if value3 > max_val {
+        let max_val = value3;
+    }
+    
+    // Find minimum
+    let min_val = value1;
+    if value2 < min_val {
+        let min_val = value2;
+    }
+    if value3 < min_val {
+        let min_val = value3;
+    }
+    
+    // Calculate range
+    let range = max_val - min_val;
+    
+    // Return analysis result
+    let result = average + range;
+    return result;
+}
+
+fn pattern_matching(input: int) -> int {
+    let remainder_2 = input - (input / 2) * 2; // input % 2
+    let remainder_3 = input - (input / 3) * 3; // input % 3
+    let remainder_5 = input - (input / 5) * 5; // input % 5
+    
+    if remainder_2 == 0 {
+        if remainder_3 == 0 {
+            return 6; // divisible by both 2 and 3
+        }
+        return 2; // divisible by 2
+    }
+    
+    if remainder_3 == 0 {
+        return 3; // divisible by 3
+    }
+    
+    if remainder_5 == 0 {
+        return 5; // divisible by 5
+    }
+    
+    return 1; // not divisible by 2, 3, or 5
+}
+
+fn main() -> int {
+    // Test basic arithmetic
+    let arithmetic_result = test_arithmetic(20, 4);
+    
+    // Test comparisons
+    let comparison_result = test_comparisons(15, 10);
+    
+    // Test nested conditions
+    let nested_result = test_nested_conditions(5, 8, 12);
+    
+    // Test score calculation
+    let score_result = calculate_score(10, 15, 25);
+    
+    // Test mathematical functions
+    let fibonacci_result = fibonacci_simple(6);
+    let power_result = power_simple(3, 4);
+    
+    // Test data analysis
+    let analysis_result = data_analysis(10, 20, 30);
+    
+    // Test pattern matching
+    let pattern_result = pattern_matching(15);
+    
+    // Calculate final result
+    let group1 = arithmetic_result + comparison_result;
+    let group2 = nested_result + score_result;
+    let group3 = fibonacci_result + power_result;
+    let group4 = analysis_result + pattern_result;
+    
+    let final_result = group1 + group2 + group3 + group4;
+    
+    return final_result;
+}

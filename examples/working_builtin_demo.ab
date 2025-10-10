@@ -1,0 +1,242 @@
+// عرض المكتبات المدمجة - نسخة عملية
+// Working Built-in Libraries Demo
+
+// ========== محاكاة النواة التفكيرية ==========
+fn thinking_core_simulation(input: int) -> int {
+    // الطبقة الرياضية - تحليل رقمي
+    let mathematical_layer = input * 2 + 5;
+
+    // الطبقة اللغوية - معالجة رمزية
+    let linguistic_layer = mathematical_layer + 10;
+
+    // الطبقة المنطقية - استنتاج
+    let logical_layer = linguistic_layer * 3;
+
+    // الطبقة الفيزيائية - نمذجة
+    let physical_layer = logical_layer / 2;
+
+    // الطبقة الدلالية - فهم المعنى
+    let semantic_layer = physical_layer + 15;
+
+    // الطبقة البصرية - تمثيل مرئي
+    let visual_layer = semantic_layer * 110 / 100;
+
+    // الطبقة الرمزية - تجريد
+    let symbolic_layer = visual_layer + 8;
+
+    // الطبقة التفسيرية - شرح النتائج
+    let interpretive_layer = symbolic_layer + 12;
+
+    // النتيجة النهائية - دمج جميع الطبقات
+    let final_analysis = interpretive_layer / 8; // متوسط مبسط
+
+    return final_analysis;
+}
+
+// ========== محاكاة نظام الخبير/المستكشف ==========
+fn expert_explorer_simulation(input: int, confidence_threshold: int) -> int {
+    // حساب مستوى الثقة
+    let confidence_score = input + 25;
+
+    if confidence_score > confidence_threshold {
+        // نمط الخبير - قرار سريع مبني على الخبرة
+        let expert_knowledge_base = input * 150 / 100; // زيادة 50%
+        let expert_decision = expert_knowledge_base + 20;
+        return expert_decision;
+    } else {
+        // نمط المستكشف - استكشاف مسارات متعددة
+        let exploration_path_1 = input + 10;
+        let exploration_path_2 = input + 20;
+        let exploration_path_3 = input + 30;
+
+        // تقييم المسارات
+        let path_1_score = exploration_path_1 * 2;
+        let path_2_score = exploration_path_2 * 3;
+        let path_3_score = exploration_path_3 * 4;
+
+        // اختيار أفضل مسار
+        let best_exploration = path_3_score; // الأعلى نقاطاً
+        return best_exploration;
+    }
+}
+
+// ========== محاكاة المعادلات المتكيفة ==========
+fn adaptive_equations_simulation(x: int) -> int {
+    // مكون سيغمويد معمم مبسط
+    let alpha_1 = 100;
+    let k_real_1 = 1;
+    let x0_1 = 0;
+
+    let shifted_x_1 = x - x0_1;
+    let exp_approximation_1 = k_real_1 * shifted_x_1 / 10; // تقريب للأس
+    let sigmoid_1 = alpha_1 * 10 / (10 + exp_approximation_1);
+
+    // مكون سيغمويد ثاني
+    let alpha_2 = 75;
+    let k_real_2 = 2;
+    let x0_2 = 5;
+
+    let shifted_x_2 = x - x0_2;
+    let exp_approximation_2 = k_real_2 * shifted_x_2 / 10;
+    let sigmoid_2 = alpha_2 * 10 / (10 + exp_approximation_2);
+
+    // مكون خطي
+    let slope = 3;
+    let intercept = 8;
+    let weight = 25;
+    let linear_component = weight * (slope * x + intercept) / 100;
+
+    // دمج جميع المكونات
+    let total_equation_result = sigmoid_1 + sigmoid_2 + linear_component;
+
+    return total_equation_result;
+}
+
+// ========== نظام ذكي متكامل ==========
+fn integrated_ai_system(input_data: int) -> int {
+    // تحليل بالنواة التفكيرية
+    let thinking_analysis = thinking_core_simulation(input_data);
+
+    // قرار بنظام الخبير/المستكشف
+    let expert_decision = expert_explorer_simulation(thinking_analysis, 70);
+
+    // تقييم بالمعادلات التكيفية
+    let equation_evaluation = adaptive_equations_simulation(expert_decision);
+
+    // دمج النتائج مع أوزان
+    let weight_thinking = 30; // 30%
+    let weight_expert = 40;   // 40%
+    let weight_equation = 30; // 30%
+
+    let thinking_part = thinking_analysis * weight_thinking;
+    let expert_part = expert_decision * weight_expert;
+    let equation_part = equation_evaluation * weight_equation;
+    let weighted_result = (thinking_part + expert_part + equation_part) / 100;
+
+    return weighted_result;
+}
+
+// ========== تطبيق طبي ذكي مبسط ==========
+fn medical_ai_system(symptom_severity: int, patient_age: int) -> int {
+    // تحليل الأعراض
+    let symptom_analysis = thinking_core_simulation(symptom_severity);
+
+    // تقييم العمر كعامل خطر
+    let age_risk_factor = patient_age / 10; // كل 10 سنوات = نقطة خطر
+
+    // قرار التشخيص
+    let diagnosis_confidence = expert_explorer_simulation(symptom_analysis + age_risk_factor, 80);
+
+    // حساب درجة الخطورة
+    let severity_equation = adaptive_equations_simulation(diagnosis_confidence);
+
+    // التشخيص النهائي
+    let final_diagnosis = (diagnosis_confidence + severity_equation) / 2;
+
+    return final_diagnosis;
+}
+
+// ========== تطبيق مالي ذكي مبسط ==========
+fn financial_ai_system(market_trend: int, risk_tolerance: int) -> int {
+    // تحليل اتجاه السوق
+    let market_analysis = thinking_core_simulation(market_trend);
+
+    // تقييم المخاطر
+    let risk_assessment = expert_explorer_simulation(market_analysis, risk_tolerance);
+
+    // نموذج التنبؤ
+    let prediction_model = adaptive_equations_simulation(risk_assessment);
+
+    // حساب العائد المتوقع
+    let market_part = market_analysis * 40;
+    let risk_part = risk_assessment * 35;
+    let prediction_part = prediction_model * 25;
+    let expected_return = (market_part + risk_part + prediction_part) / 100;
+
+    return expected_return;
+}
+
+// ========== تطبيق تعليمي ذكي مبسط ==========
+fn educational_ai_system(student_score: int, learning_style: int) -> int {
+    // تحليل أداء الطالب
+    let performance_analysis = thinking_core_simulation(student_score);
+
+    // تحديد استراتيجية التعليم
+    let teaching_strategy = expert_explorer_simulation(performance_analysis, learning_style);
+
+    // خطة تعليمية مخصصة
+    let personalized_plan = adaptive_equations_simulation(teaching_strategy);
+
+    // تقييم التحسن المتوقع
+    let total_factors = performance_analysis + teaching_strategy + personalized_plan;
+    let improvement_prediction = total_factors / 3;
+
+    return improvement_prediction;
+}
+
+// ========== نظام توصيات ذكي ==========
+fn recommendation_system(user_preference: int, item_popularity: int) -> int {
+    // تحليل تفضيلات المستخدم
+    let preference_analysis = thinking_core_simulation(user_preference);
+
+    // تقييم شعبية العنصر
+    let popularity_score = item_popularity * 120 / 100; // تعزيز الشعبية
+
+    // قرار التوصية
+    let recommendation_decision = expert_explorer_simulation(preference_analysis + popularity_score, 75);
+
+    // حساب درجة التوافق
+    let compatibility_score = adaptive_equations_simulation(recommendation_decision);
+
+    // التوصية النهائية
+    let final_recommendation = (recommendation_decision + compatibility_score) / 2;
+
+    return final_recommendation;
+}
+
+// ========== نظام تحسين الأداء ==========
+fn performance_optimization_system(current_performance: int, target_performance: int) -> int {
+    // تحليل الأداء الحالي
+    let current_analysis = thinking_core_simulation(current_performance);
+
+    // حساب الفجوة
+    let performance_gap = target_performance - current_performance;
+
+    // استراتيجية التحسين
+    let optimization_strategy = expert_explorer_simulation(performance_gap, 60);
+
+    // خطة التحسين
+    let improvement_plan = adaptive_equations_simulation(optimization_strategy);
+
+    // التحسن المتوقع
+    let total_improvement_factors = current_analysis + optimization_strategy + improvement_plan;
+    let expected_improvement = total_improvement_factors / 3;
+
+    return expected_improvement;
+}
+
+// ========== الدالة الرئيسية ==========
+fn main() -> int {
+    // اختبار المكونات الأساسية
+    let thinking_test = thinking_core_simulation(25);
+    let expert_test = expert_explorer_simulation(42, 70);
+    let equations_test = adaptive_equations_simulation(15);
+
+    // اختبار النظام المتكامل
+    let integrated_test = integrated_ai_system(30);
+
+    // اختبار التطبيقات العملية
+    let medical_test = medical_ai_system(65, 45); // شدة أعراض 65، عمر 45
+    let financial_test = financial_ai_system(80, 60); // اتجاه سوق 80، تحمل مخاطر 60
+    let educational_test = educational_ai_system(75, 85); // درجة 75، نمط تعلم 85
+    let recommendation_test = recommendation_system(90, 70); // تفضيل 90، شعبية 70
+    let optimization_test = performance_optimization_system(60, 90); // أداء حالي 60، هدف 90
+
+    // النتيجة الإجمالية
+    let basic_tests = thinking_test + expert_test + equations_test + integrated_test;
+    let application_tests = medical_test + financial_test + educational_test;
+    let system_tests = recommendation_test + optimization_test;
+    let total_result = basic_tests + application_tests + system_tests;
+
+    return total_result;
+}

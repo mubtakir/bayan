@@ -1,0 +1,375 @@
+// مقارنة عملية: لغة البيان مقابل اللغات الأخرى
+// Practical Comparison: AlBayan vs Other Languages
+
+// ========== مثال 1: حاسبة الراتب ==========
+// Salary Calculator Example
+
+// دالة حساب الراتب الأساسي
+fn calculate_basic_salary(hours: int, hourly_rate: int) -> int {
+    return hours * hourly_rate;
+}
+
+// دالة حساب العلاوات
+fn calculate_allowances(basic_salary: int, performance_rating: int) -> int {
+    if performance_rating >= 90 {
+        return basic_salary * 20 / 100; // علاوة 20%
+    }
+    if performance_rating >= 80 {
+        return basic_salary * 15 / 100; // علاوة 15%
+    }
+    if performance_rating >= 70 {
+        return basic_salary * 10 / 100; // علاوة 10%
+    }
+    return basic_salary * 5 / 100; // علاوة 5%
+}
+
+// دالة حساب الخصومات
+fn calculate_deductions(gross_salary: int) -> int {
+    let insurance = gross_salary * 9 / 100; // تأمين 9%
+    let tax = gross_salary * 5 / 100;       // ضريبة 5%
+    return insurance + tax;
+}
+
+// دالة حساب صافي الراتب
+fn calculate_net_salary(basic: int, allowances: int, deductions: int) -> int {
+    let gross = basic + allowances;
+    return gross - deductions;
+}
+
+// دالة تصنيف مستوى الراتب
+fn classify_salary_level(net_salary: int) -> string {
+    if net_salary >= 15000 {
+        return "مرتفع";
+    }
+    if net_salary >= 10000 {
+        return "متوسط عالي";
+    }
+    if net_salary >= 7000 {
+        return "متوسط";
+    }
+    if net_salary >= 4000 {
+        return "منخفض";
+    }
+    return "أقل من المتوسط";
+}
+
+// ========== مثال 2: نظام تقييم الأداء ==========
+// Performance Evaluation System
+
+// دالة حساب نقاط الجودة
+fn calculate_quality_score(tasks_completed: int, tasks_assigned: int) -> int {
+    if tasks_assigned > 0 {
+        return tasks_completed * 100 / tasks_assigned;
+    }
+    return 0;
+}
+
+// دالة حساب نقاط الوقت
+fn calculate_time_score(days_early: int, days_late: int) -> int {
+    let base_score = 80;
+    let early_bonus = days_early * 5;
+    let late_penalty = days_late * 10;
+    
+    let score = base_score + early_bonus - late_penalty;
+    
+    if score > 100 {
+        return 100;
+    }
+    if score < 0 {
+        return 0;
+    }
+    return score;
+}
+
+// دالة حساب نقاط التعاون
+fn calculate_teamwork_score(positive_feedback: int, negative_feedback: int) -> int {
+    let base_score = 75;
+    let positive_points = positive_feedback * 8;
+    let negative_points = negative_feedback * 12;
+    
+    let score = base_score + positive_points - negative_points;
+    
+    if score > 100 {
+        return 100;
+    }
+    if score < 0 {
+        return 0;
+    }
+    return score;
+}
+
+// دالة حساب التقييم الإجمالي
+fn calculate_overall_rating(quality: int, time: int, teamwork: int) -> int {
+    let weighted_score = quality * 40 / 100 + time * 30 / 100 + teamwork * 30 / 100;
+    return weighted_score;
+}
+
+// دالة تحديد مستوى الأداء
+fn determine_performance_level(overall_rating: int) -> string {
+    if overall_rating >= 90 {
+        return "متميز";
+    }
+    if overall_rating >= 80 {
+        return "ممتاز";
+    }
+    if overall_rating >= 70 {
+        return "جيد جداً";
+    }
+    if overall_rating >= 60 {
+        return "جيد";
+    }
+    if overall_rating >= 50 {
+        return "مقبول";
+    }
+    return "يحتاج تحسين";
+}
+
+// ========== مثال 3: حاسبة القروض ==========
+// Loan Calculator
+
+// دالة حساب القسط الشهري (مبسطة)
+fn calculate_monthly_payment(loan_amount: int, annual_rate: int, years: int) -> int {
+    let monthly_rate = annual_rate / 12;
+    let total_months = years * 12;
+    
+    // حساب مبسط للقسط الشهري
+    let total_interest = loan_amount * annual_rate * years / 100;
+    let total_amount = loan_amount + total_interest;
+    
+    return total_amount / total_months;
+}
+
+// دالة تقييم أهلية القرض
+fn assess_loan_eligibility(monthly_income: int, monthly_expenses: int, credit_score: int) -> string {
+    let disposable_income = monthly_income - monthly_expenses;
+    let income_ratio = disposable_income * 100 / monthly_income;
+    
+    if credit_score >= 750 {
+        if income_ratio >= 40 {
+            return "مؤهل بامتياز";
+        }
+        if income_ratio >= 30 {
+            return "مؤهل";
+        }
+        return "مؤهل بشروط";
+    }
+    
+    if credit_score >= 650 {
+        if income_ratio >= 50 {
+            return "مؤهل";
+        }
+        if income_ratio >= 40 {
+            return "مؤهل بشروط";
+        }
+        return "غير مؤهل";
+    }
+    
+    return "غير مؤهل";
+}
+
+// دالة حساب إجمالي الفوائد
+fn calculate_total_interest(loan_amount: int, monthly_payment: int, years: int) -> int {
+    let total_payments = monthly_payment * years * 12;
+    return total_payments - loan_amount;
+}
+
+// ========== مثال 4: نظام إدارة المبيعات ==========
+// Sales Management System
+
+// دالة حساب العمولة
+fn calculate_commission(sales_amount: int, commission_rate: int) -> int {
+    return sales_amount * commission_rate / 100;
+}
+
+// دالة حساب الخصم
+fn calculate_discount(original_price: int, customer_type: string, quantity: int) -> int {
+    let base_discount = 0;
+
+    // خصم حسب نوع العميل
+    if customer_type == "VIP" {
+        let base_discount = 15;
+
+        // خصم إضافي للكمية
+        if quantity >= 100 {
+            let total_discount_rate = base_discount + 10;
+            if total_discount_rate > 25 {
+                return original_price * 25 / 100;
+            }
+            return original_price * total_discount_rate / 100;
+        }
+        if quantity >= 50 {
+            let total_discount_rate = base_discount + 5;
+            if total_discount_rate > 25 {
+                return original_price * 25 / 100;
+            }
+            return original_price * total_discount_rate / 100;
+        }
+        if quantity >= 20 {
+            let total_discount_rate = base_discount + 2;
+            return original_price * total_discount_rate / 100;
+        }
+        return original_price * base_discount / 100;
+    }
+
+    if customer_type == "Premium" {
+        let base_discount = 10;
+
+        if quantity >= 100 {
+            let total_discount_rate = base_discount + 10;
+            if total_discount_rate > 25 {
+                return original_price * 25 / 100;
+            }
+            return original_price * total_discount_rate / 100;
+        }
+        if quantity >= 50 {
+            let total_discount_rate = base_discount + 5;
+            return original_price * total_discount_rate / 100;
+        }
+        if quantity >= 20 {
+            let total_discount_rate = base_discount + 2;
+            return original_price * total_discount_rate / 100;
+        }
+        return original_price * base_discount / 100;
+    }
+
+    if customer_type == "Regular" {
+        let base_discount = 5;
+
+        if quantity >= 100 {
+            let total_discount_rate = base_discount + 10;
+            return original_price * total_discount_rate / 100;
+        }
+        if quantity >= 50 {
+            let total_discount_rate = base_discount + 5;
+            return original_price * total_discount_rate / 100;
+        }
+        if quantity >= 20 {
+            let total_discount_rate = base_discount + 2;
+            return original_price * total_discount_rate / 100;
+        }
+        return original_price * base_discount / 100;
+    }
+
+    // عميل عادي بدون خصم خاص
+    if quantity >= 100 {
+        return original_price * 10 / 100;
+    }
+    if quantity >= 50 {
+        return original_price * 5 / 100;
+    }
+    if quantity >= 20 {
+        return original_price * 2 / 100;
+    }
+
+    return 0;
+}
+
+// دالة حساب السعر النهائي
+fn calculate_final_price(original_price: int, discount: int, tax_rate: int) -> int {
+    let discounted_price = original_price - discount;
+    let tax = discounted_price * tax_rate / 100;
+    return discounted_price + tax;
+}
+
+// دالة تصنيف العميل حسب المبيعات
+fn classify_customer_by_sales(total_purchases: int) -> string {
+    if total_purchases >= 100000 {
+        return "VIP";
+    }
+    if total_purchases >= 50000 {
+        return "Premium";
+    }
+    if total_purchases >= 10000 {
+        return "Gold";
+    }
+    if total_purchases >= 5000 {
+        return "Silver";
+    }
+    return "Regular";
+}
+
+// ========== مثال 5: حاسبة التوفير ==========
+// Savings Calculator
+
+// دالة حساب الهدف الشهري للتوفير
+fn calculate_monthly_savings_target(goal_amount: int, months: int) -> int {
+    return goal_amount / months;
+}
+
+// دالة تقييم إمكانية تحقيق الهدف
+fn assess_savings_feasibility(monthly_income: int, monthly_expenses: int, savings_target: int) -> string {
+    let available_for_savings = monthly_income - monthly_expenses;
+    let savings_ratio = savings_target * 100 / available_for_savings;
+    
+    if savings_ratio <= 50 {
+        return "هدف قابل للتحقيق بسهولة";
+    }
+    if savings_ratio <= 70 {
+        return "هدف قابل للتحقيق مع بعض التخطيط";
+    }
+    if savings_ratio <= 90 {
+        return "هدف صعب لكن ممكن";
+    }
+    if savings_ratio <= 100 {
+        return "هدف صعب جداً";
+    }
+    return "هدف غير واقعي";
+}
+
+// دالة حساب الوقت المطلوب للوصول للهدف
+fn calculate_time_to_goal(goal_amount: int, monthly_savings: int) -> int {
+    if monthly_savings > 0 {
+        return goal_amount / monthly_savings;
+    }
+    return 0;
+}
+
+// ========== الدالة الرئيسية ==========
+
+fn main() -> int {
+    // مثال 1: حساب راتب موظف
+    let hours_worked = 160;
+    let hourly_rate = 50;
+    let performance = 85;
+    
+    let basic = calculate_basic_salary(hours_worked, hourly_rate);
+    let allowances = calculate_allowances(basic, performance);
+    let deductions = calculate_deductions(basic + allowances);
+    let net_salary = calculate_net_salary(basic, allowances, deductions);
+    let salary_level = classify_salary_level(net_salary);
+    
+    // مثال 2: تقييم أداء موظف
+    let quality = calculate_quality_score(18, 20);
+    let time_score = calculate_time_score(3, 1);
+    let teamwork = calculate_teamwork_score(5, 1);
+    let overall = calculate_overall_rating(quality, time_score, teamwork);
+    let performance_level = determine_performance_level(overall);
+    
+    // مثال 3: حساب قرض
+    let loan_amount = 200000;
+    let annual_rate = 8;
+    let loan_years = 15;
+    
+    let monthly_payment = calculate_monthly_payment(loan_amount, annual_rate, loan_years);
+    let eligibility = assess_loan_eligibility(12000, 8000, 720);
+    let total_interest = calculate_total_interest(loan_amount, monthly_payment, loan_years);
+    
+    // مثال 4: حساب مبيعات
+    let original_price = 1000;
+    let quantity = 75;
+    let commission = calculate_commission(original_price * quantity, 3);
+    let discount = calculate_discount(original_price, "Premium", quantity);
+    let final_price = calculate_final_price(original_price, discount, 15);
+    
+    // مثال 5: حساب التوفير
+    let savings_goal = 50000;
+    let target_months = 24;
+    let monthly_target = calculate_monthly_savings_target(savings_goal, target_months);
+    let feasibility = assess_savings_feasibility(10000, 7000, monthly_target);
+    let time_needed = calculate_time_to_goal(savings_goal, 2000);
+    
+    // حساب النتيجة الإجمالية
+    let total_result = net_salary + overall + monthly_payment + commission + monthly_target;
+    
+    return total_result;
+}

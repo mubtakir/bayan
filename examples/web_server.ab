@@ -1,0 +1,344 @@
+// خادم ويب بسيط - مثال على البرمجة غير المتزامنة والشبكات
+// Simple Web Server - Async Programming and Networking example
+
+use std::net::{TcpListener, TcpStream};
+use std::collections::HashMap;
+use std::io::{Read, Write};
+use std::thread;
+use std::sync::{Arc, Mutex};
+
+// تعداد طرق HTTP
+enum HttpMethod {
+    GET,
+    POST,
+    PUT,
+    DELETE,
+    PATCH,
+}
+
+impl HttpMethod {
+    fn from_string(method: string) -> Option<HttpMethod> {
+        match method.as_str() {
+            "GET" => Some(HttpMethod::GET),
+            "POST" => Some(HttpMethod::POST),
+            "PUT" => Some(HttpMethod::PUT),
+            "DELETE" => Some(HttpMethod::DELETE),
+            "PATCH" => Some(HttpMethod::PATCH),
+            _ => None,
+        }
+    }
+    
+    fn to_string(&self) -> string {
+        match self {
+            HttpMethod::GET => "GET",
+            HttpMethod::POST => "POST",
+            HttpMethod::PUT => "PUT",
+            HttpMethod::DELETE => "DELETE",
+            HttpMethod::PATCH => "PATCH",
+        }
+    }
+}
+
+// هيكل طلب HTTP
+struct HttpRequest {
+    method: HttpMethod,
+    path: string,
+    headers: HashMap<string, string>,
+    body: string,
+}
+
+impl HttpRequest {
+    fn parse(request_text: string) -> Option<HttpRequest> {
+        let lines: Vec<string> = request_text.split('\n').collect();
+        if lines.is_empty() {
+            return None;
+        }
+        
+        // تحليل السطر الأول
+        let first_line_parts: Vec<string> = lines[0].split(' ').collect();
+        if first_line_parts.len() < 2 {
+            return None;
+        }
+        
+        let method = HttpMethod::from_string(first_line_parts[0].clone())?;
+        let path = first_line_parts[1].clone();
+        
+        // تحليل الرؤوس
+        let mut headers = HashMap::new();
+        let mut body_start = 0;
+        
+        for i in 1..lines.len() {
+            if lines[i].trim().is_empty() {
+                body_start = i + 1;
+                break;
+            }
+            
+            if let Some(colon_pos) = lines[i].find(':') {
+                let key = lines[i][..colon_pos].trim().to_string();
+                let value = lines[i][colon_pos + 1..].trim().to_string();
+                headers.insert(key, value);
+            }
+        }
+        
+        // تحليل الجسم
+        let body = if body_start < lines.len() {
+            lines[body_start..].join("\n")
+        } else {
+            String::new()
+        };
+        
+        Some(HttpRequest {
+            method: method,
+            path: path,
+            headers: headers,
+            body: body,
+        })
+    }
+}
+
+// هيكل استجابة HTTP
+struct HttpResponse {
+    status_code: int,
+    status_text: string,
+    headers: HashMap<string, string>,
+    body: string,
+}
+
+impl HttpResponse {
+    fn new(status_code: int, status_text: string) -> HttpResponse {
+        return HttpResponse {
+            status_code: status_code,
+            status_text: status_text,
+            headers: HashMap::new(),
+            body: String::new(),
+        };
+    }
+    
+    fn ok() -> HttpResponse {
+        return HttpResponse::new(200, "OK");
+    }
+    
+    fn not_found() -> HttpResponse {
+        return HttpResponse::new(404, "Not Found");
+    }
+    
+    fn internal_error() -> HttpResponse {
+        return HttpResponse::new(500, "Internal Server Error");
+    }
+    
+    fn set_header(&mut self, key: string, value: string) {
+        self.headers.insert(key, value);
+    }
+    
+    fn set_body(&mut self, body: string) {
+        self.body = body;
+        self.set_header("Content-Length".to_string(), body.len().to_string());
+    }
+    
+    fn to_string(&self) -> string {
+        let mut response = format!("HTTP/1.1 {} {}\r\n", self.status_code, self.status_text);
+        
+        for (key, value) in &self.headers {
+            response.push_str(&format!("{}: {}\r\n", key, value));
+        }
+        
+        response.push_str("\r\n");
+        response.push_str(&self.body);
+        
+        return response;
+    }
+}
+
+// نوع دالة معالج المسار
+type RouteHandler = fn(&HttpRequest) -> HttpResponse;
+
+// فئة الموجه (Router)
+class Router {
+    routes: HashMap<(HttpMethod, string), RouteHandler>,
+}
+
+impl Router {
+    fn new() -> Router {
+        return Router {
+            routes: HashMap::new(),
+        };
+    }
+    
+    fn add_route(&mut self, method: HttpMethod, path: string, handler: RouteHandler) {
+        self.routes.insert((method, path), handler);
+    }
+    
+    fn get(&mut self, path: string, handler: RouteHandler) {
+        self.add_route(HttpMethod::GET, path, handler);
+    }
+    
+    fn post(&mut self, path: string, handler: RouteHandler) {
+        self.add_route(HttpMethod::POST, path, handler);
+    }
+    
+    fn handle_request(&self, request: &HttpRequest) -> HttpResponse {
+        let route_key = (request.method.clone(), request.path.clone());
+        
+        if let Some(handler) = self.routes.get(&route_key) {
+            return handler(request);
+        }
+        
+        return HttpResponse::not_found();
+    }
+}
+
+// فئة خادم الويب
+class WebServer {
+    address: string,
+    port: int,
+    router: Arc<Router>,
+    running: Arc<Mutex<bool>>,
+}
+
+impl WebServer {
+    fn new(address: string, port: int) -> WebServer {
+        return WebServer {
+            address: address,
+            port: port,
+            router: Arc::new(Router::new()),
+            running: Arc::new(Mutex::new(false)),
+        };
+    }
+    
+    fn add_route(&mut self, method: HttpMethod, path: string, handler: RouteHandler) {
+        // في التطبيق الحقيقي، نحتاج لطريقة آمنة لتعديل Router
+        // هنا نستخدم تبسيط للمثال
+        println("تم إضافة مسار: " + method.to_string() + " " + path);
+    }
+    
+    async fn start(&self) -> Result<(), string> {
+        let bind_address = format!("{}:{}", self.address, self.port);
+        println("بدء تشغيل الخادم على " + bind_address);
+        
+        // في التطبيق الحقيقي، نستخدم TcpListener
+        // هنا نحاكي السلوك
+        {
+            let mut running = self.running.lock().unwrap();
+            *running = true;
+        }
+        
+        // محاكاة معالجة الطلبات
+        self.simulate_requests().await;
+        
+        Ok(())
+    }
+    
+    async fn simulate_requests(&self) {
+        println("الخادم يستمع للطلبات...");
+        
+        // محاكاة بعض الطلبات
+        let sample_requests = [
+            "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n",
+            "GET /api/users HTTP/1.1\r\nHost: localhost\r\n\r\n",
+            "POST /api/users HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\n\r\n{\"name\":\"أحمد\"}",
+        ];
+        
+        for request_text in sample_requests {
+            await self.handle_connection(request_text.to_string());
+        }
+    }
+    
+    async fn handle_connection(&self, request_text: string) {
+        println("استقبال طلب جديد...");
+        
+        if let Some(request) = HttpRequest::parse(request_text) {
+            let response = self.router.handle_request(&request);
+            println("إرسال استجابة: " + response.status_code + " " + response.status_text);
+        } else {
+            println("طلب غير صالح");
+        }
+    }
+    
+    fn stop(&self) {
+        let mut running = self.running.lock().unwrap();
+        *running = false;
+        println("تم إيقاف الخادم");
+    }
+}
+
+// معالجات المسارات
+fn home_handler(request: &HttpRequest) -> HttpResponse {
+    let mut response = HttpResponse::ok();
+    response.set_header("Content-Type".to_string(), "text/html; charset=utf-8".to_string());
+    response.set_body("<!DOCTYPE html>
+<html>
+<head>
+    <title>مرحبا بكم</title>
+    <meta charset=\"utf-8\">
+</head>
+<body>
+    <h1>مرحبا بكم في خادم البيان!</h1>
+    <p>هذا خادم ويب مكتوب بلغة البيان</p>
+    <ul>
+        <li><a href=\"/api/users\">قائمة المستخدمين</a></li>
+        <li><a href=\"/api/status\">حالة الخادم</a></li>
+    </ul>
+</body>
+</html>".to_string());
+    
+    return response;
+}
+
+fn users_handler(request: &HttpRequest) -> HttpResponse {
+    let mut response = HttpResponse::ok();
+    response.set_header("Content-Type".to_string(), "application/json; charset=utf-8".to_string());
+    
+    match request.method {
+        HttpMethod::GET => {
+            response.set_body("[
+    {\"id\": 1, \"name\": \"أحمد محمد\", \"email\": \"ahmed@example.com\"},
+    {\"id\": 2, \"name\": \"فاطمة علي\", \"email\": \"fatima@example.com\"},
+    {\"id\": 3, \"name\": \"محمد حسن\", \"email\": \"mohamed@example.com\"}
+]".to_string());
+        },
+        HttpMethod::POST => {
+            println("إنشاء مستخدم جديد: " + request.body);
+            response.set_body("{\"message\": \"تم إنشاء المستخدم بنجاح\", \"id\": 4}".to_string());
+        },
+        _ => {
+            response = HttpResponse::new(405, "Method Not Allowed");
+            response.set_body("{\"error\": \"الطريقة غير مدعومة\"}".to_string());
+        }
+    }
+    
+    return response;
+}
+
+fn status_handler(request: &HttpRequest) -> HttpResponse {
+    let mut response = HttpResponse::ok();
+    response.set_header("Content-Type".to_string(), "application/json; charset=utf-8".to_string());
+    response.set_body("{
+    \"status\": \"running\",
+    \"message\": \"الخادم يعمل بشكل طبيعي\",
+    \"uptime\": \"5 دقائق\",
+    \"requests_handled\": 42
+}".to_string());
+    
+    return response;
+}
+
+async fn main() -> int {
+    println("=== خادم الويب البسيط ===");
+    
+    // إنشاء الخادم
+    let mut server = WebServer::new("127.0.0.1".to_string(), 8080);
+    
+    // إضافة المسارات
+    server.add_route(HttpMethod::GET, "/".to_string(), home_handler);
+    server.add_route(HttpMethod::GET, "/api/users".to_string(), users_handler);
+    server.add_route(HttpMethod::POST, "/api/users".to_string(), users_handler);
+    server.add_route(HttpMethod::GET, "/api/status".to_string(), status_handler);
+    
+    // بدء تشغيل الخادم
+    match await server.start() {
+        Ok(_) => println("تم إيقاف الخادم بنجاح"),
+        Err(error) => println("خطأ في الخادم: " + error),
+    }
+    
+    return 0;
+}

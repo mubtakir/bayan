@@ -1,0 +1,393 @@
+// أمثلة عملية للمبرمجين المبتدئين - Beginner Programming Examples
+// تطبيقات بسيطة لتعلم أساسيات لغة البيان
+
+// ========== المتغيرات والعمليات الأساسية ==========
+fn variables_basics() -> int {
+    // إنشاء متغيرات مختلفة
+    let student_age = 20;
+    let student_grade = 85;
+    let is_passing = 1; // 1 = true, 0 = false
+
+    // عمليات حسابية بسيطة
+    let total_points = student_grade + 10;
+    let average = total_points / 2;
+
+    // إرجاع النتيجة
+    return student_age + average;
+}
+
+// ========== الشروط البسيطة ==========
+fn simple_conditions(temperature: int) -> int {
+    // فحص درجة الحرارة وإرجاع حالة الطقس
+    if temperature > 35 {
+        return 1; // حار جداً
+    } else {
+        if temperature > 25 {
+            return 2; // دافئ
+        } else {
+            if temperature > 15 {
+                return 3; // معتدل
+            } else {
+                return 4; // بارد
+            }
+        }
+    }
+}
+
+// ========== حاسبة بسيطة ==========
+fn simple_calculator(operation: int, num1: int, num2: int) -> int {
+    // 1=جمع، 2=طرح، 3=ضرب، 4=قسمة
+
+    if operation == 1 {
+        return num1 + num2;
+    } else {
+        if operation == 2 {
+            return num1 - num2;
+        } else {
+            if operation == 3 {
+                return num1 * num2;
+            } else {
+                if operation == 4 {
+                    if num2 != 0 {
+                        return num1 / num2;
+                    } else {
+                        return 0; // خطأ: قسمة على صفر
+                    }
+                } else {
+                    return 0; // عملية غير صحيحة
+                }
+            }
+        }
+    }
+}
+
+// ========== نظام تقييم الدرجات ==========
+fn grade_system(score: int) -> int {
+    // تحويل الدرجة الرقمية إلى تقدير
+    if score >= 90 {
+        return 1; // ممتاز (A)
+    } else {
+        if score >= 80 {
+            return 2; // جيد جداً (B)
+        } else {
+            if score >= 70 {
+                return 3; // جيد (C)
+            } else {
+                if score >= 60 {
+                    return 4; // مقبول (D)
+                } else {
+                    return 5; // راسب (F)
+                }
+            }
+        }
+    }
+}
+
+// ========== حساب العمر بالأيام ==========
+fn calculate_age_in_days(years: int, months: int, days: int) -> int {
+    let days_from_years = years * 365;
+    let days_from_months = months * 30;
+    let total_days = days_from_years + days_from_months + days;
+
+    return total_days;
+}
+
+// ========== فحص الأرقام الزوجية والفردية ==========
+fn check_even_odd(number: int) -> int {
+    let remainder = number - ((number / 2) * 2);
+
+    if remainder == 0 {
+        return 1; // زوجي
+    } else {
+        return 0; // فردي
+    }
+}
+
+// ========== حساب مساحة الأشكال الهندسية ==========
+fn calculate_rectangle_area(length: int, width: int) -> int {
+    return length * width;
+}
+
+fn calculate_triangle_area(base: int, height: int) -> int {
+    return (base * height) / 2;
+}
+
+fn calculate_circle_area(radius: int) -> int {
+    // تقريب π = 3
+    let pi = 3;
+    return pi * radius * radius;
+}
+
+// ========== محاكاة مصفوفة بسيطة ==========
+fn array_sum_example() -> int {
+    // محاكاة مصفوفة من 5 أرقام
+    let num1 = 10;
+    let num2 = 20;
+    let num3 = 30;
+    let num4 = 40;
+    let num5 = 50;
+
+    // حساب المجموع
+    let sum = num1 + num2 + num3 + num4 + num5;
+
+    return sum; // 150
+}
+
+fn array_max_example() -> int {
+    // إيجاد أكبر رقم في "مصفوفة"
+    let num1 = 25;
+    let num2 = 67;
+    let num3 = 43;
+    let num4 = 89;
+    let num5 = 12;
+
+    let max = num1;
+
+    if num2 > max {
+        max = num2;
+    }
+    if num3 > max {
+        max = num3;
+    }
+    if num4 > max {
+        max = num4;
+    }
+    if num5 > max {
+        max = num5;
+    }
+
+    return max; // 89
+}
+
+// ========== محاكاة حلقة العد ==========
+fn count_to_number(current: int, target: int, sum: int) -> int {
+    if current > target {
+        return sum;
+    } else {
+        let new_sum = sum + current;
+        return count_to_number(current + 1, target, new_sum);
+    }
+}
+
+fn sum_1_to_10() -> int {
+    return count_to_number(1, 10, 0); // مجموع 1+2+3+...+10 = 55
+}
+
+// ========== حساب المضروب (Factorial) ==========
+fn factorial(n: int, result: int) -> int {
+    if n <= 1 {
+        return result;
+    } else {
+        return factorial(n - 1, result * n);
+    }
+}
+
+fn calculate_factorial_5() -> int {
+    return factorial(5, 1); // 5! = 120
+}
+
+// ========== محاكاة قاموس بسيط ==========
+fn student_database(student_id: int, info_type: int) -> int {
+    // قاعدة بيانات الطلاب
+    // student_id: 1=أحمد، 2=فاطمة، 3=محمد
+    // info_type: 1=العمر، 2=الدرجة، 3=السنة
+
+    if student_id == 1 {
+        // بيانات أحمد
+        if info_type == 1 {
+            return 20; // العمر
+        } else {
+            if info_type == 2 {
+                return 85; // الدرجة
+            } else {
+                return 2; // السنة الثانية
+            }
+        }
+    } else {
+        if student_id == 2 {
+            // بيانات فاطمة
+            if info_type == 1 {
+                return 19; // العمر
+            } else {
+                if info_type == 2 {
+                    return 92; // الدرجة
+                } else {
+                    return 1; // السنة الأولى
+                }
+            }
+        } else {
+            // بيانات محمد
+            if info_type == 1 {
+                return 21; // العمر
+            } else {
+                if info_type == 2 {
+                    return 78; // الدرجة
+                } else {
+                    return 3; // السنة الثالثة
+                }
+            }
+        }
+    }
+}
+
+// ========== محاكاة كلاس "حساب بنكي" ==========
+fn create_bank_account(account_id: int, balance: int) -> int {
+    // إنشاء حساب بنكي
+    return account_id + (balance * 1000);
+}
+
+fn get_account_balance(account: int) -> int {
+    return account / 1000;
+}
+
+fn get_account_id(account: int) -> int {
+    let balance = get_account_balance(account);
+    return account - (balance * 1000);
+}
+
+fn deposit_money(account: int, amount: int) -> int {
+    let current_balance = get_account_balance(account);
+    let account_id = get_account_id(account);
+    let new_balance = current_balance + amount;
+
+    return create_bank_account(account_id, new_balance);
+}
+
+fn withdraw_money(account: int, amount: int) -> int {
+    let current_balance = get_account_balance(account);
+    let account_id = get_account_id(account);
+
+    if current_balance >= amount {
+        let new_balance = current_balance - amount;
+        return create_bank_account(account_id, new_balance);
+    } else {
+        return account; // رصيد غير كافي
+    }
+}
+
+// ========== نظام إدارة المكتبة ==========
+fn create_book(book_id: int, pages: int, year: int) -> int {
+    return book_id + (pages * 100) + (year * 100000);
+}
+
+fn get_book_pages(book: int) -> int {
+    let temp = book / 100;
+    let pages = temp - ((temp / 1000) * 1000);
+    return pages;
+}
+
+fn get_book_year(book: int) -> int {
+    return book / 100000;
+}
+
+fn is_book_recent(book: int, current_year: int) -> int {
+    let book_year = get_book_year(book);
+    let age = current_year - book_year;
+
+    if age <= 5 {
+        return 1; // كتاب حديث
+    } else {
+        return 0; // كتاب قديم
+    }
+}
+
+// ========== لعبة تخمين الرقم ==========
+fn guess_number_game(secret: int, guess: int) -> int {
+    if guess == secret {
+        return 1; // صحيح!
+    } else {
+        if guess < secret {
+            return 2; // الرقم أكبر
+        } else {
+            return 3; // الرقم أصغر
+        }
+    }
+}
+
+// ========== حاسبة الراتب ==========
+fn calculate_salary(basic_salary: int, overtime_hours: int, bonus: int) -> int {
+    let overtime_pay = overtime_hours * 50; // 50 ريال للساعة الإضافية
+    let total_salary = basic_salary + overtime_pay + bonus;
+
+    return total_salary;
+}
+
+fn calculate_tax(salary: int) -> int {
+    if salary > 10000 {
+        return salary / 10; // ضريبة 10%
+    } else {
+        if salary > 5000 {
+            return salary / 20; // ضريبة 5%
+        } else {
+            return 0; // لا ضريبة
+        }
+    }
+}
+
+// ========== نظام حجز التذاكر ==========
+fn create_ticket(ticket_id: int, price: int, seat_number: int) -> int {
+    return ticket_id + (price * 1000) + (seat_number * 100000);
+}
+
+fn get_ticket_price(ticket: int) -> int {
+    let temp = ticket / 1000;
+    let price = temp - ((temp / 100) * 100);
+    return price;
+}
+
+fn apply_discount(ticket: int, discount_percent: int) -> int {
+    let price = get_ticket_price(ticket);
+    let discount = (price * discount_percent) / 100;
+    let new_price = price - discount;
+
+    let ticket_id = ticket - ((ticket / 1000) * 1000);
+    let seat = ticket / 100000;
+
+    return create_ticket(ticket_id, new_price, seat);
+}
+
+// ========== مثال شامل: نظام إدارة الطلاب ==========
+fn comprehensive_student_system() -> int {
+    // إنشاء طالب
+    let student_ahmed = student_database(1, 1); // عمر أحمد = 20
+    let ahmed_grade = student_database(1, 2);   // درجة أحمد = 85
+
+    // تقييم الدرجة
+    let ahmed_letter_grade = grade_system(ahmed_grade); // 2 = جيد جداً
+
+    // حساب عمر أحمد بالأيام (تقريبي)
+    let ahmed_age_days = calculate_age_in_days(20, 0, 0); // 7300 يوم
+
+    // فحص إذا كان عمره زوجي أم فردي
+    let age_even_odd = check_even_odd(20); // 1 = زوجي
+
+    // النتيجة الشاملة
+    let result = student_ahmed + ahmed_grade + ahmed_letter_grade + age_even_odd;
+
+    return result;
+}
+
+// ========== الدالة الرئيسية ==========
+fn main() -> int {
+    // تشغيل جميع الأمثلة
+    let basics = variables_basics();
+    let weather = simple_conditions(30);
+    let calc = simple_calculator(1, 15, 25);
+    let grade = grade_system(87);
+    let age_days = calculate_age_in_days(25, 6, 15);
+    let even_odd = check_even_odd(17);
+    let area = calculate_rectangle_area(10, 5);
+    let array_sum = array_sum_example();
+    let sum_numbers = sum_1_to_10();
+    let factorial_result = calculate_factorial_5();
+    let student_info = student_database(2, 2);
+    let comprehensive = comprehensive_student_system();
+
+    // جمع جميع النتائج
+    let part1 = basics + weather + calc + grade + even_odd;
+    let part2 = area + array_sum + sum_numbers + factorial_result;
+    let part3 = student_info + comprehensive;
+    let total = part1 + part2 + part3;
+
+    return total;
+}

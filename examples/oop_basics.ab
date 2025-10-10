@@ -1,0 +1,220 @@
+// مثال على البرمجة الكائنية التوجه في لغة البيان
+// Object-Oriented Programming example in AlBayan
+
+// تعريف فئة أساسية للحيوانات
+class Animal {
+    name: string,
+    age: int,
+    species: string,
+}
+
+impl Animal {
+    // منشئ الفئة
+    fn new(name: string, age: int, species: string) -> Animal {
+        return Animal {
+            name: name,
+            age: age,
+            species: species,
+        };
+    }
+    
+    // طريقة افتراضية للصوت
+    virtual fn make_sound(&self) -> string {
+        return "صوت حيوان";
+    }
+    
+    // طريقة للحصول على المعلومات
+    fn get_info(&self) -> string {
+        return "الاسم: " + self.name + ", العمر: " + self.age + ", النوع: " + self.species;
+    }
+    
+    // طريقة لتحديث العمر
+    fn celebrate_birthday(&mut self) {
+        self.age = self.age + 1;
+        println(self.name + " أصبح عمره " + self.age + " سنة!");
+    }
+}
+
+// فئة الكلب ترث من الحيوان
+class Dog extends Animal {
+    breed: string,
+    is_trained: bool,
+}
+
+impl Dog {
+    fn new(name: string, age: int, breed: string) -> Dog {
+        return Dog {
+            name: name,
+            age: age,
+            species: "كلب",
+            breed: breed,
+            is_trained: false,
+        };
+    }
+    
+    // إعادة تعريف طريقة الصوت
+    override fn make_sound(&self) -> string {
+        return "هاو هاو!";
+    }
+    
+    // طريقة خاصة بالكلاب
+    fn train(&mut self) {
+        self.is_trained = true;
+        println(self.name + " تم تدريبه بنجاح!");
+    }
+    
+    fn fetch(&self) -> string {
+        if self.is_trained {
+            return self.name + " يجلب الكرة!";
+        } else {
+            return self.name + " لا يعرف كيف يجلب الكرة بعد.";
+        }
+    }
+}
+
+// فئة القطة ترث من الحيوان
+class Cat extends Animal {
+    indoor_only: bool,
+    favorite_toy: string,
+}
+
+impl Cat {
+    fn new(name: string, age: int, indoor_only: bool) -> Cat {
+        return Cat {
+            name: name,
+            age: age,
+            species: "قطة",
+            indoor_only: indoor_only,
+            favorite_toy: "كرة الصوف",
+        };
+    }
+    
+    override fn make_sound(&self) -> string {
+        return "مياو مياو!";
+    }
+    
+    fn purr(&self) -> string {
+        return self.name + " تخرخر بسعادة!";
+    }
+    
+    fn play_with_toy(&self) -> string {
+        return self.name + " تلعب مع " + self.favorite_toy;
+    }
+}
+
+// واجهة للحيوانات الأليفة
+interface Pet {
+    fn play(&self) -> string;
+    fn feed(&mut self);
+    fn is_happy(&self) -> bool;
+}
+
+// تنفيذ الواجهة للكلب
+impl Pet for Dog {
+    fn play(&self) -> string {
+        return self.fetch();
+    }
+    
+    fn feed(&mut self) {
+        println("إطعام " + self.name + " طعام الكلاب");
+    }
+    
+    fn is_happy(&self) -> bool {
+        return self.is_trained;
+    }
+}
+
+// تنفيذ الواجهة للقطة
+impl Pet for Cat {
+    fn play(&self) -> string {
+        return self.play_with_toy();
+    }
+    
+    fn feed(&mut self) {
+        println("إطعام " + self.name + " طعام القطط");
+    }
+    
+    fn is_happy(&self) -> bool {
+        return !self.indoor_only || self.favorite_toy != "";
+    }
+}
+
+// فئة لإدارة الحيوانات الأليفة
+class PetManager {
+    pets: Vec<Box<dyn Pet>>,
+}
+
+impl PetManager {
+    fn new() -> PetManager {
+        return PetManager {
+            pets: Vec::new(),
+        };
+    }
+    
+    fn add_pet(&mut self, pet: Box<dyn Pet>) {
+        self.pets.push(pet);
+        println("تم إضافة حيوان أليف جديد!");
+    }
+    
+    fn play_with_all(&self) {
+        for pet in &self.pets {
+            println(pet.play());
+        }
+    }
+    
+    fn feed_all(&mut self) {
+        for pet in &mut self.pets {
+            pet.feed();
+        }
+    }
+    
+    fn check_happiness(&self) {
+        let mut happy_count = 0;
+        for pet in &self.pets {
+            if pet.is_happy() {
+                happy_count = happy_count + 1;
+            }
+        }
+        println("عدد الحيوانات السعيدة: " + happy_count + " من " + self.pets.len());
+    }
+}
+
+fn main() -> int {
+    println("=== مثال البرمجة الكائنية التوجه ===");
+    
+    // إنشاء حيوانات مختلفة
+    let mut dog1 = Dog::new("ريكس", 3, "جيرمن شيبرد");
+    let mut cat1 = Cat::new("مشمش", 2, true);
+    
+    // اختبار الطرق الأساسية
+    println(dog1.get_info());
+    println(cat1.get_info());
+    
+    println("أصوات الحيوانات:");
+    println(dog1.make_sound());
+    println(cat1.make_sound());
+    
+    // تدريب الكلب
+    dog1.train();
+    println(dog1.fetch());
+    
+    // اللعب مع القطة
+    println(cat1.purr());
+    println(cat1.play_with_toy());
+    
+    // استخدام مدير الحيوانات الأليفة
+    let mut manager = PetManager::new();
+    manager.add_pet(Box::new(dog1));
+    manager.add_pet(Box::new(cat1));
+    
+    println("\n=== وقت اللعب ===");
+    manager.play_with_all();
+    
+    println("\n=== وقت الطعام ===");
+    manager.feed_all();
+    
+    println("\n=== فحص السعادة ===");
+    manager.check_happiness();
+    
+    return 0;
+}

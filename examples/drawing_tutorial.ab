@@ -1,0 +1,268 @@
+// دليل الرسم في لغة البيان - Drawing Tutorial in AlBayan
+// كيفية استخدام مكتبات الرسم المدمجة لإنشاء الصور والأشكال
+
+// ========== رسم الأشكال الأساسية ==========
+fn draw_basic_shapes() -> int {
+    // استخدام وحدة الرسم الفني المدمجة (ArtisticRenderer)
+    
+    // رسم دائرة بسيطة
+    let circle_result = enhanced_basic_shapes_simulation(9, 100); // 9 = دائرة، 100 = جودة عالية
+    
+    // رسم مربع
+    let square_result = enhanced_basic_shapes_simulation(10, 100); // 10 = مربع
+    
+    // رسم مثلث
+    let triangle_result = enhanced_basic_shapes_simulation(11, 100); // 11 = مثلث
+    
+    // رسم نجمة
+    let star_result = enhanced_basic_shapes_simulation(14, 100); // 14 = نجمة
+    
+    // دمج جميع الأشكال
+    let combined_shapes = circle_result + square_result + triangle_result + star_result;
+    
+    return combined_shapes;
+}
+
+// ========== رسم الكائنات الحية ==========
+fn draw_living_objects() -> int {
+    // رسم قطة
+    let cat_drawing = enhanced_basic_shapes_simulation(1, 85); // 1 = قطة، 85 = تفاصيل جيدة
+    
+    // رسم كلب
+    let dog_drawing = enhanced_basic_shapes_simulation(2, 80); // 2 = كلب
+    
+    // رسم إنسان
+    let human_drawing = enhanced_basic_shapes_simulation(3, 90); // 3 = إنسان
+    
+    // رسم طائر
+    let bird_drawing = enhanced_basic_shapes_simulation(5, 75); // 5 = طائر
+    
+    // رسم سمكة
+    let fish_drawing = enhanced_basic_shapes_simulation(6, 70); // 6 = سمكة
+    
+    let all_living_objects = cat_drawing + dog_drawing + human_drawing + bird_drawing + fish_drawing;
+    
+    return all_living_objects;
+}
+
+// ========== رسم النباتات والطبيعة ==========
+fn draw_nature_scene() -> int {
+    // رسم شجرة
+    let tree_drawing = enhanced_basic_shapes_simulation(7, 90); // 7 = شجرة
+    
+    // رسم زهرة
+    let flower_drawing = enhanced_basic_shapes_simulation(8, 85); // 8 = زهرة
+    
+    // رسم جبل
+    let mountain_drawing = enhanced_basic_shapes_simulation(23, 80); // 23 = جبل
+    
+    // رسم نهر
+    let river_drawing = enhanced_basic_shapes_simulation(24, 75); // 24 = نهر
+    
+    // رسم سحابة
+    let cloud_drawing = enhanced_basic_shapes_simulation(25, 70); // 25 = سحابة
+    
+    // رسم شمس
+    let sun_drawing = enhanced_basic_shapes_simulation(26, 95); // 26 = شمس
+    
+    let nature_scene = tree_drawing + flower_drawing + mountain_drawing + river_drawing + cloud_drawing + sun_drawing;
+    
+    return nature_scene;
+}
+
+// ========== تطبيق الخصائص على الرسم ==========
+fn apply_drawing_properties(base_shape: int, color: int, size: int, position: int) -> int {
+    // تطبيق اللون
+    let colored_shape = apply_enhanced_properties(base_shape, 2, color); // 2 = خاصية اللون
+    
+    // تطبيق الحجم
+    let sized_shape = apply_enhanced_properties(colored_shape, 1, size); // 1 = خاصية الحجم
+    
+    // تطبيق الموضع
+    let positioned_shape = apply_enhanced_properties(sized_shape, 3, position); // 3 = خاصية الموضع
+    
+    return positioned_shape;
+}
+
+// ========== رسم مشهد متكامل ==========
+fn draw_complete_scene() -> int {
+    // خلفية السماء مع الشمس
+    let sky_base = enhanced_basic_shapes_simulation(26, 100); // شمس
+    let sky_with_clouds = sky_base + enhanced_basic_shapes_simulation(25, 80); // إضافة سحب
+    
+    // تطبيق خصائص السماء
+    let blue_sky = apply_drawing_properties(sky_with_clouds, 70, 150, 80); // أزرق، كبير، أعلى
+    
+    // الجبال في الخلفية
+    let mountains = enhanced_basic_shapes_simulation(23, 85);
+    let brown_mountains = apply_drawing_properties(mountains, 30, 120, 60); // بني، متوسط، وسط
+    
+    // الأشجار
+    let trees = enhanced_basic_shapes_simulation(7, 90);
+    let green_trees = apply_drawing_properties(trees, 50, 100, 40); // أخضر، طبيعي، أسفل
+    
+    // النهر
+    let river = enhanced_basic_shapes_simulation(24, 75);
+    let blue_river = apply_drawing_properties(river, 80, 80, 20); // أزرق فاتح، صغير، أسفل
+    
+    // الزهور
+    let flowers = enhanced_basic_shapes_simulation(8, 85);
+    let colorful_flowers = apply_drawing_properties(flowers, 90, 60, 25); // ملون، صغير، أسفل
+    
+    // دمج المشهد الكامل
+    let complete_scene = blue_sky + brown_mountains + green_trees + blue_river + colorful_flowers;
+    
+    return complete_scene;
+}
+
+// ========== رسم شخصيات متحركة ==========
+fn draw_animated_characters() -> int {
+    // شخصية سعيدة
+    let happy_character = enhanced_character_generation(1, 80, 90, 25); // محارب سعيد شاب
+    
+    // شخصية حكيمة
+    let wise_character = enhanced_character_generation(4, 70, 85, 60); // حكيم هادئ كبير السن
+    
+    // شخصية ساحر
+    let mage_character = enhanced_character_generation(2, 60, 95, 35); // ساحر هادئ متوسط العمر
+    
+    // تطبيق خصائص مختلفة على الشخصيات
+    let red_warrior = apply_drawing_properties(happy_character, 20, 110, 50); // أحمر، كبير، وسط
+    let blue_mage = apply_drawing_properties(mage_character, 75, 100, 30); // أزرق، طبيعي، يسار
+    let green_sage = apply_drawing_properties(wise_character, 55, 105, 70); // أخضر، كبير قليلاً، يمين
+    
+    let character_group = red_warrior + blue_mage + green_sage;
+    
+    return character_group;
+}
+
+// ========== رسم أنماط هندسية ==========
+fn draw_geometric_patterns() -> int {
+    // نمط دوائر متداخلة
+    let circle1 = enhanced_basic_shapes_simulation(9, 100);
+    let circle2 = enhanced_basic_shapes_simulation(9, 90);
+    let circle3 = enhanced_basic_shapes_simulation(9, 80);
+    
+    // تطبيق ألوان مختلفة
+    let red_circle = apply_drawing_properties(circle1, 25, 120, 50);
+    let green_circle = apply_drawing_properties(circle2, 55, 100, 50);
+    let blue_circle = apply_drawing_properties(circle3, 75, 80, 50);
+    
+    let circle_pattern = red_circle + green_circle + blue_circle;
+    
+    // نمط نجوم
+    let star1 = enhanced_basic_shapes_simulation(14, 95);
+    let star2 = enhanced_basic_shapes_simulation(14, 85);
+    let star3 = enhanced_basic_shapes_simulation(14, 75);
+    
+    let yellow_star = apply_drawing_properties(star1, 15, 90, 20);
+    let orange_star = apply_drawing_properties(star2, 10, 70, 40);
+    let white_star = apply_drawing_properties(star3, 95, 50, 60);
+    
+    let star_pattern = yellow_star + orange_star + white_star;
+    
+    // نمط مربعات
+    let square1 = enhanced_basic_shapes_simulation(10, 100);
+    let square2 = enhanced_basic_shapes_simulation(10, 90);
+    
+    let purple_square = apply_drawing_properties(square1, 85, 80, 30);
+    let pink_square = apply_drawing_properties(square2, 95, 60, 70);
+    
+    let square_pattern = purple_square + pink_square;
+    
+    let geometric_art = circle_pattern + star_pattern + square_pattern;
+    
+    return geometric_art;
+}
+
+// ========== حفظ الرسم بصيغ مختلفة ==========
+fn save_drawing_formats(drawing_data: int, format_type: int) -> int {
+    // محاكاة حفظ بصيغ مختلفة
+    let save_result = drawing_data;
+    
+    if format_type == 1 {
+        // حفظ بصيغة PNG
+        save_result = drawing_data + 1000; // إضافة معرف PNG
+    } else {
+        if format_type == 2 {
+            // حفظ بصيغة JPEG
+            save_result = drawing_data + 2000; // إضافة معرف JPEG
+        } else {
+            if format_type == 3 {
+                // حفظ بصيغة SVG
+                save_result = drawing_data + 3000; // إضافة معرف SVG
+            } else {
+                if format_type == 4 {
+                    // حفظ بصيغة PDF
+                    save_result = drawing_data + 4000; // إضافة معرف PDF
+                } else {
+                    // صيغة افتراضية PNG
+                    save_result = drawing_data + 1000;
+                }
+            }
+        }
+    }
+    
+    return save_result;
+}
+
+// ========== مثال شامل للرسم ==========
+fn comprehensive_drawing_example() -> int {
+    // رسم مشهد طبيعي كامل
+    let nature_scene = draw_complete_scene();
+    
+    // إضافة شخصيات
+    let characters = draw_animated_characters();
+    
+    // إضافة أنماط هندسية للزينة
+    let patterns = draw_geometric_patterns();
+    
+    // دمج كل العناصر
+    let final_artwork = nature_scene + characters + patterns;
+    
+    // حفظ بصيغ مختلفة
+    let png_version = save_drawing_formats(final_artwork, 1); // PNG
+    let jpeg_version = save_drawing_formats(final_artwork, 2); // JPEG
+    let svg_version = save_drawing_formats(final_artwork, 3); // SVG
+    let pdf_version = save_drawing_formats(final_artwork, 4); // PDF
+    
+    // النتيجة الشاملة
+    let comprehensive_result = png_version + jpeg_version + svg_version + pdf_version;
+    
+    return comprehensive_result;
+}
+
+// ========== دالة تعليمية للمبتدئين ==========
+fn beginner_drawing_tutorial() -> int {
+    // الخطوة 1: رسم شكل بسيط
+    let simple_circle = enhanced_basic_shapes_simulation(9, 80); // دائرة بسيطة
+    
+    // الخطوة 2: تطبيق لون
+    let colored_circle = apply_drawing_properties(simple_circle, 60, 100, 50); // أزرق
+    
+    // الخطوة 3: إضافة شكل آخر
+    let simple_star = enhanced_basic_shapes_simulation(14, 75); // نجمة
+    let yellow_star = apply_drawing_properties(simple_star, 15, 80, 30); // أصفر
+    
+    // الخطوة 4: دمج الأشكال
+    let first_drawing = colored_circle + yellow_star;
+    
+    // الخطوة 5: حفظ الرسم
+    let saved_drawing = save_drawing_formats(first_drawing, 1); // حفظ PNG
+    
+    return saved_drawing;
+}
+
+// ========== الدالة الرئيسية ==========
+fn main() -> int {
+    // تشغيل المثال الشامل
+    let comprehensive_example = comprehensive_drawing_example();
+    
+    // تشغيل المثال التعليمي
+    let tutorial_example = beginner_drawing_tutorial();
+    
+    // النتيجة النهائية
+    let final_result = comprehensive_example + tutorial_example;
+    
+    return final_result;
+}

@@ -1,0 +1,159 @@
+{
+  "name": "albayan-language-support",
+  "displayName": "AlBayan Language Support",
+  "description": "Language support for AlBayan programming language",
+  "version": "0.1.0",
+  "publisher": "albayan-team",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Formatters"
+  ],
+  "keywords": [
+    "albayan",
+    "logic programming",
+    "ai",
+    "programming language"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "albayan",
+        "aliases": [
+          "AlBayan",
+          "albayan"
+        ],
+        "extensions": [
+          ".ab"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "albayan",
+        "scopeName": "source.albayan",
+        "path": "./syntaxes/albayan.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "albayan",
+        "path": "./snippets/albayan.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "AlBayan",
+      "properties": {
+        "albayan.languageServer.path": {
+          "type": "string",
+          "default": "albayan",
+          "description": "Path to the AlBayan language server executable"
+        },
+        "albayan.languageServer.args": {
+          "type": "array",
+          "default": ["lsp"],
+          "description": "Arguments to pass to the language server"
+        },
+        "albayan.trace.server": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "albayan.build",
+        "title": "Build",
+        "category": "AlBayan"
+      },
+      {
+        "command": "albayan.run",
+        "title": "Run",
+        "category": "AlBayan"
+      },
+      {
+        "command": "albayan.check",
+        "title": "Check Syntax",
+        "category": "AlBayan"
+      },
+      {
+        "command": "albayan.format",
+        "title": "Format Document",
+        "category": "AlBayan"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "albayan.build",
+        "key": "ctrl+shift+b",
+        "when": "editorLangId == albayan"
+      },
+      {
+        "command": "albayan.run",
+        "key": "ctrl+f5",
+        "when": "editorLangId == albayan"
+      },
+      {
+        "command": "albayan.format",
+        "key": "shift+alt+f",
+        "when": "editorLangId == albayan"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "editorLangId == albayan",
+          "command": "albayan.build",
+          "group": "albayan"
+        },
+        {
+          "when": "editorLangId == albayan",
+          "command": "albayan.run",
+          "group": "albayan"
+        },
+        {
+          "when": "editorLangId == albayan",
+          "command": "albayan.check",
+          "group": "albayan"
+        },
+        {
+          "when": "editorLangId == albayan",
+          "command": "albayan.format",
+          "group": "albayan"
+        }
+      ]
+    }
+  },
+  "activationEvents": [
+    "onLanguage:albayan"
+  ],
+  "dependencies": {
+    "vscode-languageclient": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "eslint": "^8.28.0",
+    "typescript": "^4.9.4"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  }
+}

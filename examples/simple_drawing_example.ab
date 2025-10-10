@@ -1,0 +1,224 @@
+// مثال بسيط للرسم في لغة البيان - Simple Drawing Example
+// للمبتدئين الذين يريدون تعلم الرسم بسرعة
+
+// ========== رسم دائرة بسيطة ==========
+fn draw_simple_circle() -> int {
+    // رسم دائرة (الرقم 9 يعني دائرة، 80 يعني جودة جيدة)
+    let circle = enhanced_basic_shapes_simulation(9, 80);
+    
+    return circle;
+}
+
+// ========== رسم دائرة ملونة ==========
+fn draw_colored_circle() -> int {
+    // رسم دائرة
+    let circle = enhanced_basic_shapes_simulation(9, 85);
+    
+    // تطبيق لون أزرق (الرقم 2 يعني خاصية اللون، 60 يعني أزرق)
+    let blue_circle = apply_enhanced_properties(circle, 2, 60);
+    
+    return blue_circle;
+}
+
+// ========== رسم نجمة صفراء ==========
+fn draw_yellow_star() -> int {
+    // رسم نجمة (الرقم 14 يعني نجمة)
+    let star = enhanced_basic_shapes_simulation(14, 75);
+    
+    // تطبيق لون أصفر (15 يعني أصفر)
+    let yellow_star = apply_enhanced_properties(star, 2, 15);
+    
+    return yellow_star;
+}
+
+// ========== رسم شجرة خضراء ==========
+fn draw_green_tree() -> int {
+    // رسم شجرة (الرقم 7 يعني شجرة)
+    let tree = enhanced_basic_shapes_simulation(7, 85);
+    
+    // تطبيق لون أخضر (45 يعني أخضر)
+    let green_tree = apply_enhanced_properties(tree, 2, 45);
+    
+    return green_tree;
+}
+
+// ========== رسم شمس ذهبية ==========
+fn draw_golden_sun() -> int {
+    // رسم شمس (الرقم 26 يعني شمس)
+    let sun = enhanced_basic_shapes_simulation(26, 90);
+    
+    // تطبيق لون ذهبي (18 يعني ذهبي)
+    let golden_sun = apply_enhanced_properties(sun, 2, 18);
+    
+    return golden_sun;
+}
+
+// ========== رسم قطة لطيفة ==========
+fn draw_cute_cat() -> int {
+    // رسم قطة (الرقم 1 يعني قطة)
+    let cat = enhanced_basic_shapes_simulation(1, 80);
+    
+    // تطبيق لون برتقالي (12 يعني برتقالي)
+    let orange_cat = apply_enhanced_properties(cat, 2, 12);
+    
+    return orange_cat;
+}
+
+// ========== رسم زهرة وردية ==========
+fn draw_pink_flower() -> int {
+    // رسم زهرة (الرقم 8 يعني زهرة)
+    let flower = enhanced_basic_shapes_simulation(8, 85);
+    
+    // تطبيق لون وردي (75 يعني وردي)
+    let pink_flower = apply_enhanced_properties(flower, 2, 75);
+    
+    return pink_flower;
+}
+
+// ========== دمج شكلين معاً ==========
+fn combine_two_shapes() -> int {
+    // رسم دائرة زرقاء
+    let blue_circle = draw_colored_circle();
+    
+    // رسم نجمة صفراء
+    let yellow_star = draw_yellow_star();
+    
+    // دمج الشكلين معاً
+    let combined = blue_circle + yellow_star;
+    
+    return combined;
+}
+
+// ========== رسم مشهد بسيط ==========
+fn draw_simple_scene() -> int {
+    // رسم الشمس في السماء
+    let sun = draw_golden_sun();
+    
+    // رسم شجرة
+    let tree = draw_green_tree();
+    
+    // رسم زهرة
+    let flower = draw_pink_flower();
+    
+    // دمج المشهد
+    let scene = sun + tree + flower;
+    
+    return scene;
+}
+
+// ========== حفظ الرسم كصورة PNG ==========
+fn save_as_png(drawing: int) -> int {
+    // حفظ الرسم بصيغة PNG (الرقم 1 يعني PNG)
+    let png_file = save_drawing_formats(drawing, 1);
+    
+    return png_file;
+}
+
+// ========== حفظ الرسم كصورة JPEG ==========
+fn save_as_jpeg(drawing: int) -> int {
+    // حفظ الرسم بصيغة JPEG (الرقم 2 يعني JPEG)
+    let jpeg_file = save_drawing_formats(drawing, 2);
+    
+    return jpeg_file;
+}
+
+// ========== مثال كامل للمبتدئين ==========
+fn beginner_complete_example() -> int {
+    // الخطوة 1: رسم دائرة زرقاء
+    let circle = enhanced_basic_shapes_simulation(9, 85);
+    let blue_circle = apply_enhanced_properties(circle, 2, 60);
+    
+    // الخطوة 2: رسم نجمة صفراء
+    let star = enhanced_basic_shapes_simulation(14, 80);
+    let yellow_star = apply_enhanced_properties(star, 2, 15);
+    
+    // الخطوة 3: رسم قطة برتقالية
+    let cat = enhanced_basic_shapes_simulation(1, 75);
+    let orange_cat = apply_enhanced_properties(cat, 2, 12);
+    
+    // الخطوة 4: دمج كل الأشكال
+    let my_artwork = blue_circle + yellow_star + orange_cat;
+    
+    // الخطوة 5: حفظ كصورة PNG
+    let final_image = save_drawing_formats(my_artwork, 1);
+    
+    return final_image;
+}
+
+// ========== أمثلة ألوان مختلفة ==========
+fn color_examples() -> int {
+    // دائرة حمراء
+    let red_circle = enhanced_basic_shapes_simulation(9, 80);
+    let red = apply_enhanced_properties(red_circle, 2, 5); // أحمر
+    
+    // مربع أخضر
+    let green_square = enhanced_basic_shapes_simulation(10, 80);
+    let green = apply_enhanced_properties(green_square, 2, 45); // أخضر
+    
+    // مثلث أزرق
+    let blue_triangle = enhanced_basic_shapes_simulation(11, 80);
+    let blue = apply_enhanced_properties(blue_triangle, 2, 65); // أزرق
+    
+    // نجمة صفراء
+    let yellow_star = enhanced_basic_shapes_simulation(14, 80);
+    let yellow = apply_enhanced_properties(yellow_star, 2, 15); // أصفر
+    
+    // دمج كل الألوان
+    let colorful_art = red + green + blue + yellow;
+    
+    return colorful_art;
+}
+
+// ========== أمثلة أحجام مختلفة ==========
+fn size_examples() -> int {
+    // دائرة صغيرة
+    let small_circle = enhanced_basic_shapes_simulation(9, 80);
+    let small = apply_enhanced_properties(small_circle, 1, 60); // صغير
+    
+    // دائرة متوسطة
+    let medium_circle = enhanced_basic_shapes_simulation(9, 80);
+    let medium = apply_enhanced_properties(medium_circle, 1, 100); // متوسط
+    
+    // دائرة كبيرة
+    let large_circle = enhanced_basic_shapes_simulation(9, 80);
+    let large = apply_enhanced_properties(large_circle, 1, 140); // كبير
+    
+    // دمج الأحجام
+    let size_demo = small + medium + large;
+    
+    return size_demo;
+}
+
+// ========== مثال سهل جداً ==========
+fn very_easy_example() -> int {
+    // فقط ارسم دائرة
+    let circle = enhanced_basic_shapes_simulation(9, 80);
+    
+    // اجعلها حمراء
+    let red_circle = apply_enhanced_properties(circle, 2, 10);
+    
+    // احفظها كصورة
+    let saved_image = save_drawing_formats(red_circle, 1);
+    
+    return saved_image;
+}
+
+// ========== الدالة الرئيسية ==========
+fn main() -> int {
+    // تشغيل المثال الكامل للمبتدئين
+    let beginner_result = beginner_complete_example();
+    
+    // تشغيل مثال الألوان
+    let color_result = color_examples();
+    
+    // تشغيل مثال الأحجام
+    let size_result = size_examples();
+    
+    // تشغيل المثال السهل جداً
+    let easy_result = very_easy_example();
+    
+    // النتيجة النهائية
+    let final_result = beginner_result + color_result + size_result + easy_result;
+    
+    return final_result;
+}

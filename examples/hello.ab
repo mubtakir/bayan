@@ -1,0 +1,16 @@
+// مثال بسيط بلغة البيان
+// Simple example in AlBayan language
+
+fn main() -> int {
+    let message = "مرحبا بكم في لغة البيان!";
+    print(message);
+    
+    let x = 10;
+    let y = 20;
+    let sum = x + y;
+    
+    print("المجموع هو: ");
+    print(sum);
+    
+    return 0;
+}

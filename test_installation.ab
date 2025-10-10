@@ -1,0 +1,53 @@
+// اختبار تثبيت لغة البيان
+// AlBayan Installation Test
+
+fn test_basic_operations() -> int {
+    let a = 10;
+    let b = 5;
+    
+    let sum = a + b;
+    let diff = a - b;
+    let product = a * b;
+    let quotient = a / b;
+    
+    let total = sum + diff + product + quotient;
+    return total;
+}
+
+fn test_conditions(x: int) -> int {
+    if x > 10 {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+fn test_basera_sigmoid(x: int) -> int {
+    // نظرية الصفرية المزدوجة
+    let positive = x * 2;
+    let negative = 0 - positive;
+    let balance = positive + negative; // دائماً = 0
+    
+    // معادلة سيغمويد مبسطة
+    let shifted_x = x - 0;
+    let exp_part = 100 * shifted_x / 100;
+    let sigmoid_result = 100 * 100 / (100 + exp_part);
+    
+    return sigmoid_result;
+}
+
+fn main() -> int {
+    // اختبار العمليات الأساسية
+    let basic_result = test_basic_operations();
+    
+    // اختبار الشروط
+    let condition_result = test_conditions(15);
+    
+    // اختبار نظام بصيرة
+    let basera_result = test_basera_sigmoid(5);
+    
+    // النتيجة النهائية
+    let final_result = basic_result + condition_result + basera_result;
+    
+    return final_result;
+}

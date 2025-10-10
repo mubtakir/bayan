@@ -1,0 +1,364 @@
+// البرمجة الوظيفية ومعالجة البيانات - مثال متقدم
+// Functional Programming and Data Processing - Advanced example
+
+use std::collections::{Vec, HashMap, HashSet};
+use std::iter::{Iterator, Collect};
+
+// نوع بيانات للطلاب
+struct Student {
+    id: int,
+    name: string,
+    age: int,
+    grades: Vec<float>,
+    major: string,
+    year: int,
+}
+
+impl Student {
+    fn new(id: int, name: string, age: int, major: string, year: int) -> Student {
+        return Student {
+            id: id,
+            name: name,
+            age: age,
+            grades: Vec::new(),
+            major: major,
+            year: year,
+        };
+    }
+    
+    fn add_grade(&mut self, grade: float) {
+        self.grades.push(grade);
+    }
+    
+    fn average_grade(&self) -> float {
+        if self.grades.is_empty() {
+            return 0.0;
+        }
+        let sum: float = self.grades.iter().sum();
+        return sum / self.grades.len() as float;
+    }
+    
+    fn is_honor_student(&self) -> bool {
+        return self.average_grade() >= 3.5;
+    }
+}
+
+// دوال وظيفية عليا (Higher-order functions)
+fn map<T, U>(list: Vec<T>, func: fn(T) -> U) -> Vec<U> {
+    let mut result = Vec::new();
+    for item in list {
+        result.push(func(item));
+    }
+    return result;
+}
+
+fn filter<T>(list: Vec<T>, predicate: fn(&T) -> bool) -> Vec<T> {
+    let mut result = Vec::new();
+    for item in list {
+        if predicate(&item) {
+            result.push(item);
+        }
+    }
+    return result;
+}
+
+fn reduce<T, U>(list: Vec<T>, initial: U, func: fn(U, T) -> U) -> U {
+    let mut accumulator = initial;
+    for item in list {
+        accumulator = func(accumulator, item);
+    }
+    return accumulator;
+}
+
+fn compose<A, B, C>(f: fn(A) -> B, g: fn(B) -> C) -> fn(A) -> C {
+    return |x| g(f(x));
+}
+
+// دوال للعمل مع الطلاب
+fn get_student_names(students: Vec<Student>) -> Vec<string> {
+    return map(students, |student| student.name);
+}
+
+fn get_honor_students(students: Vec<Student>) -> Vec<Student> {
+    return filter(students, |student| student.is_honor_student());
+}
+
+fn get_students_by_major(students: Vec<Student>, major: string) -> Vec<Student> {
+    return filter(students, |student| student.major == major);
+}
+
+fn calculate_class_average(students: Vec<Student>) -> float {
+    if students.is_empty() {
+        return 0.0;
+    }
+    
+    let total_average = reduce(students, 0.0, |acc, student| {
+        acc + student.average_grade()
+    });
+    
+    return total_average / students.len() as float;
+}
+
+// دوال للتحليل الإحصائي
+fn group_by_major(students: Vec<Student>) -> HashMap<string, Vec<Student>> {
+    let mut groups = HashMap::new();
+    
+    for student in students {
+        let major = student.major.clone();
+        if !groups.contains_key(&major) {
+            groups.insert(major.clone(), Vec::new());
+        }
+        groups.get_mut(&major).unwrap().push(student);
+    }
+    
+    return groups;
+}
+
+fn calculate_grade_distribution(students: &Vec<Student>) -> HashMap<string, int> {
+    let mut distribution = HashMap::new();
+    distribution.insert("A".to_string(), 0);
+    distribution.insert("B".to_string(), 0);
+    distribution.insert("C".to_string(), 0);
+    distribution.insert("D".to_string(), 0);
+    distribution.insert("F".to_string(), 0);
+    
+    for student in students {
+        let avg = student.average_grade();
+        let grade_letter = if avg >= 3.7 {
+            "A"
+        } else if avg >= 3.0 {
+            "B"
+        } else if avg >= 2.0 {
+            "C"
+        } else if avg >= 1.0 {
+            "D"
+        } else {
+            "F"
+        };
+        
+        *distribution.get_mut(grade_letter).unwrap() += 1;
+    }
+    
+    return distribution;
+}
+
+// دوال للبحث والفرز
+fn find_top_students(students: Vec<Student>, count: int) -> Vec<Student> {
+    let mut sorted_students = students;
+    sorted_students.sort_by(|a, b| {
+        b.average_grade().partial_cmp(&a.average_grade()).unwrap()
+    });
+    
+    return sorted_students.into_iter().take(count as usize).collect();
+}
+
+fn search_students_by_name(students: &Vec<Student>, name_pattern: string) -> Vec<&Student> {
+    return students.iter()
+        .filter(|student| student.name.contains(&name_pattern))
+        .collect();
+}
+
+// دوال للتحويل والتنسيق
+fn students_to_csv(students: &Vec<Student>) -> string {
+    let mut csv = "ID,Name,Age,Major,Year,Average\n".to_string();
+    
+    for student in students {
+        csv += &format!("{},{},{},{},{},{:.2}\n",
+            student.id,
+            student.name,
+            student.age,
+            student.major,
+            student.year,
+            student.average_grade()
+        );
+    }
+    
+    return csv;
+}
+
+fn generate_report(students: &Vec<Student>) -> string {
+    let mut report = "=== تقرير الطلاب ===\n\n".to_string();
+    
+    // إحصائيات عامة
+    report += &format!("إجمالي عدد الطلاب: {}\n", students.len());
+    
+    let class_avg = calculate_class_average(students.clone());
+    report += &format!("متوسط الدرجات العام: {:.2}\n\n", class_avg);
+    
+    // توزيع الدرجات
+    let distribution = calculate_grade_distribution(students);
+    report += "توزيع الدرجات:\n";
+    for (grade, count) in &distribution {
+        report += &format!("  {}: {} طالب\n", grade, count);
+    }
+    report += "\n";
+    
+    // التجميع حسب التخصص
+    let groups = group_by_major(students.clone());
+    report += "الطلاب حسب التخصص:\n";
+    for (major, major_students) in &groups {
+        let major_avg = calculate_class_average(major_students.clone());
+        report += &format!("  {}: {} طالب (متوسط: {:.2})\n", 
+            major, major_students.len(), major_avg);
+    }
+    report += "\n";
+    
+    // أفضل الطلاب
+    let top_students = find_top_students(students.clone(), 3);
+    report += "أفضل 3 طلاب:\n";
+    for (i, student) in top_students.iter().enumerate() {
+        report += &format!("  {}. {} - {:.2}\n", 
+            i + 1, student.name, student.average_grade());
+    }
+    
+    return report;
+}
+
+// دوال للمعالجة المتوازية (محاكاة)
+async fn process_students_async(students: Vec<Student>) -> Vec<Student> {
+    println("معالجة البيانات بشكل متوازي...");
+    
+    // محاكاة معالجة متوازية
+    let processed = map(students, |mut student| {
+        // محاكاة عملية معقدة
+        if student.grades.len() > 3 {
+            student.grades.sort_by(|a, b| b.partial_cmp(a).unwrap());
+            // إزالة أقل درجة
+            student.grades.pop();
+        }
+        return student;
+    });
+    
+    return processed;
+}
+
+// دوال للتحقق من صحة البيانات
+fn validate_student(student: &Student) -> Vec<string> {
+    let mut errors = Vec::new();
+    
+    if student.name.is_empty() {
+        errors.push("اسم الطالب مطلوب".to_string());
+    }
+    
+    if student.age < 16 || student.age > 100 {
+        errors.push("عمر الطالب غير صالح".to_string());
+    }
+    
+    if student.year < 1 || student.year > 4 {
+        errors.push("سنة الدراسة غير صالحة".to_string());
+    }
+    
+    for grade in &student.grades {
+        if *grade < 0.0 || *grade > 4.0 {
+            errors.push("درجة غير صالحة: ".to_string() + &grade.to_string());
+        }
+    }
+    
+    return errors;
+}
+
+fn validate_all_students(students: &Vec<Student>) -> HashMap<int, Vec<string>> {
+    let mut validation_results = HashMap::new();
+    
+    for student in students {
+        let errors = validate_student(student);
+        if !errors.is_empty() {
+            validation_results.insert(student.id, errors);
+        }
+    }
+    
+    return validation_results;
+}
+
+// دالة لإنشاء بيانات تجريبية
+fn create_sample_students() -> Vec<Student> {
+    let mut students = Vec::new();
+    
+    let mut student1 = Student::new(1, "أحمد محمد".to_string(), 20, "هندسة".to_string(), 2);
+    student1.add_grade(3.8);
+    student1.add_grade(3.9);
+    student1.add_grade(3.7);
+    student1.add_grade(3.6);
+    students.push(student1);
+    
+    let mut student2 = Student::new(2, "فاطمة علي".to_string(), 19, "طب".to_string(), 1);
+    student2.add_grade(3.9);
+    student2.add_grade(4.0);
+    student2.add_grade(3.8);
+    students.push(student2);
+    
+    let mut student3 = Student::new(3, "محمد حسن".to_string(), 21, "حاسوب".to_string(), 3);
+    student3.add_grade(3.2);
+    student3.add_grade(3.4);
+    student3.add_grade(3.1);
+    student3.add_grade(3.3);
+    students.push(student3);
+    
+    let mut student4 = Student::new(4, "سارة أحمد".to_string(), 18, "طب".to_string(), 1);
+    student4.add_grade(3.6);
+    student4.add_grade(3.5);
+    student4.add_grade(3.7);
+    students.push(student4);
+    
+    let mut student5 = Student::new(5, "عمر خالد".to_string(), 22, "هندسة".to_string(), 4);
+    student5.add_grade(2.8);
+    student5.add_grade(2.9);
+    student5.add_grade(3.0);
+    students.push(student5);
+    
+    return students;
+}
+
+async fn main() -> int {
+    println("=== البرمجة الوظيفية ومعالجة البيانات ===");
+    
+    // إنشاء بيانات تجريبية
+    let students = create_sample_students();
+    
+    // التحقق من صحة البيانات
+    println("التحقق من صحة البيانات...");
+    let validation_results = validate_all_students(&students);
+    if validation_results.is_empty() {
+        println("✅ جميع البيانات صالحة");
+    } else {
+        println("❌ توجد أخطاء في البيانات:");
+        for (id, errors) in validation_results {
+            println("  الطالب {}: {:?}", id, errors);
+        }
+    }
+    
+    // معالجة البيانات
+    let processed_students = await process_students_async(students);
+    
+    // تطبيق الدوال الوظيفية
+    println("\n=== تطبيق الدوال الوظيفية ===");
+    
+    // الحصول على أسماء الطلاب
+    let names = get_student_names(processed_students.clone());
+    println("أسماء الطلاب: {:?}", names);
+    
+    // الطلاب المتفوقون
+    let honor_students = get_honor_students(processed_students.clone());
+    println("عدد الطلاب المتفوقين: {}", honor_students.len());
+    
+    // طلاب الطب
+    let med_students = get_students_by_major(processed_students.clone(), "طب".to_string());
+    println("عدد طلاب الطب: {}", med_students.len());
+    
+    // أفضل 3 طلاب
+    let top_students = find_top_students(processed_students.clone(), 3);
+    println("\nأفضل 3 طلاب:");
+    for student in &top_students {
+        println("  {} - {:.2}", student.name, student.average_grade());
+    }
+    
+    // إنتاج التقرير الشامل
+    println("\n{}", generate_report(&processed_students));
+    
+    // تصدير البيانات
+    println("=== تصدير البيانات ===");
+    let csv_data = students_to_csv(&processed_students);
+    println("تم إنتاج ملف CSV ({} سطر)", csv_data.lines().count());
+    
+    return 0;
+}

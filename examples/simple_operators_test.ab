@@ -1,0 +1,85 @@
+// اختبار العوامل الجديدة - نسخة مبسطة
+// Simple Operators Test
+
+fn test_basic_math(a: int, b: int) -> int {
+    let sum = a + b;
+    let diff = a - b;
+    let product = a * b;
+    let quotient = a / b;
+    
+    let total = sum + diff + product + quotient;
+    return total;
+}
+
+fn test_comparisons(x: int, y: int) -> int {
+    let equal = x == y;
+    let not_equal = x != y;
+    let less = x < y;
+    let greater = x > y;
+    let less_equal = x <= y;
+    let greater_equal = x >= y;
+    
+    if equal {
+        return 1;
+    }
+    
+    if not_equal {
+        return 2;
+    }
+    
+    if less {
+        return 3;
+    }
+    
+    if greater {
+        return 4;
+    }
+    
+    if less_equal {
+        return 5;
+    }
+    
+    if greater_equal {
+        return 6;
+    }
+    
+    return 0;
+}
+
+fn test_logical_operations(p: int, q: int) -> int {
+    let p_positive = p > 0;
+    let q_positive = q > 0;
+    
+    if p_positive {
+        if q_positive {
+            return 1; // both positive
+        }
+        return 2; // only p positive
+    }
+    
+    if q_positive {
+        return 3; // only q positive
+    }
+    
+    return 4; // both negative or zero
+}
+
+fn test_arrays_simple() -> int {
+    let numbers = [5, 10, 15];
+    let first = numbers[0];
+    let second = numbers[1];
+    let third = numbers[2];
+    
+    let sum = first + second + third;
+    return sum;
+}
+
+fn main() -> int {
+    let math_result = test_basic_math(20, 4);
+    let comparison_result = test_comparisons(10, 5);
+    let logical_result = test_logical_operations(8, 12);
+    let array_result = test_arrays_simple();
+    
+    let total = math_result + comparison_result + logical_result + array_result;
+    return total;
+}

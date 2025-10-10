@@ -1,0 +1,176 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "AlBayan",
+    "scopeName": "source.albayan",
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#functions"
+        },
+        {
+            "include": "#types"
+        },
+        {
+            "include": "#operators"
+        },
+        {
+            "include": "#variables"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.double-slash.albayan",
+                    "match": "//.*$"
+                },
+                {
+                    "name": "comment.block.albayan",
+                    "begin": "/\\*",
+                    "end": "\\*/"
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.albayan",
+                    "match": "\\b(if|else|while|for|in|loop|break|continue|return|match)\\b"
+                },
+                {
+                    "name": "keyword.declaration.albayan",
+                    "match": "\\b(fn|let|mut|const|struct|enum|class|interface|type)\\b"
+                },
+                {
+                    "name": "keyword.logic.albayan",
+                    "match": "\\b(relation|fact|rule|query_solve|query_prove|assert|retract)\\b"
+                },
+                {
+                    "name": "keyword.ai.albayan",
+                    "match": "\\b(model|tensor|basera|sigmoid|equation)\\b"
+                },
+                {
+                    "name": "keyword.concurrency.albayan",
+                    "match": "\\b(async|await|gpu)\\b"
+                },
+                {
+                    "name": "keyword.module.albayan",
+                    "match": "\\b(module|using|pub|priv)\\b"
+                },
+                {
+                    "name": "keyword.special.albayan",
+                    "match": "\\b(self|super|init|dynamic)\\b"
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                {
+                    "name": "string.quoted.double.albayan",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.albayan",
+                            "match": "\\\\."
+                        }
+                    ]
+                },
+                {
+                    "name": "string.quoted.single.albayan",
+                    "begin": "'",
+                    "end": "'",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.albayan",
+                            "match": "\\\\."
+                        }
+                    ]
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.float.albayan",
+                    "match": "\\b\\d+\\.\\d+\\b"
+                },
+                {
+                    "name": "constant.numeric.integer.albayan",
+                    "match": "\\b\\d+\\b"
+                }
+            ]
+        },
+        "functions": {
+            "patterns": [
+                {
+                    "name": "entity.name.function.albayan",
+                    "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
+                }
+            ]
+        },
+        "types": {
+            "patterns": [
+                {
+                    "name": "storage.type.primitive.albayan",
+                    "match": "\\b(int|float|string|bool|char)\\b"
+                },
+                {
+                    "name": "storage.type.collection.albayan",
+                    "match": "\\b(Array|Vector|Matrix|Set|Map|Queue|Stack|Tree|Graph)\\b"
+                },
+                {
+                    "name": "storage.type.ai.albayan",
+                    "match": "\\b(Tensor|Dataset|Model|NeuralNetwork)\\b"
+                },
+                {
+                    "name": "storage.type.concurrent.albayan",
+                    "match": "\\b(Channel|Mutex|Atomic)\\b"
+                }
+            ]
+        },
+        "operators": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.arithmetic.albayan",
+                    "match": "[+\\-*/%]"
+                },
+                {
+                    "name": "keyword.operator.comparison.albayan",
+                    "match": "(==|!=|<|<=|>|>=)"
+                },
+                {
+                    "name": "keyword.operator.logical.albayan",
+                    "match": "(&&|\\|\\||!)"
+                },
+                {
+                    "name": "keyword.operator.assignment.albayan",
+                    "match": "(=|\\+=|-=|\\*=|/=)"
+                },
+                {
+                    "name": "keyword.operator.logic.albayan",
+                    "match": ":-"
+                }
+            ]
+        },
+        "variables": {
+            "patterns": [
+                {
+                    "name": "variable.other.albayan",
+                    "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,358 @@
+// الدوال المتقدمة والبرمجة الوظيفية - مثال شامل
+// Advanced Functions and Functional Programming - Comprehensive example
+
+// دوال رياضية أساسية
+fn add(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn multiply(a: int, b: int) -> int {
+    return a * b;
+}
+
+fn power(base: int, exponent: int) -> int {
+    if exponent == 0 {
+        return 1;
+    }
+    
+    let result = 1;
+    for i in 0..exponent {
+        result = result * base;
+    }
+    return result;
+}
+
+fn factorial(n: int) -> int {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+// دوال للعمل مع القوائم
+fn sum_list(numbers: list<int>) -> int {
+    let total = 0;
+    for num in numbers {
+        total = total + num;
+    }
+    return total;
+}
+
+fn find_max(numbers: list<int>) -> int {
+    if numbers.len() == 0 {
+        return 0;
+    }
+    
+    let max_val = numbers[0];
+    for num in numbers {
+        if num > max_val {
+            max_val = num;
+        }
+    }
+    return max_val;
+}
+
+fn find_min(numbers: list<int>) -> int {
+    if numbers.len() == 0 {
+        return 0;
+    }
+    
+    let min_val = numbers[0];
+    for num in numbers {
+        if num < min_val {
+            min_val = num;
+        }
+    }
+    return min_val;
+}
+
+fn average(numbers: list<int>) -> float {
+    if numbers.len() == 0 {
+        return 0.0;
+    }
+    
+    let total = sum_list(numbers);
+    return total / numbers.len();
+}
+
+// دوال للبحث والفلترة
+fn contains(numbers: list<int>, target: int) -> bool {
+    for num in numbers {
+        if num == target {
+            return true;
+        }
+    }
+    return false;
+}
+
+fn count_occurrences(numbers: list<int>, target: int) -> int {
+    let count = 0;
+    for num in numbers {
+        if num == target {
+            count = count + 1;
+        }
+    }
+    return count;
+}
+
+fn filter_even(numbers: list<int>) -> list<int> {
+    let result = [];
+    for num in numbers {
+        if num % 2 == 0 {
+            result.push(num);
+        }
+    }
+    return result;
+}
+
+fn filter_odd(numbers: list<int>) -> list<int> {
+    let result = [];
+    for num in numbers {
+        if num % 2 != 0 {
+            result.push(num);
+        }
+    }
+    return result;
+}
+
+fn filter_greater_than(numbers: list<int>, threshold: int) -> list<int> {
+    let result = [];
+    for num in numbers {
+        if num > threshold {
+            result.push(num);
+        }
+    }
+    return result;
+}
+
+// دوال للتحويل والمعالجة
+fn double_all(numbers: list<int>) -> list<int> {
+    let result = [];
+    for num in numbers {
+        result.push(num * 2);
+    }
+    return result;
+}
+
+fn square_all(numbers: list<int>) -> list<int> {
+    let result = [];
+    for num in numbers {
+        result.push(num * num);
+    }
+    return result;
+}
+
+fn add_to_all(numbers: list<int>, value: int) -> list<int> {
+    let result = [];
+    for num in numbers {
+        result.push(num + value);
+    }
+    return result;
+}
+
+// دوال للنصوص
+fn reverse_string(text: string) -> string {
+    // محاكاة عكس النص
+    return text; // في التطبيق الحقيقي، نعكس النص
+}
+
+fn count_words(text: string) -> int {
+    // محاكاة عد الكلمات
+    return 5; // في التطبيق الحقيقي، نعد الكلمات الفعلية
+}
+
+fn to_uppercase(text: string) -> string {
+    // محاكاة تحويل لأحرف كبيرة
+    return text; // في التطبيق الحقيقي، نحول النص
+}
+
+fn contains_substring(text: string, substring: string) -> bool {
+    // محاكاة البحث عن نص فرعي
+    return true; // في التطبيق الحقيقي، نبحث فعلياً
+}
+
+// دوال للإحصائيات المتقدمة
+fn calculate_variance(numbers: list<int>) -> float {
+    if numbers.len() <= 1 {
+        return 0.0;
+    }
+    
+    let mean = average(numbers);
+    let sum_squared_diff = 0.0;
+    
+    for num in numbers {
+        let diff = num - mean;
+        sum_squared_diff = sum_squared_diff + (diff * diff);
+    }
+    
+    return sum_squared_diff / (numbers.len() - 1);
+}
+
+fn calculate_standard_deviation(numbers: list<int>) -> float {
+    let variance = calculate_variance(numbers);
+    // محاكاة حساب الجذر التربيعي
+    return variance; // في التطبيق الحقيقي، نحسب الجذر التربيعي
+}
+
+// دوال للترتيب (محاكاة بسيطة)
+fn sort_ascending(numbers: list<int>) -> list<int> {
+    let mut sorted = numbers;
+    // محاكاة الترتيب التصاعدي
+    // في التطبيق الحقيقي، نستخدم خوارزمية ترتيب
+    return sorted;
+}
+
+fn sort_descending(numbers: list<int>) -> list<int> {
+    let mut sorted = numbers;
+    // محاكاة الترتيب التنازلي
+    return sorted;
+}
+
+// دوال للتجميع والتحليل
+fn group_by_parity(numbers: list<int>) -> tuple<list<int>, list<int>> {
+    let evens = filter_even(numbers);
+    let odds = filter_odd(numbers);
+    return (evens, odds);
+}
+
+fn analyze_numbers(numbers: list<int>) -> dict<string, float> {
+    let mut analysis = {};
+    
+    analysis["count"] = numbers.len();
+    analysis["sum"] = sum_list(numbers);
+    analysis["average"] = average(numbers);
+    analysis["max"] = find_max(numbers);
+    analysis["min"] = find_min(numbers);
+    analysis["variance"] = calculate_variance(numbers);
+    analysis["std_dev"] = calculate_standard_deviation(numbers);
+    
+    return analysis;
+}
+
+// دوال للمعالجة المتقدمة
+fn apply_operation(numbers: list<int>, operation: string) -> list<int> {
+    if operation == "double" {
+        return double_all(numbers);
+    } else if operation == "square" {
+        return square_all(numbers);
+    } else if operation == "increment" {
+        return add_to_all(numbers, 1);
+    } else {
+        return numbers;
+    }
+}
+
+fn chain_operations(numbers: list<int>, operations: list<string>) -> list<int> {
+    let mut result = numbers;
+    for operation in operations {
+        result = apply_operation(result, operation);
+    }
+    return result;
+}
+
+// دوال للتحقق والتصديق
+fn is_sorted_ascending(numbers: list<int>) -> bool {
+    for i in 1..numbers.len() {
+        if numbers[i] < numbers[i - 1] {
+            return false;
+        }
+    }
+    return true;
+}
+
+fn is_all_positive(numbers: list<int>) -> bool {
+    for num in numbers {
+        if num <= 0 {
+            return false;
+        }
+    }
+    return true;
+}
+
+fn is_all_even(numbers: list<int>) -> bool {
+    for num in numbers {
+        if num % 2 != 0 {
+            return false;
+        }
+    }
+    return true;
+}
+
+// دالة لإنشاء بيانات تجريبية
+fn generate_sample_data() -> list<int> {
+    return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30];
+}
+
+fn generate_random_data(size: int) -> list<int> {
+    let mut data = [];
+    for i in 0..size {
+        // محاكاة إنتاج أرقام عشوائية
+        let random_num = (i * 7 + 3) % 100; // صيغة بسيطة لمحاكاة العشوائية
+        data.push(random_num);
+    }
+    return data;
+}
+
+// دالة لعرض النتائج
+fn display_analysis(numbers: list<int>) {
+    print("=== تحليل البيانات ===");
+    print("البيانات الأصلية: " + numbers);
+    
+    let analysis = analyze_numbers(numbers);
+    print("العدد: " + analysis["count"]);
+    print("المجموع: " + analysis["sum"]);
+    print("المتوسط: " + analysis["average"]);
+    print("الحد الأقصى: " + analysis["max"]);
+    print("الحد الأدنى: " + analysis["min"]);
+    
+    let (evens, odds) = group_by_parity(numbers);
+    print("الأرقام الزوجية: " + evens);
+    print("الأرقام الفردية: " + odds);
+    
+    let doubled = double_all(numbers);
+    print("مضاعفة الأرقام: " + doubled);
+    
+    let squared = square_all(numbers);
+    print("تربيع الأرقام: " + squared);
+    
+    let greater_than_10 = filter_greater_than(numbers, 10);
+    print("الأرقام أكبر من 10: " + greater_than_10);
+}
+
+fn main() -> int {
+    print("=== الدوال المتقدمة والبرمجة الوظيفية ===");
+    
+    // إنشاء بيانات تجريبية
+    let sample_data = generate_sample_data();
+    let random_data = generate_random_data(8);
+    
+    // تحليل البيانات التجريبية
+    display_analysis(sample_data);
+    
+    print("\n=== البيانات العشوائية ===");
+    display_analysis(random_data);
+    
+    // اختبار العمليات المتسلسلة
+    print("\n=== العمليات المتسلسلة ===");
+    let operations = ["double", "increment", "square"];
+    let original = [1, 2, 3, 4, 5];
+    let processed = chain_operations(original, operations);
+    print("البيانات الأصلية: " + original);
+    print("بعد العمليات المتسلسلة: " + processed);
+    
+    // اختبار دوال التحقق
+    print("\n=== اختبارات التحقق ===");
+    let test_data = [2, 4, 6, 8, 10];
+    print("البيانات: " + test_data);
+    print("مرتبة تصاعدياً؟ " + is_sorted_ascending(test_data));
+    print("جميعها موجبة؟ " + is_all_positive(test_data));
+    print("جميعها زوجية؟ " + is_all_even(test_data));
+    
+    // اختبار الدوال الرياضية
+    print("\n=== الدوال الرياضية ===");
+    print("5! = " + factorial(5));
+    print("2^8 = " + power(2, 8));
+    print("جمع [1,2,3,4,5] = " + sum_list([1, 2, 3, 4, 5]));
+    
+    return 0;
+}

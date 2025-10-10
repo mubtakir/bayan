@@ -1,0 +1,401 @@
+// محرك لعبة بسيط - مثال على البرمجة الكائنية والأنماط التصميمية
+// Simple Game Engine - OOP and Design Patterns example
+
+use std::collections::Vec;
+use std::math::{sqrt, abs};
+
+// نقطة في الفضاء ثنائي الأبعاد
+struct Point2D {
+    x: float,
+    y: float,
+}
+
+impl Point2D {
+    fn new(x: float, y: float) -> Point2D {
+        return Point2D { x: x, y: y };
+    }
+    
+    fn distance_to(&self, other: &Point2D) -> float {
+        let dx = self.x - other.x;
+        let dy = self.y - other.y;
+        return sqrt(dx * dx + dy * dy);
+    }
+}
+
+// واجهة للكائنات القابلة للرسم
+interface Drawable {
+    fn draw(&self);
+    fn get_position(&self) -> Point2D;
+}
+
+// واجهة للكائنات القابلة للتحديث
+interface Updatable {
+    fn update(&mut self, delta_time: float);
+}
+
+// واجهة للكائنات القابلة للتصادم
+interface Collidable {
+    fn get_bounds(&self) -> (Point2D, Point2D); // (top_left, bottom_right)
+    fn on_collision(&mut self, other: &dyn Collidable);
+}
+
+// فئة أساسية للكائنات في اللعبة
+abstract class GameObject {
+    position: Point2D,
+    velocity: Point2D,
+    size: Point2D,
+    active: bool,
+}
+
+impl GameObject {
+    fn new(x: float, y: float, width: float, height: float) -> Self {
+        return Self {
+            position: Point2D::new(x, y),
+            velocity: Point2D::new(0.0, 0.0),
+            size: Point2D::new(width, height),
+            active: true,
+        };
+    }
+    
+    fn move_by(&mut self, dx: float, dy: float) {
+        self.position.x += dx;
+        self.position.y += dy;
+    }
+    
+    fn set_velocity(&mut self, vx: float, vy: float) {
+        self.velocity.x = vx;
+        self.velocity.y = vy;
+    }
+    
+    abstract fn get_type(&self) -> string;
+}
+
+impl Drawable for GameObject {
+    fn draw(&self) {
+        println("رسم " + self.get_type() + " في الموقع (" + self.position.x + ", " + self.position.y + ")");
+    }
+    
+    fn get_position(&self) -> Point2D {
+        return Point2D::new(self.position.x, self.position.y);
+    }
+}
+
+impl Updatable for GameObject {
+    fn update(&mut self, delta_time: float) {
+        if self.active {
+            self.position.x += self.velocity.x * delta_time;
+            self.position.y += self.velocity.y * delta_time;
+        }
+    }
+}
+
+impl Collidable for GameObject {
+    fn get_bounds(&self) -> (Point2D, Point2D) {
+        let top_left = Point2D::new(self.position.x, self.position.y);
+        let bottom_right = Point2D::new(
+            self.position.x + self.size.x,
+            self.position.y + self.size.y
+        );
+        return (top_left, bottom_right);
+    }
+    
+    fn on_collision(&mut self, other: &dyn Collidable) {
+        println(self.get_type() + " تصادم مع كائن آخر!");
+    }
+}
+
+// فئة اللاعب
+class Player extends GameObject {
+    health: int,
+    score: int,
+    speed: float,
+}
+
+impl Player {
+    fn new(x: float, y: float) -> Player {
+        return Player {
+            position: Point2D::new(x, y),
+            velocity: Point2D::new(0.0, 0.0),
+            size: Point2D::new(32.0, 32.0),
+            active: true,
+            health: 100,
+            score: 0,
+            speed: 200.0,
+        };
+    }
+    
+    override fn get_type(&self) -> string {
+        return "لاعب";
+    }
+    
+    fn move_up(&mut self) {
+        self.set_velocity(0.0, -self.speed);
+    }
+    
+    fn move_down(&mut self) {
+        self.set_velocity(0.0, self.speed);
+    }
+    
+    fn move_left(&mut self) {
+        self.set_velocity(-self.speed, 0.0);
+    }
+    
+    fn move_right(&mut self) {
+        self.set_velocity(self.speed, 0.0);
+    }
+    
+    fn stop(&mut self) {
+        self.set_velocity(0.0, 0.0);
+    }
+    
+    fn take_damage(&mut self, damage: int) {
+        self.health -= damage;
+        if self.health <= 0 {
+            self.active = false;
+            println("اللاعب مات!");
+        }
+    }
+    
+    fn add_score(&mut self, points: int) {
+        self.score += points;
+        println("النقاط: " + self.score);
+    }
+}
+
+// فئة العدو
+class Enemy extends GameObject {
+    damage: int,
+    patrol_range: float,
+    start_position: Point2D,
+    direction: int, // 1 أو -1
+}
+
+impl Enemy {
+    fn new(x: float, y: float, damage: int) -> Enemy {
+        return Enemy {
+            position: Point2D::new(x, y),
+            velocity: Point2D::new(50.0, 0.0),
+            size: Point2D::new(24.0, 24.0),
+            active: true,
+            damage: damage,
+            patrol_range: 100.0,
+            start_position: Point2D::new(x, y),
+            direction: 1,
+        };
+    }
+    
+    override fn get_type(&self) -> string {
+        return "عدو";
+    }
+    
+    override fn update(&mut self, delta_time: float) {
+        if !self.active {
+            return;
+        }
+        
+        // حركة الدورية
+        let distance_from_start = abs(self.position.x - self.start_position.x);
+        if distance_from_start >= self.patrol_range {
+            self.direction *= -1;
+        }
+        
+        self.velocity.x = 50.0 * self.direction;
+        
+        // تحديث الموقع
+        self.position.x += self.velocity.x * delta_time;
+        self.position.y += self.velocity.y * delta_time;
+    }
+    
+    override fn on_collision(&mut self, other: &dyn Collidable) {
+        println("العدو هاجم!");
+    }
+}
+
+// فئة العنصر القابل للجمع
+class Collectible extends GameObject {
+    points: int,
+    collected: bool,
+}
+
+impl Collectible {
+    fn new(x: float, y: float, points: int) -> Collectible {
+        return Collectible {
+            position: Point2D::new(x, y),
+            velocity: Point2D::new(0.0, 0.0),
+            size: Point2D::new(16.0, 16.0),
+            active: true,
+            points: points,
+            collected: false,
+        };
+    }
+    
+    override fn get_type(&self) -> string {
+        return "عنصر قابل للجمع";
+    }
+    
+    fn collect(&mut self) -> int {
+        if !self.collected {
+            self.collected = true;
+            self.active = false;
+            println("تم جمع عنصر بقيمة " + self.points + " نقطة!");
+            return self.points;
+        }
+        return 0;
+    }
+    
+    override fn on_collision(&mut self, other: &dyn Collidable) {
+        self.collect();
+    }
+}
+
+// مدير التصادمات
+class CollisionManager {
+    objects: Vec<Box<dyn Collidable>>,
+}
+
+impl CollisionManager {
+    fn new() -> CollisionManager {
+        return CollisionManager {
+            objects: Vec::new(),
+        };
+    }
+    
+    fn add_object(&mut self, obj: Box<dyn Collidable>) {
+        self.objects.push(obj);
+    }
+    
+    fn check_collisions(&mut self) {
+        for i in 0..self.objects.len() {
+            for j in (i + 1)..self.objects.len() {
+                if self.are_colliding(&self.objects[i], &self.objects[j]) {
+                    self.objects[i].on_collision(&*self.objects[j]);
+                    self.objects[j].on_collision(&*self.objects[i]);
+                }
+            }
+        }
+    }
+    
+    fn are_colliding(&self, obj1: &Box<dyn Collidable>, obj2: &Box<dyn Collidable>) -> bool {
+        let (tl1, br1) = obj1.get_bounds();
+        let (tl2, br2) = obj2.get_bounds();
+        
+        return !(br1.x < tl2.x || br2.x < tl1.x || br1.y < tl2.y || br2.y < tl1.y);
+    }
+}
+
+// محرك اللعبة الرئيسي
+class GameEngine {
+    player: Player,
+    enemies: Vec<Enemy>,
+    collectibles: Vec<Collectible>,
+    collision_manager: CollisionManager,
+    running: bool,
+    game_time: float,
+}
+
+impl GameEngine {
+    fn new() -> GameEngine {
+        return GameEngine {
+            player: Player::new(100.0, 100.0),
+            enemies: Vec::new(),
+            collectibles: Vec::new(),
+            collision_manager: CollisionManager::new(),
+            running: true,
+            game_time: 0.0,
+        };
+    }
+    
+    fn initialize(&mut self) {
+        println("تهيئة اللعبة...");
+        
+        // إضافة أعداء
+        self.enemies.push(Enemy::new(200.0, 150.0, 10));
+        self.enemies.push(Enemy::new(300.0, 200.0, 15));
+        
+        // إضافة عناصر قابلة للجمع
+        self.collectibles.push(Collectible::new(250.0, 100.0, 50));
+        self.collectibles.push(Collectible::new(350.0, 180.0, 100));
+        
+        println("تم تهيئة اللعبة بنجاح!");
+    }
+    
+    fn update(&mut self, delta_time: float) {
+        if !self.running {
+            return;
+        }
+        
+        self.game_time += delta_time;
+        
+        // تحديث اللاعب
+        self.player.update(delta_time);
+        
+        // تحديث الأعداء
+        for enemy in &mut self.enemies {
+            enemy.update(delta_time);
+        }
+        
+        // فحص التصادمات
+        self.collision_manager.check_collisions();
+        
+        // فحص حالة اللعبة
+        if !self.player.active {
+            self.running = false;
+            println("انتهت اللعبة! النقاط النهائية: " + self.player.score);
+        }
+    }
+    
+    fn render(&self) {
+        println("=== إطار اللعبة ===");
+        
+        // رسم اللاعب
+        self.player.draw();
+        
+        // رسم الأعداء
+        for enemy in &self.enemies {
+            if enemy.active {
+                enemy.draw();
+            }
+        }
+        
+        // رسم العناصر القابلة للجمع
+        for collectible in &self.collectibles {
+            if collectible.active {
+                collectible.draw();
+            }
+        }
+        
+        // عرض معلومات اللعبة
+        println("الصحة: " + self.player.health + " | النقاط: " + self.player.score);
+    }
+    
+    fn run(&mut self) {
+        self.initialize();
+        
+        let delta_time = 0.016; // 60 FPS
+        let mut frame_count = 0;
+        
+        while self.running && frame_count < 10 { // محاكاة 10 إطارات
+            self.update(delta_time);
+            self.render();
+            frame_count += 1;
+            
+            // محاكاة حركة اللاعب
+            if frame_count == 3 {
+                self.player.move_right();
+            } else if frame_count == 6 {
+                self.player.stop();
+            }
+        }
+        
+        println("انتهت اللعبة!");
+    }
+}
+
+fn main() -> int {
+    println("=== محرك اللعبة البسيط ===");
+    
+    let mut game = GameEngine::new();
+    game.run();
+    
+    return 0;
+}

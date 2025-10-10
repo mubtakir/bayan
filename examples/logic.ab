@@ -1,0 +1,32 @@
+// مثال على البرمجة المنطقية في لغة البيان
+// Logic programming example in AlBayan
+
+// تعريف العلاقات
+relation Parent(string, string);
+relation Grandparent(string, string);
+
+// تعريف القواعد
+rule Grandparent(GP, GC) :- Parent(GP, P), Parent(P, GC);
+
+fn main() -> int {
+    // إضافة حقائق إلى قاعدة المعرفة
+    assert Parent("أحمد", "فاطمة");
+    assert Parent("فاطمة", "علي");
+    assert Parent("أحمد", "محمد");
+    assert Parent("محمد", "سارة");
+    
+    // استعلام عن الأجداد
+    query_solve { Grandparent("أحمد", GrandChild) } => {
+        print("أحمد جد لـ: ");
+        print(GrandChild);
+    }
+    
+    // استعلام عن جميع العلاقات الأبوية
+    query_solve { Parent(P, C) } => {
+        print(P);
+        print(" والد/والدة لـ ");
+        print(C);
+    }
+    
+    return 0;
+}

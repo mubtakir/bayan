@@ -1,0 +1,34 @@
+// مثال على دعم الذكاء الاصطناعي في لغة البيان
+// AI support example in AlBayan
+
+use ai;
+
+fn main() -> int {
+    // تحميل نموذج ذكاء اصطناعي
+    let model = ai::load_model("classifier", "models/image_classifier.onnx");
+    
+    // إنشاء tensor للبيانات
+    let input_data = [1.0, 2.0, 3.0, 4.0];
+    let input_tensor = ai::create_tensor([2, 2], input_data);
+    
+    // تشغيل الاستنتاج
+    let result = ai::predict(model, input_tensor);
+    
+    print("نتيجة التصنيف: ");
+    print(result);
+    
+    // عمليات على المصفوفات
+    let matrix_a = ai::create_tensor([2, 2], [1.0, 2.0, 3.0, 4.0]);
+    let matrix_b = ai::create_tensor([2, 2], [5.0, 6.0, 7.0, 8.0]);
+    
+    let sum = ai::tensor_add(matrix_a, matrix_b);
+    let product = ai::matrix_multiply(matrix_a, matrix_b);
+    
+    print("مجموع المصفوفات: ");
+    print(sum);
+    
+    print("ضرب المصفوفات: ");
+    print(product);
+    
+    return 0;
+}

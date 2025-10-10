@@ -1,0 +1,329 @@
+// البرمجة الكائنية التوجه باستخدام الهياكل والدوال
+// Object-Oriented Programming using Structs and Functions
+
+// هيكل الطالب - يمثل كائن الطالب
+struct Student {
+    id: int,
+    name: string,
+    age: int,
+    grade: int,
+    major: string,
+}
+
+// هيكل المقرر - يمثل كائن المقرر
+struct Course {
+    code: string,
+    name: string,
+    credits: int,
+    instructor: string,
+}
+
+// هيكل الحساب البنكي - يمثل كائن الحساب
+struct BankAccount {
+    account_number: int,
+    owner_name: string,
+    balance: int,
+    account_type: string,
+}
+
+// هيكل السيارة - يمثل كائن السيارة
+struct Car {
+    brand: string,
+    model: string,
+    year: int,
+    color: string,
+    price: int,
+}
+
+// هيكل الكتاب - يمثل كائن الكتاب
+struct Book {
+    isbn: string,
+    title: string,
+    author: string,
+    pages: int,
+    price: int,
+}
+
+// دوال "الطرق" للطالب - تحاكي methods في OOP
+fn create_student(id: int, name: string, age: int, grade: int, major: string) -> Student {
+    return Student {
+        id: id,
+        name: name,
+        age: age,
+        grade: grade,
+        major: major,
+    };
+}
+
+fn student_is_passing(student: Student) -> bool {
+    return student.grade >= 60;
+}
+
+fn student_get_grade_level(student: Student) -> string {
+    if student.grade >= 90 {
+        return "ممتاز";
+    }
+    if student.grade >= 80 {
+        return "جيد جداً";
+    }
+    if student.grade >= 70 {
+        return "جيد";
+    }
+    if student.grade >= 60 {
+        return "مقبول";
+    }
+    return "راسب";
+}
+
+fn student_is_adult(student: Student) -> bool {
+    return student.age >= 18;
+}
+
+fn student_calculate_scholarship(student: Student) -> int {
+    if student.grade >= 95 {
+        return 5000; // منحة ممتازة
+    }
+    if student.grade >= 85 {
+        return 3000; // منحة جيدة
+    }
+    if student.grade >= 75 {
+        return 1000; // منحة أساسية
+    }
+    return 0; // لا توجد منحة
+}
+
+// دوال "الطرق" للمقرر
+fn create_course(code: string, name: string, credits: int, instructor: string) -> Course {
+    return Course {
+        code: code,
+        name: name,
+        credits: credits,
+        instructor: instructor,
+    };
+}
+
+fn course_is_major_course(course: Course) -> bool {
+    return course.credits >= 3;
+}
+
+fn course_calculate_study_hours(course: Course) -> int {
+    return course.credits * 15; // 15 ساعة دراسة لكل ساعة معتمدة
+}
+
+// دوال "الطرق" للحساب البنكي
+fn create_bank_account(account_number: int, owner_name: string, initial_balance: int, account_type: string) -> BankAccount {
+    return BankAccount {
+        account_number: account_number,
+        owner_name: owner_name,
+        balance: initial_balance,
+        account_type: account_type,
+    };
+}
+
+fn account_deposit(account: BankAccount, amount: int) -> BankAccount {
+    let new_balance = account.balance + amount;
+    return BankAccount {
+        account_number: account.account_number,
+        owner_name: account.owner_name,
+        balance: new_balance,
+        account_type: account.account_type,
+    };
+}
+
+fn account_withdraw(account: BankAccount, amount: int) -> BankAccount {
+    let new_balance = account.balance - amount;
+    if new_balance >= 0 {
+        return BankAccount {
+            account_number: account.account_number,
+            owner_name: account.owner_name,
+            balance: new_balance,
+            account_type: account.account_type,
+        };
+    }
+    return account; // لا يمكن السحب - الرصيد غير كافي
+}
+
+fn account_can_withdraw(account: BankAccount, amount: int) -> bool {
+    return account.balance >= amount;
+}
+
+fn account_calculate_interest(account: BankAccount, rate: int) -> int {
+    return (account.balance * rate) / 100;
+}
+
+// دوال "الطرق" للسيارة
+fn create_car(brand: string, model: string, year: int, color: string, price: int) -> Car {
+    return Car {
+        brand: brand,
+        model: model,
+        year: year,
+        color: color,
+        price: price,
+    };
+}
+
+fn car_is_new(car: Car) -> bool {
+    return car.year >= 2020;
+}
+
+fn car_calculate_depreciation(car: Car, current_year: int) -> int {
+    let age = current_year - car.year;
+    let depreciation_rate = age * 10; // 10% سنوياً
+    if depreciation_rate > 80 {
+        depreciation_rate = 80; // حد أقصى 80%
+    }
+    return (car.price * depreciation_rate) / 100;
+}
+
+fn car_current_value(car: Car, current_year: int) -> int {
+    let depreciation = car_calculate_depreciation(car, current_year);
+    return car.price - depreciation;
+}
+
+fn car_is_luxury(car: Car) -> bool {
+    return car.price > 100000;
+}
+
+// دوال "الطرق" للكتاب
+fn create_book(isbn: string, title: string, author: string, pages: int, price: int) -> Book {
+    return Book {
+        isbn: isbn,
+        title: title,
+        author: author,
+        pages: pages,
+        price: price,
+    };
+}
+
+fn book_is_thick(book: Book) -> bool {
+    return book.pages > 300;
+}
+
+fn book_calculate_reading_time(book: Book) -> int {
+    // تقدير ساعة لكل 50 صفحة
+    return book.pages / 50;
+}
+
+fn book_is_expensive(book: Book) -> bool {
+    return book.price > 50;
+}
+
+fn book_calculate_discount(book: Book, discount_percent: int) -> int {
+    return (book.price * discount_percent) / 100;
+}
+
+fn book_discounted_price(book: Book, discount_percent: int) -> int {
+    let discount = book_calculate_discount(book, discount_percent);
+    return book.price - discount;
+}
+
+// دوال للمقارنة بين الكائنات - تحاكي polymorphism
+fn compare_students_by_grade(student1: Student, student2: Student) -> Student {
+    if student1.grade > student2.grade {
+        return student1;
+    }
+    return student2;
+}
+
+fn compare_cars_by_price(car1: Car, car2: Car) -> Car {
+    if car1.price > car2.price {
+        return car1;
+    }
+    return car2;
+}
+
+fn compare_books_by_pages(book1: Book, book2: Book) -> Book {
+    if book1.pages > book2.pages {
+        return book1;
+    }
+    return book2;
+}
+
+// دوال للحسابات المجمعة - تحاكي composition
+fn calculate_total_course_credits(course1: Course, course2: Course, course3: Course) -> int {
+    return course1.credits + course2.credits + course3.credits;
+}
+
+fn calculate_total_books_price(book1: Book, book2: Book, book3: Book) -> int {
+    return book1.price + book2.price + book3.price;
+}
+
+fn calculate_average_student_grade(student1: Student, student2: Student, student3: Student) -> int {
+    let total = student1.grade + student2.grade + student3.grade;
+    return total / 3;
+}
+
+fn main() -> int {
+    // إنشاء كائنات الطلاب
+    let student1 = create_student(1001, "أحمد محمد", 20, 85, "هندسة");
+    let student2 = create_student(1002, "فاطمة علي", 19, 92, "طب");
+    let student3 = create_student(1003, "محمد حسن", 21, 78, "حاسوب");
+    
+    // إنشاء كائنات المقررات
+    let course1 = create_course("CS101", "مقدمة في البرمجة", 3, "د. أحمد");
+    let course2 = create_course("MATH201", "التفاضل والتكامل", 4, "د. فاطمة");
+    let course3 = create_course("ENG101", "اللغة الإنجليزية", 2, "د. محمد");
+    
+    // إنشاء كائنات الحسابات البنكية
+    let account1 = create_bank_account(12345, "أحمد محمد", 5000, "جاري");
+    let account2 = create_bank_account(67890, "فاطمة علي", 10000, "توفير");
+    
+    // إنشاء كائنات السيارات
+    let car1 = create_car("تويوتا", "كامري", 2022, "أبيض", 80000);
+    let car2 = create_car("بي إم دبليو", "X5", 2021, "أسود", 150000);
+    let car3 = create_car("هوندا", "أكورد", 2018, "فضي", 60000);
+    
+    // إنشاء كائنات الكتب
+    let book1 = create_book("978-123", "تعلم البرمجة", "د. محمد أحمد", 400, 75);
+    let book2 = create_book("978-456", "الرياضيات المتقدمة", "د. سارة علي", 250, 45);
+    let book3 = create_book("978-789", "تاريخ العلوم", "د. عمر حسن", 600, 90);
+    
+    // اختبار دوال الطلاب
+    let is_student1_passing = student_is_passing(student1);
+    let student1_grade_level = student_get_grade_level(student1);
+    let is_student1_adult = student_is_adult(student1);
+    let student1_scholarship = student_calculate_scholarship(student1);
+    
+    // اختبار دوال المقررات
+    let is_course1_major = course_is_major_course(course1);
+    let course1_study_hours = course_calculate_study_hours(course1);
+    let total_credits = calculate_total_course_credits(course1, course2, course3);
+    
+    // اختبار دوال الحسابات البنكية
+    let can_withdraw = account_can_withdraw(account1, 2000);
+    let account1_after_deposit = account_deposit(account1, 1000);
+    let account1_after_withdrawal = account_withdraw(account1_after_deposit, 500);
+    let account1_interest = account_calculate_interest(account1, 5);
+    
+    // اختبار دوال السيارات
+    let is_car1_new = car_is_new(car1);
+    let car1_depreciation = car_calculate_depreciation(car1, 2024);
+    let car1_current_value = car_current_value(car1, 2024);
+    let is_car2_luxury = car_is_luxury(car2);
+    
+    // اختبار دوال الكتب
+    let is_book1_thick = book_is_thick(book1);
+    let book1_reading_time = book_calculate_reading_time(book1);
+    let is_book3_expensive = book_is_expensive(book3);
+    let book1_discount = book_calculate_discount(book1, 20);
+    let book1_discounted_price = book_discounted_price(book1, 20);
+    
+    // اختبار المقارنات
+    let best_student = compare_students_by_grade(student1, student2);
+    let most_expensive_car = compare_cars_by_price(car1, car2);
+    let thickest_book = compare_books_by_pages(book1, book3);
+    
+    // اختبار الحسابات المجمعة
+    let total_books_price = calculate_total_books_price(book1, book2, book3);
+    let average_grade = calculate_average_student_grade(student1, student2, student3);
+    
+    // حسابات إضافية
+    let total_car_values = car1.price + car2.price + car3.price;
+    let total_account_balances = account1.balance + account2.balance;
+    let total_book_pages = book1.pages + book2.pages + book3.pages;
+    
+    // النتيجة النهائية
+    let final_result = student1.grade + course1.credits + account1.balance / 1000 + car1.price / 10000 + book1.price;
+    
+    return final_result;
+}
