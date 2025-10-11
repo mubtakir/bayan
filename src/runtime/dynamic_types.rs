@@ -420,3 +420,18 @@ pub extern "C" fn albayan_rt_value_as_bool(value: *const AlbayanValue) -> bool {
 
     unsafe { (*value).as_bool() }
 }
+
+/// Runtime panic function for type safety violations (Expert recommendation: Unboxing Safety)
+#[no_mangle]
+pub extern "C" fn albayan_rt_panic(message_ptr: *const u8, message_len: usize) -> ! {
+    if message_ptr.is_null() {
+        panic!("AlBayan Runtime Panic: Unknown error");
+    }
+
+    let message_slice = unsafe {
+        std::slice::from_raw_parts(message_ptr, message_len)
+    };
+
+    let message = String::from_utf8_lossy(message_slice);
+    panic!("AlBayan Runtime Panic: {}", message);
+}

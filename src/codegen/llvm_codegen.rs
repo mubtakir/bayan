@@ -1059,8 +1059,8 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         Ok(loaded_value)
     }
 
-    /// Extract an LLVM value from an AlbayanValue
-    /// This function takes an AlbayanValue and extracts the underlying LLVM value
+    /// Extract an LLVM value from an AlbayanValue (Expert recommendation: Unboxing Safety)
+    /// This function takes an AlbayanValue and extracts the underlying LLVM value with runtime type checking
     fn build_llvm_value_from_albayan(&self, albayan_value: BasicValueEnum<'ctx>, expected_type: &ResolvedType) -> Result<BasicValueEnum<'ctx>> {
         let albayan_value_type = self.get_albayan_value_llvm_type();
         let struct_type = albayan_value_type.into_struct_type();
@@ -1069,9 +1069,57 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         let alloca = self.builder.build_alloca(struct_type, "temp_albayan_value")?;
         self.builder.build_store(alloca, albayan_value)?;
 
-        // Extract the tag for runtime type checking (optional - could be used for safety)
+        // Extract the tag for runtime type checking (Expert recommendation: Unboxing Safety)
         let tag_ptr = self.builder.build_struct_gep(struct_type, alloca, 0, "tag_ptr")?;
-        let _tag_value = self.builder.build_load(self.context.i32_type(), tag_ptr, "tag")?;
+        let tag_value = self.builder.build_load(self.context.i32_type(), tag_ptr, "tag")?
+            .into_int_value();
+
+        // Determine expected tag based on ResolvedType
+        let expected_tag = match expected_type {
+            ResolvedType::Int => 0,    // AlbayanValueTag::Int
+            ResolvedType::Float => 1,  // AlbayanValueTag::Float
+            ResolvedType::Bool => 2,   // AlbayanValueTag::Bool
+            ResolvedType::String => 3, // AlbayanValueTag::String
+            ResolvedType::List(_) => 4, // AlbayanValueTag::List
+            ResolvedType::Struct(_) => 5, // AlbayanValueTag::Struct
+            ResolvedType::Tuple(_) => 6, // AlbayanValueTag::Tuple
+            _ => return Err(anyhow!("Unsupported type for AlbayanValue extraction: {:?}", expected_type)),
+        };
+
+        let expected_tag_val = self.context.i32_type().const_int(expected_tag, false);
+        let is_correct_tag = self.builder.build_int_compare(
+            inkwell::IntPredicate::EQ,
+            tag_value,
+            expected_tag_val,
+            "tag_check"
+        )?;
+
+        // Create basic blocks for conditional execution (Expert recommendation: Unboxing Safety)
+        let function = self.current_fn.ok_or_else(|| anyhow!("No current function"))?;
+        let then_bb = self.context.append_basic_block(function, "tag_ok");
+        let else_bb = self.context.append_basic_block(function, "tag_error");
+        let cont_bb = self.context.append_basic_block(function, "cont");
+
+        self.builder.build_conditional_branch(is_correct_tag, then_bb, else_bb)?;
+
+        // Error path: call runtime panic function
+        self.builder.position_at_end(else_bb);
+        let panic_fn = self.functions.get("albayan_rt_panic")
+            .ok_or_else(|| anyhow!("Panic function not found"))?;
+
+        // Create error message
+        let error_msg = format!("Type mismatch in AlbayanValue: expected tag {}, got different tag", expected_tag);
+        let error_msg_global = self.builder.build_global_string_ptr(&error_msg, "error_msg")?;
+        let error_msg_len = self.context.i64_type().const_int(error_msg.len() as u64, false);
+
+        self.builder.build_call(*panic_fn, &[
+            error_msg_global.as_pointer_value().into(),
+            error_msg_len.into()
+        ], "")?;
+        self.builder.build_unreachable()?;
+
+        // Success path: extract and convert payload
+        self.builder.position_at_end(then_bb);
 
         // Extract the payload
         let payload_ptr = self.builder.build_struct_gep(struct_type, alloca, 1, "payload_ptr")?;
@@ -1079,49 +1127,55 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             .into_int_value();
 
         // Convert payload back to the expected type
-        match expected_type {
+        let extracted_value = match expected_type {
             ResolvedType::Int => {
                 // Payload is already i64
-                Ok(payload_value.into())
+                payload_value.into()
             },
             ResolvedType::Float => {
                 // Convert i64 bits back to float
-                let float_val = self.builder.build_bitcast(payload_value, self.context.f64_type(), "bits_to_float")?;
-                Ok(float_val)
+                self.builder.build_bitcast(payload_value, self.context.f64_type(), "bits_to_float")?
             },
             ResolvedType::Bool => {
                 // Convert i64 back to bool (i1)
                 let bool_val = self.builder.build_int_truncate(payload_value, self.context.bool_type(), "i64_to_bool")?;
-                Ok(bool_val.into())
+                bool_val.into()
             },
             ResolvedType::String => {
                 // Convert i64 back to string pointer
                 let string_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
                 let ptr_val = self.builder.build_int_to_ptr(payload_value, string_ptr_type, "int_to_string_ptr")?;
-                Ok(ptr_val.into())
+                ptr_val.into()
             },
             ResolvedType::List(_) => {
                 // Convert i64 back to list pointer
                 let list_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default()); // Generic pointer
                 let ptr_val = self.builder.build_int_to_ptr(payload_value, list_ptr_type, "int_to_list_ptr")?;
-                Ok(ptr_val.into())
+                ptr_val.into()
             },
             ResolvedType::Struct(_) => {
                 // Convert i64 back to struct pointer
                 let struct_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
                 let ptr_val = self.builder.build_int_to_ptr(payload_value, struct_ptr_type, "int_to_struct_ptr")?;
-                Ok(ptr_val.into())
+                ptr_val.into()
             },
             ResolvedType::Tuple(_) => {
                 // Convert i64 back to tuple pointer
                 let tuple_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
                 let ptr_val = self.builder.build_int_to_ptr(payload_value, tuple_ptr_type, "int_to_tuple_ptr")?;
-                Ok(ptr_val.into())
+                ptr_val.into()
             },
             _ => {
-                Err(anyhow!("Unsupported type for AlbayanValue extraction: {:?}", expected_type))
+                return Err(anyhow!("Unsupported type for AlbayanValue extraction: {:?}", expected_type));
             }
-        }
+        };
+
+        // Branch to continuation block
+        self.builder.build_unconditional_branch(cont_bb)?;
+
+        // Position at continuation block and return the extracted value
+        self.builder.position_at_end(cont_bb);
+        Ok(extracted_value)
     }
 
     /// Declare runtime API functions for list operations
@@ -1157,11 +1211,19 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         ], false);
         let list_len_fn = self.module.add_function("albayan_rt_list_len", list_len_fn_type, None);
 
+        // albayan_rt_panic(message_ptr: *const u8, message_len: usize) -> ! (Expert recommendation: Unboxing Safety)
+        let panic_fn_type = self.context.void_type().fn_type(&[
+            i8_ptr_type.into(), // message_ptr
+            usize_type.into(),  // message_len
+        ], false);
+        let panic_fn = self.module.add_function("albayan_rt_panic", panic_fn_type, None);
+
         // Store function references for later use
         self.functions.insert("albayan_rt_list_create".to_string(), list_create_fn);
         self.functions.insert("albayan_rt_list_push".to_string(), list_push_fn);
         self.functions.insert("albayan_rt_list_get".to_string(), list_get_fn);
         self.functions.insert("albayan_rt_list_len".to_string(), list_len_fn);
+        self.functions.insert("albayan_rt_panic".to_string(), panic_fn);
 
         Ok(())
     }

@@ -1,0 +1,17 @@
+// Type safety test for AlBayan language
+// Testing runtime type checking as recommended by expert
+
+fn main() -> int {
+    // Create a list with integers
+    let numbers = [1, 2, 3];
+    
+    // Safe access - should work
+    let first = numbers[0];
+    
+    // This should work fine since we're accessing valid elements
+    let second = numbers[1];
+    let third = numbers[2];
+    
+    // Return sum
+    return first + second + third;
+}
