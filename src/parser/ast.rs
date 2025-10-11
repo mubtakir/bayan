@@ -1,9 +1,41 @@
 //! # Abstract Syntax Tree (AST) Definitions
-//! 
+//!
 //! This module defines the AST node types for the AlBayan programming language.
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+/// Represents a qualified path (e.g., `std::collections::HashMap`)
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Path {
+    pub segments: Vec<String>,
+}
+
+impl Path {
+    /// Create a new path from a single segment
+    pub fn single(segment: String) -> Self {
+        Self {
+            segments: vec![segment],
+        }
+    }
+
+    /// Create a new path from multiple segments
+    pub fn from_segments(segments: Vec<String>) -> Self {
+        Self { segments }
+    }
+
+    /// Parse a path from a string like "std::collections::HashMap"
+    pub fn from_string(path_str: &str) -> Self {
+        Self {
+            segments: path_str.split("::").map(|s| s.to_string()).collect(),
+        }
+    }
+
+    /// Convert path back to string representation
+    pub fn to_string(&self) -> String {
+        self.segments.join("::")
+    }
+}
 
 /// Root node of the AST - represents a complete program
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -147,10 +179,10 @@ pub struct UsingDecl {
 /// Type annotations
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Type {
-    /// Named type (int, string, MyStruct, etc.)
-    Named(String),
+    /// Named type using qualified path (int, string, std::collections::HashMap, etc.)
+    Named(Path),
     /// Generic type with parameters
-    Generic(String, Vec<Type>),
+    Generic(Path, Vec<Type>),
     /// Function type
     Function(Vec<Type>, Box<Type>),
     /// Tuple type
@@ -356,7 +388,7 @@ pub enum BinaryOperator {
     Divide,
     Modulo,
     Power,
-    
+
     // Comparison
     Equal,
     NotEqual,
@@ -364,11 +396,11 @@ pub enum BinaryOperator {
     LessEqual,
     Greater,
     GreaterEqual,
-    
+
     // Logical
     And,
     Or,
-    
+
     // Assignment
     Assign,
     AddAssign,
