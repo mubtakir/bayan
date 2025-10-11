@@ -1,5 +1,5 @@
 //! # Lexical Analysis Module
-//! 
+//!
 //! This module implements the lexer (tokenizer) for the AlBayan programming language.
 //! It converts source code text into a stream of tokens that can be processed by the parser.
 
@@ -28,7 +28,7 @@ pub enum TokenType {
     Const,
     #[token("type")]
     Type,
-    
+
     // Keywords - Control Flow
     #[token("if")]
     If,
@@ -50,7 +50,7 @@ pub enum TokenType {
     Break,
     #[token("continue")]
     Continue,
-    
+
     // Keywords - Logic Programming
     #[token("relation")]
     Relation,
@@ -66,13 +66,13 @@ pub enum TokenType {
     Assert,
     #[token("retract")]
     Retract,
-    
+
     // Keywords - AI
     #[token("model")]
     Model,
     #[token("tensor")]
     Tensor,
-    
+
     // Keywords - Concurrency
     #[token("async")]
     Async,
@@ -80,7 +80,7 @@ pub enum TokenType {
     Await,
     #[token("gpu")]
     Gpu,
-    
+
     // Keywords - Modules
     #[token("module")]
     Module,
@@ -90,7 +90,7 @@ pub enum TokenType {
     Pub,
     #[token("priv")]
     Priv,
-    
+
     // Keywords - Special
     #[token("self")]
     SelfKeyword,
@@ -106,29 +106,29 @@ pub enum TokenType {
     False,
     #[token("null")]
     Null,
-    
+
     // Identifiers and Literals
     #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*", |lex| lex.slice().to_owned())]
     Identifier(String),
-    
+
     #[regex(r"-?[0-9]+", |lex| lex.slice().parse::<i64>().ok())]
     IntegerLiteral(Option<i64>),
-    
+
     #[regex(r"-?[0-9]+\.[0-9]+", |lex| lex.slice().parse::<f64>().ok())]
     FloatLiteral(Option<f64>),
-    
+
     #[regex(r#""([^"\\]|\\.)*""#, |lex| {
         let s = lex.slice();
         s[1..s.len()-1].to_owned() // Remove quotes
     })]
     StringLiteral(String),
-    
+
     #[regex(r"'([^'\\]|\\.)'", |lex| {
         let s = lex.slice();
         s.chars().nth(1) // Get character between quotes
     })]
     CharLiteral(Option<char>),
-    
+
     // Operators - Arithmetic
     #[token("+")]
     Plus,
@@ -142,7 +142,7 @@ pub enum TokenType {
     Modulo,
     #[token("**")]
     Power,
-    
+
     // Operators - Comparison
     #[token("==")]
     Equal,
@@ -156,7 +156,7 @@ pub enum TokenType {
     Greater,
     #[token(">=")]
     GreaterEqual,
-    
+
     // Operators - Logical
     #[token("&&")]
     And,
@@ -164,7 +164,7 @@ pub enum TokenType {
     Or,
     #[token("!")]
     Not,
-    
+
     // Operators - Assignment
     #[token("=")]
     Assign,
@@ -176,11 +176,11 @@ pub enum TokenType {
     MultiplyAssign,
     #[token("/=")]
     DivideAssign,
-    
+
     // Operators - Logic Programming
     #[token(":-")]
     Implies, // For rules: head :- body
-    
+
     // Delimiters
     #[token("(")]
     LeftParen,
@@ -194,7 +194,7 @@ pub enum TokenType {
     LeftBracket,
     #[token("]")]
     RightBracket,
-    
+
     // Punctuation
     #[token(";")]
     Semicolon,
@@ -214,17 +214,19 @@ pub enum TokenType {
     Pipe,
     #[token("&")]
     Ampersand,
-    
+    #[token("_", priority = 3)]
+    Underscore,
+
     // Special tokens
     #[regex(r"//[^\n]*", logos::skip)] // Skip line comments
     #[regex(r"/\*([^*]|\*[^/])*\*/", logos::skip)] // Skip block comments
     #[regex(r"[ \t\f]+", logos::skip)] // Skip whitespace
     #[token("\n")]
     Newline,
-    
+
     // Error token
     Error,
-    
+
     // End of file
     Eof,
 }
@@ -262,16 +264,16 @@ impl<'a> Lexer<'a> {
             column: 1,
         }
     }
-    
+
     /// Tokenize the entire input
     pub fn tokenize(&mut self) -> Result<Vec<Token>, LexerError> {
         let mut tokens = Vec::new();
         let mut lexer = TokenType::lexer(self.input);
-        
+
         while let Some(token_type) = lexer.next() {
             let span = lexer.span();
             let (line, column) = self.position_to_line_col(span.start);
-            
+
             match token_type {
                 Ok(token_type) => {
                     if !matches!(token_type, TokenType::Error) {
@@ -292,7 +294,7 @@ impl<'a> Lexer<'a> {
                 }
             }
         }
-        
+
         // Add EOF token
         tokens.push(Token {
             token_type: TokenType::Eof,
@@ -300,15 +302,15 @@ impl<'a> Lexer<'a> {
             line: self.line,
             column: self.column,
         });
-        
+
         Ok(tokens)
     }
-    
+
     /// Convert byte position to line and column
     fn position_to_line_col(&self, position: usize) -> (usize, usize) {
         let mut line = 1;
         let mut column = 1;
-        
+
         for (i, ch) in self.input.char_indices() {
             if i >= position {
                 break;
@@ -320,7 +322,7 @@ impl<'a> Lexer<'a> {
                 column += 1;
             }
         }
-        
+
         (line, column)
     }
 }
@@ -334,7 +336,7 @@ pub enum LexerError {
         line: usize,
         column: usize,
     },
-    
+
     #[error("Unexpected end of input")]
     UnexpectedEof,
 }
@@ -342,18 +344,18 @@ pub enum LexerError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_basic_tokens() {
         let mut lexer = Lexer::new("fn main() { let x = 42; }");
         let tokens = lexer.tokenize().unwrap();
-        
+
         assert_eq!(tokens[0].token_type, TokenType::Fn);
         assert_eq!(tokens[1].token_type, TokenType::Identifier("main".to_string()));
         assert_eq!(tokens[2].token_type, TokenType::LeftParen);
         assert_eq!(tokens[3].token_type, TokenType::RightParen);
     }
-    
+
     #[test]
     fn test_logic_tokens() {
         let mut lexer = Lexer::new("relation Parent(string, string); rule Grandparent(GP, GC) :- Parent(GP, P), Parent(P, GC);");

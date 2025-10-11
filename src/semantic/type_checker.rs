@@ -409,6 +409,28 @@ impl TypeChecker {
             _ => None,
         }
     }
+
+    /// Find common super type between two types (Expert recommendation: Arm type compatibility)
+    pub fn common_super_type(&self, type1: &ResolvedType, type2: &ResolvedType) -> Option<ResolvedType> {
+        // If types are identical, return that type
+        if type1 == type2 {
+            return Some(type1.clone());
+        }
+
+        // Handle numeric type promotion
+        match (type1, type2) {
+            // Int and Float -> Float
+            (ResolvedType::Int, ResolvedType::Float) | (ResolvedType::Float, ResolvedType::Int) => {
+                Some(ResolvedType::Float)
+            }
+            // For now, other combinations don't have a common super type
+            // In a more advanced type system, we might have:
+            // - Union types
+            // - Trait objects
+            // - Common base classes
+            _ => None,
+        }
+    }
 }
 
 #[cfg(test)]

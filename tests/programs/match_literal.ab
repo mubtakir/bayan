@@ -1,0 +1,9 @@
+// Test match with literal
+fn main() -> int {
+    let result = match 5 {
+        1 => 10,
+        5 => 50,
+        _ => 0
+    };
+    return result;
+}

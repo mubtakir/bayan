@@ -279,6 +279,7 @@ impl Parser {
             TokenType::Let => self.parse_let_statement(),
             TokenType::Return => self.parse_return_statement(),
             TokenType::If => self.parse_if_statement(),
+            TokenType::Match => self.parse_match_statement(),
             _ => {
                 // Check if this is an assignment
                 if self.check_assignment() {
@@ -408,6 +409,142 @@ impl Parser {
             then_block,
             else_block,
         }))
+    }
+
+    /// Parse a match statement (Expert recommendation: Priority 1 - Complete match support)
+    fn parse_match_statement(&mut self) -> Result<Statement, ParseError> {
+        self.consume(&TokenType::Match, "Expected 'match'")?;
+
+        let expression = self.parse_expression()?;
+
+        self.consume(&TokenType::LeftBrace, "Expected '{' after match expression")?;
+
+        let mut arms = Vec::new();
+
+        while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
+            if self.match_token(&TokenType::Newline) {
+                continue;
+            }
+
+            let arm = self.parse_match_arm()?;
+            arms.push(arm);
+        }
+
+        self.consume(&TokenType::RightBrace, "Expected '}' after match arms")?;
+
+        Ok(Statement::Match(MatchStatement {
+            expression,
+            arms,
+        }))
+    }
+
+    /// Parse a match arm (Expert recommendation: Pattern parsing)
+    fn parse_match_arm(&mut self) -> Result<MatchArm, ParseError> {
+        let pattern = self.parse_pattern()?;
+
+        // Parse optional guard
+        let guard = if self.match_token(&TokenType::If) {
+            Some(self.parse_expression()?)
+        } else {
+            None
+        };
+
+        self.consume(&TokenType::FatArrow, "Expected '=>' after pattern")?;
+
+        // Parse body - can be either a block or a single expression
+        let body = if self.check(&TokenType::LeftBrace) {
+            // Block syntax: { ... }
+            self.parse_block()?
+        } else {
+            // Expression syntax: expr,
+            let expr = self.parse_expression()?;
+            // Consume optional comma
+            self.match_token(&TokenType::Comma);
+            // Create a block with single expression statement
+            Block {
+                statements: vec![Statement::Expression(expr)],
+            }
+        };
+
+        Ok(MatchArm {
+            pattern,
+            guard,
+            body,
+        })
+    }
+
+    /// Check if the current position looks like a struct literal
+    /// by looking ahead to see if we have identifier: pattern after {
+    fn is_struct_literal(&self) -> bool {
+        if !self.check(&TokenType::LeftBrace) {
+            return false;
+        }
+
+        // Look ahead to see if we have field_name: pattern
+        let mut lookahead = self.current + 1; // Skip the '{'
+
+        // Skip newlines
+        while lookahead < self.tokens.len() {
+            match &self.tokens[lookahead].token_type {
+                TokenType::Newline => {
+                    lookahead += 1;
+                    continue;
+                }
+                TokenType::Identifier(_) => {
+                    // Check if next token after identifier is ':'
+                    lookahead += 1;
+                    if lookahead < self.tokens.len() {
+                        return matches!(self.tokens[lookahead].token_type, TokenType::Colon);
+                    }
+                    return false;
+                }
+                _ => return false,
+            }
+        }
+
+        false
+    }
+
+    /// Parse a pattern (Expert recommendation: Pattern parsing)
+    fn parse_pattern(&mut self) -> Result<Pattern, ParseError> {
+        match &self.peek().token_type {
+            TokenType::Underscore => {
+                self.advance();
+                Ok(Pattern::Wildcard)
+            }
+            TokenType::IntegerLiteral(Some(value)) => {
+                let value = *value;
+                self.advance();
+                Ok(Pattern::Literal(Literal::Integer(value)))
+            }
+            TokenType::FloatLiteral(Some(value)) => {
+                let value = *value;
+                self.advance();
+                Ok(Pattern::Literal(Literal::Float(value)))
+            }
+            TokenType::StringLiteral(value) => {
+                let value = value.clone();
+                self.advance();
+                Ok(Pattern::Literal(Literal::String(value)))
+            }
+            TokenType::True => {
+                self.advance();
+                Ok(Pattern::Literal(Literal::Boolean(true)))
+            }
+            TokenType::False => {
+                self.advance();
+                Ok(Pattern::Literal(Literal::Boolean(false)))
+            }
+            TokenType::Identifier(name) => {
+                let name = name.clone();
+                self.advance();
+                Ok(Pattern::Identifier(name))
+            }
+            _ => Err(ParseError::UnexpectedToken {
+                expected: "pattern".to_string(),
+                found: self.peek().clone(),
+            }),
+        }
     }
 
     /// Parse an expression
@@ -592,7 +729,8 @@ impl Parser {
                 self.advance();
 
                 // Check if this is a struct literal
-                if self.check(&TokenType::LeftBrace) {
+                // Only parse as struct literal if we see field_name: pattern
+                if self.check(&TokenType::LeftBrace) && self.is_struct_literal() {
                     self.advance(); // consume '{'
 
                     let mut fields = Vec::new();
@@ -636,6 +774,32 @@ impl Parser {
 
                 self.consume(&TokenType::RightBracket, "Expected ']' after array elements")?;
                 Expression::Array(ArrayExpression { elements })
+            }
+            TokenType::Match => {
+                // Match expression (Expert recommendation: Priority 1 - Complete match support)
+                self.advance(); // consume 'match'
+
+                let expression = self.parse_expression()?;
+
+                self.consume(&TokenType::LeftBrace, "Expected '{' after match expression")?;
+
+                let mut arms = Vec::new();
+
+                while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
+                    if self.match_token(&TokenType::Newline) {
+                        continue;
+                    }
+
+                    let arm = self.parse_match_arm()?;
+                    arms.push(arm);
+                }
+
+                self.consume(&TokenType::RightBrace, "Expected '}' after match arms")?;
+
+                Expression::Match(Box::new(MatchStatement {
+                    expression,
+                    arms,
+                }))
             }
             _ => return Err(ParseError::UnexpectedToken {
                 expected: "expression".to_string(),

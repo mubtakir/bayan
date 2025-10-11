@@ -353,6 +353,10 @@ impl SemanticAnalyzer {
                 let annotated_expr = self.analyze_expression(expr)?;
                 Ok(AnnotatedStatement::Expression(annotated_expr))
             }
+            Statement::Match(match_stmt) => {
+                let annotated_match = self.analyze_match_statement(match_stmt)?;
+                Ok(AnnotatedStatement::Match(annotated_match))
+            }
             _ => todo!("Analysis for other statement types not yet implemented"),
         }
     }
@@ -428,6 +432,9 @@ impl SemanticAnalyzer {
             }
             Expression::Index(index_expr) => {
                 self.analyze_index_access(index_expr)
+            }
+            Expression::Match(match_expr) => {
+                self.analyze_match_expression(match_expr)
             }
             _ => todo!("Analysis for other expression types not yet implemented"),
         }
@@ -642,6 +649,116 @@ impl SemanticAnalyzer {
         })
     }
 
+    /// Analyze a match expression (Expert recommendation: Priority 1 - Complete match support)
+    fn analyze_match_expression(&mut self, match_expr: &Box<MatchStatement>) -> Result<AnnotatedExpression, SemanticError> {
+        // Reuse match statement analysis
+        let annotated_match = self.analyze_match_statement(match_expr)?;
+
+        // Match expression must have a result type
+        let result_type = annotated_match.result_type
+            .ok_or_else(|| SemanticError::Other("Match expression must have a result type".to_string()))?;
+
+        Ok(AnnotatedExpression {
+            expr: AnnotatedExpressionKind::Match {
+                expression: Box::new(annotated_match.expression),
+                arms: annotated_match.arms,
+            },
+            result_type,
+        })
+    }
+
+    /// Analyze a match statement (Expert recommendation: Priority 1 - Complete match support)
+    fn analyze_match_statement(&mut self, match_stmt: &MatchStatement) -> Result<AnnotatedMatchStatement, SemanticError> {
+        // Analyze the expression being matched
+        let annotated_expr = self.analyze_expression(&match_stmt.expression)?;
+        let match_type = annotated_expr.result_type.clone();
+
+        let mut annotated_arms = Vec::new();
+        let mut arm_types = Vec::new();
+
+        // Analyze each match arm
+        for arm in &match_stmt.arms {
+            // Enter new scope for pattern variables
+            self.symbol_table.enter_scope();
+
+            // Analyze the pattern and bind variables
+            let annotated_pattern = self.check_pattern(&arm.pattern, &match_type)?;
+
+            // Analyze guard if present
+            let annotated_guard = if let Some(guard) = &arm.guard {
+                let guard_expr = self.analyze_expression(guard)?;
+                // Guard must be boolean
+                if !matches!(guard_expr.result_type, ResolvedType::Bool) {
+                    return Err(SemanticError::TypeMismatch {
+                        expected: ResolvedType::Bool,
+                        found: guard_expr.result_type,
+                    });
+                }
+                Some(guard_expr)
+            } else {
+                None
+            };
+
+            // Analyze the arm body
+            let annotated_body = self.analyze_block(&arm.body)?;
+
+            // Determine body type (last expression or unit)
+            let body_type = if let Some(last_stmt) = annotated_body.statements.last() {
+                match last_stmt {
+                    AnnotatedStatement::Expression(expr) => expr.result_type.clone(),
+                    AnnotatedStatement::Return(ret) => {
+                        if let Some(ret_expr) = &ret.value {
+                            ret_expr.result_type.clone()
+                        } else {
+                            ResolvedType::Unit
+                        }
+                    }
+                    _ => ResolvedType::Unit,
+                }
+            } else {
+                ResolvedType::Unit
+            };
+
+            arm_types.push(body_type.clone());
+
+            annotated_arms.push(AnnotatedMatchArm {
+                pattern: annotated_pattern,
+                guard: annotated_guard,
+                body: annotated_body,
+                body_type,
+            });
+
+            // Exit scope
+            self.symbol_table.exit_scope();
+        }
+
+        // Check arm type compatibility for match expressions
+        let result_type = if arm_types.is_empty() {
+            None
+        } else {
+            // Find common type among all arms
+            let mut common_type = arm_types[0].clone();
+            for arm_type in &arm_types[1..] {
+                common_type = self.type_checker.common_super_type(&common_type, arm_type)
+                    .ok_or_else(|| SemanticError::TypeMismatch {
+                        expected: common_type.clone(),
+                        found: arm_type.clone(),
+                    })?;
+            }
+            Some(common_type)
+        };
+
+        // TODO: Check exhaustiveness (Expert recommendation)
+        // For now, we'll implement basic exhaustiveness checking for simple types
+        self.check_match_exhaustiveness(&match_type, &annotated_arms)?;
+
+        Ok(AnnotatedMatchStatement {
+            expression: annotated_expr,
+            arms: annotated_arms,
+            result_type,
+        })
+    }
+
     /// Analyze return path in a block (improved as recommended by expert)
     /// Returns true if the block guarantees a return on ALL possible execution paths
     fn analyze_block_for_return(&mut self, block: &Block, func_ret_type: &ResolvedType) -> Result<bool, SemanticError> {
@@ -708,6 +825,8 @@ impl SemanticAnalyzer {
                 Ok(false)
             }
             Statement::Match(match_stmt) => {
+                let _annotated_match = self.analyze_match_statement(match_stmt)?;
+
                 // Match guarantees return only if:
                 // 1. All patterns are covered (exhaustive)
                 // 2. All arms guarantee return
@@ -808,6 +927,7 @@ pub enum AnnotatedStatement {
     Let(AnnotatedLetStatement),
     Return(AnnotatedReturnStatement),
     Expression(AnnotatedExpression),
+    Match(AnnotatedMatchStatement),
 }
 
 #[derive(Debug, Clone)]
@@ -826,6 +946,31 @@ pub struct AnnotatedReturnStatement {
 pub struct AnnotatedExpression {
     pub expr: AnnotatedExpressionKind,
     pub result_type: ResolvedType,
+}
+
+#[derive(Debug, Clone)]
+pub struct AnnotatedMatchStatement {
+    pub expression: AnnotatedExpression,
+    pub arms: Vec<AnnotatedMatchArm>,
+    pub result_type: Option<ResolvedType>, // Some if match is expression, None if statement
+}
+
+#[derive(Debug, Clone)]
+pub struct AnnotatedMatchArm {
+    pub pattern: AnnotatedPattern,
+    pub guard: Option<AnnotatedExpression>,
+    pub body: AnnotatedBlock,
+    pub body_type: ResolvedType,
+}
+
+#[derive(Debug, Clone)]
+pub enum AnnotatedPattern {
+    Wildcard,
+    Literal(Literal, ResolvedType),
+    Identifier(String, ResolvedType),
+    Tuple(Vec<AnnotatedPattern>, ResolvedType),
+    Struct(String, Vec<(String, AnnotatedPattern)>, ResolvedType),
+    Enum(String, Option<Vec<AnnotatedPattern>>, ResolvedType),
 }
 
 #[derive(Debug, Clone)]
@@ -852,6 +997,10 @@ pub enum AnnotatedExpressionKind {
         object: Box<AnnotatedExpression>,
         index: Box<AnnotatedExpression>,
     },
+    Match {
+        expression: Box<AnnotatedExpression>,
+        arms: Vec<AnnotatedMatchArm>,
+    },
 }
 
 /// Resolved type information
@@ -864,6 +1013,7 @@ pub enum ResolvedType {
     String,
     Char,
     Null,
+    Unit, // Unit type for statements that don't return a value
 
     // User-defined types
     Struct(String),
@@ -972,4 +1122,155 @@ pub enum SemanticError {
 
     #[error("Other error: {0}")]
     Other(String),
+
+    #[error("Pattern type mismatch: expected {expected:?}, found pattern for {found:?}")]
+    PatternTypeMismatch {
+        expected: ResolvedType,
+        found: ResolvedType,
+    },
+
+    #[error("Non-exhaustive match: missing patterns for {missing_patterns:?}")]
+    NonExhaustiveMatch {
+        missing_patterns: Vec<String>,
+    },
+
+    #[error("Variable in fact: {0}")]
+    VariableInFact(String),
+}
+
+impl SemanticAnalyzer {
+    /// Check pattern compatibility with match type (Expert recommendation: Pattern checking)
+    fn check_pattern(&mut self, pattern: &Pattern, match_type: &ResolvedType) -> Result<AnnotatedPattern, SemanticError> {
+        match pattern {
+            Pattern::Wildcard => {
+                // Wildcard matches any type
+                Ok(AnnotatedPattern::Wildcard)
+            }
+            Pattern::Literal(literal) => {
+                // Check that literal type matches the match type
+                let literal_type = self.type_checker.infer_literal_type(literal);
+                if !self.type_checker.types_compatible(match_type, &literal_type) {
+                    return Err(SemanticError::PatternTypeMismatch {
+                        expected: match_type.clone(),
+                        found: literal_type,
+                    });
+                }
+                Ok(AnnotatedPattern::Literal(literal.clone(), literal_type))
+            }
+            Pattern::Identifier(name) => {
+                // Bind the identifier to the match type in current scope
+                self.symbol_table.declare_variable(name, match_type)?;
+                Ok(AnnotatedPattern::Identifier(name.clone(), match_type.clone()))
+            }
+            Pattern::Tuple(patterns) => {
+                // Match type must be a tuple with same arity
+                match match_type {
+                    ResolvedType::Tuple(element_types) => {
+                        if patterns.len() != element_types.len() {
+                            return Err(SemanticError::PatternTypeMismatch {
+                                expected: match_type.clone(),
+                                found: ResolvedType::Tuple(vec![ResolvedType::Unit; patterns.len()]),
+                            });
+                        }
+
+                        let mut annotated_patterns = Vec::new();
+                        for (pattern, element_type) in patterns.iter().zip(element_types.iter()) {
+                            let annotated_pattern = self.check_pattern(pattern, element_type)?;
+                            annotated_patterns.push(annotated_pattern);
+                        }
+
+                        Ok(AnnotatedPattern::Tuple(annotated_patterns, match_type.clone()))
+                    }
+                    _ => Err(SemanticError::PatternTypeMismatch {
+                        expected: match_type.clone(),
+                        found: ResolvedType::Tuple(vec![ResolvedType::Unit; patterns.len()]),
+                    }),
+                }
+            }
+            Pattern::Struct(struct_name, field_patterns) => {
+                // Match type must be the same struct
+                match match_type {
+                    ResolvedType::Struct(expected_struct_name) => {
+                        if struct_name != expected_struct_name {
+                            return Err(SemanticError::PatternTypeMismatch {
+                                expected: match_type.clone(),
+                                found: ResolvedType::Struct(struct_name.clone()),
+                            });
+                        }
+
+                        // TODO: Check field patterns against struct definition
+                        // For now, just return the pattern as-is
+                        let annotated_field_patterns = field_patterns.iter()
+                            .map(|(field_name, pattern)| {
+                                // For simplicity, assume field type is the same as match type
+                                // In a real implementation, we'd look up the struct definition
+                                let field_pattern = self.check_pattern(pattern, &ResolvedType::Int)?;
+                                Ok((field_name.clone(), field_pattern))
+                            })
+                            .collect::<Result<Vec<_>, SemanticError>>()?;
+
+                        Ok(AnnotatedPattern::Struct(struct_name.clone(), annotated_field_patterns, match_type.clone()))
+                    }
+                    _ => Err(SemanticError::PatternTypeMismatch {
+                        expected: match_type.clone(),
+                        found: ResolvedType::Struct(struct_name.clone()),
+                    }),
+                }
+            }
+            Pattern::Enum(enum_name, variant_patterns) => {
+                // TODO: Implement enum pattern checking
+                // For now, return a placeholder
+                Ok(AnnotatedPattern::Enum(enum_name.clone(), None, match_type.clone()))
+            }
+        }
+    }
+
+    /// Check match exhaustiveness (Expert recommendation: Basic exhaustiveness checking)
+    fn check_match_exhaustiveness(&self, match_type: &ResolvedType, arms: &[AnnotatedMatchArm]) -> Result<(), SemanticError> {
+        // For now, implement basic exhaustiveness checking for simple types
+        match match_type {
+            ResolvedType::Bool => {
+                // Check if we have patterns for both true and false, or a wildcard
+                let mut has_true = false;
+                let mut has_false = false;
+                let mut has_wildcard = false;
+
+                for arm in arms {
+                    match &arm.pattern {
+                        AnnotatedPattern::Wildcard => has_wildcard = true,
+                        AnnotatedPattern::Literal(Literal::Boolean(true), _) => has_true = true,
+                        AnnotatedPattern::Literal(Literal::Boolean(false), _) => has_false = true,
+                        _ => {}
+                    }
+                }
+
+                if !has_wildcard && (!has_true || !has_false) {
+                    let mut missing = Vec::new();
+                    if !has_true { missing.push("true".to_string()); }
+                    if !has_false { missing.push("false".to_string()); }
+                    return Err(SemanticError::NonExhaustiveMatch { missing_patterns: missing });
+                }
+            }
+            ResolvedType::Int => {
+                // For integers, we require a wildcard pattern since we can't enumerate all values
+                let has_wildcard = arms.iter().any(|arm| matches!(arm.pattern, AnnotatedPattern::Wildcard));
+                if !has_wildcard {
+                    return Err(SemanticError::NonExhaustiveMatch {
+                        missing_patterns: vec!["_ (wildcard)".to_string()]
+                    });
+                }
+            }
+            _ => {
+                // For other types, require a wildcard for now
+                let has_wildcard = arms.iter().any(|arm| matches!(arm.pattern, AnnotatedPattern::Wildcard));
+                if !has_wildcard {
+                    return Err(SemanticError::NonExhaustiveMatch {
+                        missing_patterns: vec!["_ (wildcard)".to_string()]
+                    });
+                }
+            }
+        }
+
+        Ok(())
+    }
 }

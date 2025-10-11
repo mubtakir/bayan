@@ -361,6 +361,7 @@ pub enum Expression {
     Lambda(LambdaExpression),
     Async(AsyncExpression),
     Await(AwaitExpression),
+    Match(Box<MatchStatement>), // Match can be both statement and expression
 }
 
 /// Literal values
