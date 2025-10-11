@@ -1,0 +1,6 @@
+// Test 1: Simple main function
+// Expected output: 42
+
+fn main() -> int {
+    return 42;
+}

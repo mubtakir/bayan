@@ -1,0 +1,12 @@
+// Test 4: While loop
+// Expected output: 10 (sum of 0+1+2+3+4)
+
+fn main() -> int {
+    let mut i: int = 0;
+    let mut sum: int = 0;
+    while i < 5 {
+        sum = sum + i;
+        i = i + 1;
+    }
+    return sum;
+}

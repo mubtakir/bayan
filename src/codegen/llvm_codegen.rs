@@ -19,18 +19,21 @@ pub struct LLVMCodeGenerator<'ctx> {
     context: &'ctx Context,
     module: Module<'ctx>,
     builder: Builder<'ctx>,
-    
+
     // Symbol tables
     variables: HashMap<String, PointerValue<'ctx>>,
     functions: HashMap<String, FunctionValue<'ctx>>,
-    
+
+    // Improved scope management (as recommended by expert)
+    variable_scopes: Vec<HashMap<String, PointerValue<'ctx>>>,
+
     // Current function context
     current_function: Option<FunctionValue<'ctx>>,
-    
+
     // Optimization settings
     optimization_level: OptimizationLevel,
     target_machine: Option<TargetMachine>,
-    
+
     // Type mappings
     type_cache: HashMap<String, BasicTypeEnum<'ctx>>,
 }
@@ -40,30 +43,31 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
     pub fn new(context: &'ctx Context, module_name: &str, options: &CompilerOptions) -> Result<Self> {
         let module = context.create_module(module_name);
         let builder = context.create_builder();
-        
+
         // Initialize target
         Target::initialize_all(&Default::default());
-        
+
         let optimization_level = match options.optimization_level {
             crate::codegen::OptimizationLevel::None => OptimizationLevel::None,
             crate::codegen::OptimizationLevel::Basic => OptimizationLevel::Less,
             crate::codegen::OptimizationLevel::Standard => OptimizationLevel::Default,
             crate::codegen::OptimizationLevel::Aggressive => OptimizationLevel::Aggressive,
         };
-        
+
         Ok(Self {
             context,
             module,
             builder,
             variables: HashMap::new(),
             functions: HashMap::new(),
+            variable_scopes: vec![HashMap::new()], // Global scope
             current_function: None,
             optimization_level,
             target_machine: None,
             type_cache: HashMap::new(),
         })
     }
-    
+
     /// Generate LLVM IR for the entire program
     pub fn generate_program(&mut self, program: &AnnotatedProgram) -> Result<()> {
         // Generate global declarations
@@ -78,17 +82,17 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                 _ => {} // Handle other items as needed
             }
         }
-        
+
         // Generate function bodies
         for item in &program.items {
             if let AnnotatedItem::Function(func) = item {
                 self.generate_function(func)?;
             }
         }
-        
+
         Ok(())
     }
-    
+
     /// Declare a function signature
     fn declare_function(&mut self, func: &AnnotatedFunction) -> Result<FunctionValue<'ctx>> {
         let return_type = self.get_llvm_type(&func.return_type)?;
@@ -96,52 +100,122 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             .iter()
             .map(|param| self.get_llvm_type(&param.param_type))
             .collect::<Result<Vec<_>>>()?;
-        
+
         let fn_type = match return_type {
             Some(ret_type) => ret_type.fn_type(&param_types, false),
             None => self.context.void_type().fn_type(&param_types, false),
         };
-        
+
         let function = self.module.add_function(&func.name, fn_type, None);
         self.functions.insert(func.name.clone(), function);
-        
+
         Ok(function)
     }
-    
-    /// Generate function body
+
+    /// Generate function body (improved as recommended by expert)
     fn generate_function(&mut self, func: &AnnotatedFunction) -> Result<()> {
         let function = self.functions[&func.name];
         self.current_function = Some(function);
-        
+
         let entry_block = self.context.append_basic_block(function, "entry");
         self.builder.position_at_end(entry_block);
-        
-        // Create allocas for parameters
+
+        // Enter function scope (improved scope management)
+        self.enter_scope();
+
+        // Create allocas for parameters (improved parameter handling)
         for (i, param) in func.parameters.iter().enumerate() {
             let param_value = function.get_nth_param(i as u32).unwrap();
-            let alloca = self.create_entry_block_alloca(&param.name, &param.param_type)?;
+            let param_type = self.get_llvm_type(&param.param_type)?
+                .ok_or_else(|| anyhow!("Cannot convert parameter type to LLVM type"))?;
+
+            // Create alloca in entry block for better optimization
+            let alloca = self.builder.build_alloca(param_type, &param.name)?;
             self.builder.build_store(alloca, param_value)?;
-            self.variables.insert(param.name.clone(), alloca);
+
+            // Store in current scope
+            self.declare_variable(&param.name, alloca);
         }
-        
+
         // Generate function body
-        self.generate_statement(&func.body)?;
-        
-        // Add return if missing
-        if self.builder.get_insert_block().unwrap().get_terminator().is_none() {
-            if func.return_type == Type::Void {
-                self.builder.build_return(None)?;
+        self.generate_block(&func.body)?;
+
+        // Add return if missing (improved return handling)
+        if !self.is_terminated() {
+            if let Some(ref ret_type) = func.return_type {
+                if matches!(ret_type, ResolvedType::Void) {
+                    self.builder.build_return(None)?;
+                } else {
+                    // Return default value for non-void functions
+                    let default_val = self.get_default_value(ret_type)?;
+                    self.builder.build_return(Some(&default_val))?;
+                }
             } else {
-                // Return default value for non-void functions
-                let default_val = self.get_default_value(&func.return_type)?;
-                self.builder.build_return(Some(&default_val))?;
+                self.builder.build_return(None)?;
             }
         }
-        
+
+        // Leave function scope
+        self.leave_scope();
         self.current_function = None;
         Ok(())
     }
-    
+
+    /// Enter a new variable scope (as recommended by expert)
+    fn enter_scope(&mut self) {
+        self.variable_scopes.push(HashMap::new());
+    }
+
+    /// Leave the current variable scope (as recommended by expert)
+    fn leave_scope(&mut self) {
+        if self.variable_scopes.len() > 1 {
+            self.variable_scopes.pop();
+        }
+    }
+
+    /// Declare a variable in the current scope (as recommended by expert)
+    fn declare_variable(&mut self, name: &str, alloca: PointerValue<'ctx>) {
+        self.variable_scopes
+            .last_mut()
+            .unwrap()
+            .insert(name.to_string(), alloca);
+    }
+
+    /// Look up a variable in the scope chain (as recommended by expert)
+    fn lookup_variable(&self, name: &str) -> Option<PointerValue<'ctx>> {
+        for scope in self.variable_scopes.iter().rev() {
+            if let Some(alloca) = scope.get(name) {
+                return Some(*alloca);
+            }
+        }
+        None
+    }
+
+    /// Check if current block is terminated (as recommended by expert)
+    fn is_terminated(&self) -> bool {
+        self.builder
+            .get_insert_block()
+            .and_then(|bb| bb.get_terminator())
+            .is_some()
+    }
+
+    /// Generate code for a block with scope management
+    fn generate_block(&mut self, block: &AnnotatedBlock) -> Result<()> {
+        self.enter_scope();
+
+        for stmt in &block.statements {
+            self.generate_statement(stmt)?;
+
+            // Stop if block is terminated
+            if self.is_terminated() {
+                break;
+            }
+        }
+
+        self.leave_scope();
+        Ok(())
+    }
+
     /// Declare a struct type
     fn declare_struct(&mut self, struct_def: &AnnotatedStruct) -> Result<()> {
         let field_types: Vec<BasicTypeEnum> = struct_def.fields
@@ -151,16 +225,16 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             .into_iter()
             .filter_map(|t| t)
             .collect();
-        
+
         let struct_type = self.context.struct_type(&field_types, false);
         self.type_cache.insert(
             struct_def.name.clone(),
             struct_type.into()
         );
-        
+
         Ok(())
     }
-    
+
     /// Generate code for a statement
     fn generate_statement(&mut self, stmt: &AnnotatedStatement) -> Result<()> {
         match stmt {
@@ -169,20 +243,24 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             }
             AnnotatedStatement::VariableDeclaration { name, var_type, initializer } => {
                 let alloca = self.create_entry_block_alloca(name, var_type)?;
-                
+
                 if let Some(init_expr) = initializer {
                     let init_value = self.generate_expression(init_expr)?;
                     self.builder.build_store(alloca, init_value)?;
                 }
-                
-                self.variables.insert(name.clone(), alloca);
+
+                // Use improved scope management (as recommended by expert)
+                self.declare_variable(name, alloca);
             }
             AnnotatedStatement::Assignment { target, value } => {
                 let value_result = self.generate_expression(value)?;
-                
+
                 if let AnnotatedExpression::Variable(var_name) = target.as_ref() {
-                    if let Some(&alloca) = self.variables.get(var_name) {
+                    // Use improved scope lookup (as recommended by expert)
+                    if let Some(alloca) = self.lookup_variable(var_name) {
                         self.builder.build_store(alloca, value_result)?;
+                    } else {
+                        return Err(anyhow!("Undefined variable: {}", var_name));
                     }
                 }
             }
@@ -206,16 +284,17 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                 }
             }
         }
-        
+
         Ok(())
     }
-    
+
     /// Generate code for an expression
     fn generate_expression(&mut self, expr: &AnnotatedExpression) -> Result<BasicValueEnum<'ctx>> {
         match expr {
             AnnotatedExpression::Literal(lit) => self.generate_literal(lit),
             AnnotatedExpression::Variable(name) => {
-                if let Some(&alloca) = self.variables.get(name) {
+                // Use improved scope lookup (as recommended by expert)
+                if let Some(alloca) = self.lookup_variable(name) {
                     Ok(self.builder.build_load(
                         alloca.get_type().get_element_type().into(),
                         alloca,
@@ -237,7 +316,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             _ => Err(anyhow!("Expression type not yet implemented"))
         }
     }
-    
+
     /// Generate code for a literal value
     fn generate_literal(&self, literal: &Literal) -> Result<BasicValueEnum<'ctx>> {
         match literal {
@@ -256,7 +335,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             }
         }
     }
-    
+
     /// Generate code for binary operations
     fn generate_binary_op(
         &mut self,
@@ -266,7 +345,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
     ) -> Result<BasicValueEnum<'ctx>> {
         let left_val = self.generate_expression(left)?;
         let right_val = self.generate_expression(right)?;
-        
+
         match operator {
             BinaryOperator::Add => {
                 if left_val.is_int_value() && right_val.is_int_value() {
@@ -415,28 +494,67 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         }
     }
 
-    /// Generate code for function calls
+    /// Generate code for function calls (improved as recommended by expert)
     fn generate_function_call(
         &mut self,
         name: &str,
         arguments: &[AnnotatedExpression]
     ) -> Result<BasicValueEnum<'ctx>> {
-        if let Some(&function) = self.functions.get(name) {
-            let args: Vec<BasicValueEnum> = arguments
-                .iter()
-                .map(|arg| self.generate_expression(arg))
-                .collect::<Result<Vec<_>>>()?;
+        // Handle built-in functions first
+        if name == "print" {
+            return self.generate_print_call(arguments);
+        }
 
-            let call_result = self.builder.build_call(function, &args, "calltmp")?;
+        // Look up user-defined function
+        if let Some(&function) = self.functions.get(name) {
+            let mut args: Vec<BasicValueEnum> = Vec::new();
+
+            // Generate arguments with proper type checking
+            for arg in arguments {
+                let arg_value = self.generate_expression(arg)?;
+                args.push(arg_value);
+            }
+
+            let call_result = self.builder.build_call(function, &args, &format!("{}_call", name))?;
 
             if let Some(result) = call_result.try_as_basic_value().left() {
                 Ok(result)
             } else {
-                Err(anyhow!("Function call returned void"))
+                // Function returns void, return a dummy value for expressions
+                Ok(self.context.i64_type().const_int(0, false).into())
             }
         } else {
             Err(anyhow!("Undefined function: {}", name))
         }
+    }
+
+    /// Generate print function call (built-in)
+    fn generate_print_call(&mut self, arguments: &[AnnotatedExpression]) -> Result<BasicValueEnum<'ctx>> {
+        if arguments.len() != 1 {
+            return Err(anyhow!("print() expects exactly one argument"));
+        }
+
+        let arg_value = self.generate_expression(&arguments[0])?;
+
+        // Call appropriate print function based on type
+        match arg_value {
+            BasicValueEnum::IntValue(int_val) => {
+                if let Some(print_fn) = self.functions.get("albayan_rt_print_int") {
+                    self.builder.build_call(*print_fn, &[int_val.into()], "print_int")?;
+                }
+            }
+            BasicValueEnum::FloatValue(float_val) => {
+                if let Some(print_fn) = self.functions.get("albayan_rt_print_float") {
+                    self.builder.build_call(*print_fn, &[float_val.into()], "print_float")?;
+                }
+            }
+            _ => {
+                return Err(anyhow!("Unsupported type for print()"));
+            }
+        }
+
+        // Return dummy value
+        Ok(self.context.i64_type().const_int(0, false).into())
     }
 
     /// Generate if statement

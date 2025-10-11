@@ -1,0 +1,14 @@
+// Test 10: Comparison operators
+// Expected output: 1
+
+fn main() -> int {
+    let a: int = 10;
+    let b: int = 20;
+    let c: int = 10;
+    
+    if a < b && a == c {
+        return 1;
+    } else {
+        return 0;
+    }
+}

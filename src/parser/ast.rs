@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Represents a qualified path (e.g., `std::collections::HashMap`)
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Path {
     pub segments: Vec<String>,
 }
@@ -34,6 +34,10 @@ impl Path {
     /// Convert path back to string representation
     pub fn to_string(&self) -> String {
         self.segments.join("::")
+    }
+
+    pub fn as_str(&self) -> String {
+        self.to_string()
     }
 }
 

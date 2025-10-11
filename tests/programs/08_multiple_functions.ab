@@ -1,0 +1,18 @@
+// Test 8: Multiple functions calling each other
+// Expected output: 120 (factorial of 5)
+
+fn multiply(a: int, b: int) -> int {
+    return a * b;
+}
+
+fn factorial(n: int) -> int {
+    if n <= 1 {
+        return 1;
+    } else {
+        return multiply(n, factorial(n - 1));
+    }
+}
+
+fn main() -> int {
+    return factorial(5);
+}

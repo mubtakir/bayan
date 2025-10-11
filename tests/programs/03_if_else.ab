@@ -1,0 +1,11 @@
+// Test 3: If-else control flow
+// Expected output: 1
+
+fn main() -> int {
+    let x: int = 15;
+    if x > 10 {
+        return 1;
+    } else {
+        return 0;
+    }
+}

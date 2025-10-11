@@ -1,0 +1,10 @@
+// Test 5: Function with parameters
+// Expected output: 42
+
+fn add(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn main() -> int {
+    return add(15, 27);
+}
