@@ -417,6 +417,12 @@ impl SemanticAnalyzer {
             Expression::Binary(bin_expr) => {
                 self.analyze_binary_expression(bin_expr)
             }
+            Expression::Struct(struct_expr) => {
+                self.analyze_struct_literal(struct_expr)
+            }
+            Expression::FieldAccess(field_access) => {
+                self.analyze_field_access(field_access)
+            }
             _ => todo!("Analysis for other expression types not yet implemented"),
         }
     }
@@ -442,21 +448,132 @@ impl SemanticAnalyzer {
         })
     }
 
-    /// Analyze return path in a block (as recommended by expert)
-    /// Returns true if the block guarantees a return
-    fn analyze_block_for_return(&mut self, block: &Block, func_ret_type: &Type) -> Result<bool, SemanticError> {
-        let mut guarantees_return = false;
+    /// Analyze a struct literal expression (as recommended by expert)
+    fn analyze_struct_literal(&mut self, struct_expr: &StructExpression) -> Result<AnnotatedExpression, SemanticError> {
+        // Look up struct definition in TypeSystem
+        let struct_info = self.symbol_table.lookup_type(&struct_expr.name)
+            .ok_or_else(|| SemanticError::UndefinedType(struct_expr.name.clone()))?;
 
-        for stmt in &block.statements {
-            if guarantees_return {
-                // Code after guaranteed return is unreachable
-                self.errors.push(SemanticError::UnreachableCode(format!(
-                    "Statement after return is unreachable"
-                )));
-                continue; // Continue analysis to find more errors, but don't change return status
+        // Get struct fields from type info
+        let struct_fields = match &struct_info.kind {
+            symbol_table::TypeKind::Struct(fields) => fields,
+            _ => return Err(SemanticError::TypeMismatch {
+                expected: ResolvedType::Struct(struct_expr.name.clone()),
+                found: ResolvedType::String, // placeholder
+            }),
+        };
+
+        // Check that all required fields are provided
+        let mut provided_fields = std::collections::HashMap::new();
+        let mut annotated_fields = Vec::new();
+
+        for (field_name, field_expr) in &struct_expr.fields {
+            // Check if field exists in struct definition
+            let field_info = struct_fields.iter()
+                .find(|f| f.name == *field_name)
+                .ok_or_else(|| SemanticError::UndefinedField {
+                    struct_name: struct_expr.name.clone(),
+                    field_name: field_name.clone(),
+                })?;
+
+            // Analyze field expression
+            let annotated_field_expr = self.analyze_expression(field_expr)?;
+
+            // Check type compatibility
+            if !self.type_checker.types_compatible(&field_info.field_type, &annotated_field_expr.result_type) {
+                return Err(SemanticError::TypeMismatch {
+                    expected: field_info.field_type.clone(),
+                    found: annotated_field_expr.result_type,
+                });
             }
 
-            if self.analyze_statement_for_return(stmt, func_ret_type)? {
+            provided_fields.insert(field_name.clone(), annotated_field_expr.clone());
+            annotated_fields.push((field_name.clone(), annotated_field_expr));
+        }
+
+        // Check that all required fields are provided
+        for field_info in struct_fields {
+            if !provided_fields.contains_key(&field_info.name) {
+                return Err(SemanticError::MissingField {
+                    struct_name: struct_expr.name.clone(),
+                    field_name: field_info.name.clone(),
+                });
+            }
+        }
+
+        Ok(AnnotatedExpression {
+            expr: AnnotatedExpressionKind::StructLiteral {
+                name: struct_expr.name.clone(),
+                fields: annotated_fields,
+            },
+            result_type: ResolvedType::Struct(struct_expr.name.clone()),
+        })
+    }
+
+    /// Analyze a field access expression (as recommended by expert)
+    fn analyze_field_access(&mut self, field_access: &FieldAccessExpression) -> Result<AnnotatedExpression, SemanticError> {
+        // Analyze the object expression
+        let annotated_object = self.analyze_expression(&field_access.object)?;
+
+        // Get the struct type
+        let struct_name = match &annotated_object.result_type {
+            ResolvedType::Struct(name) => name,
+            _ => return Err(SemanticError::TypeMismatch {
+                expected: ResolvedType::Struct("any".to_string()),
+                found: annotated_object.result_type,
+            }),
+        };
+
+        // Look up struct definition
+        let struct_info = self.symbol_table.lookup_type(struct_name)
+            .ok_or_else(|| SemanticError::UndefinedType(struct_name.clone()))?;
+
+        // Get struct fields
+        let struct_fields = match &struct_info.kind {
+            symbol_table::TypeKind::Struct(fields) => fields,
+            _ => return Err(SemanticError::TypeMismatch {
+                expected: ResolvedType::Struct(struct_name.clone()),
+                found: ResolvedType::String, // placeholder
+            }),
+        };
+
+        // Find the field
+        let field_info = struct_fields.iter()
+            .find(|f| f.name == field_access.field)
+            .ok_or_else(|| SemanticError::UndefinedField {
+                struct_name: struct_name.clone(),
+                field_name: field_access.field.clone(),
+            })?;
+
+        Ok(AnnotatedExpression {
+            expr: AnnotatedExpressionKind::FieldAccess {
+                object: Box::new(annotated_object),
+                field: field_access.field.clone(),
+            },
+            result_type: field_info.field_type.clone(),
+        })
+    }
+
+    /// Analyze return path in a block (improved as recommended by expert)
+    /// Returns true if the block guarantees a return on ALL possible execution paths
+    fn analyze_block_for_return(&mut self, block: &Block, func_ret_type: &Type) -> Result<bool, SemanticError> {
+        let mut guarantees_return = false;
+        let mut found_unreachable = false;
+
+        for (i, stmt) in block.statements.iter().enumerate() {
+            if guarantees_return && !found_unreachable {
+                // Code after guaranteed return is unreachable
+                self.errors.push(SemanticError::UnreachableCode(format!(
+                    "Statement at position {} after guaranteed return is unreachable", i
+                )));
+                found_unreachable = true;
+                // Continue analysis to find more errors, but don't change return status
+            }
+
+            // Analyze this statement for return guarantee
+            let stmt_guarantees = self.analyze_statement_for_return(stmt, func_ret_type)?;
+
+            if stmt_guarantees && !guarantees_return {
                 guarantees_return = true;
             }
         }
@@ -464,34 +581,74 @@ impl SemanticAnalyzer {
         Ok(guarantees_return)
     }
 
-    /// Analyze if a statement guarantees a return
+    /// Analyze if a statement guarantees a return (improved as recommended by expert)
+    /// Returns true only if ALL possible execution paths through this statement end with return
     fn analyze_statement_for_return(&mut self, stmt: &Statement, func_ret_type: &Type) -> Result<bool, SemanticError> {
         match stmt {
-            Statement::Return(_) => Ok(true),
+            Statement::Return(_) => {
+                // Direct return statement always guarantees return
+                Ok(true)
+            }
             Statement::If(if_stmt) => {
-                // If statement guarantees return only if both branches guarantee return
+                // If statement guarantees return ONLY if:
+                // 1. Both then and else branches exist
+                // 2. Both branches guarantee return
                 let then_guarantees = self.analyze_block_for_return(&if_stmt.then_block, func_ret_type)?;
 
                 if let Some(else_block) = &if_stmt.else_block {
                     let else_guarantees = match else_block {
-                        Statement::Block(block) => self.analyze_block_for_return(block, func_ret_type)?,
-                        Statement::If(nested_if) => self.analyze_statement_for_return(else_block, func_ret_type)?,
-                        _ => false,
+                        Statement::Block(block) => {
+                            self.analyze_block_for_return(block, func_ret_type)?
+                        }
+                        Statement::If(_) => {
+                            // Nested if-else chain
+                            self.analyze_statement_for_return(else_block, func_ret_type)?
+                        }
+                        _ => {
+                            // Single statement in else
+                            self.analyze_statement_for_return(else_block, func_ret_type)?
+                        }
                     };
+
+                    // Both branches must guarantee return
                     Ok(then_guarantees && else_guarantees)
                 } else {
-                    // No else branch means no guaranteed return
+                    // No else branch means some execution paths don't return
                     Ok(false)
                 }
             }
             Statement::Block(block) => {
+                // Block guarantees return if its contents guarantee return
                 self.analyze_block_for_return(block, func_ret_type)
             }
-            Statement::While(_) | Statement::Loop(_) => {
-                // Loops don't guarantee return (could be infinite, but we can't prove it)
+            Statement::While(_) => {
+                // While loops don't guarantee return because:
+                // 1. The condition might be false initially
+                // 2. Even if infinite, we can't prove it statically
                 Ok(false)
             }
-            _ => Ok(false),
+            Statement::For(_) => {
+                // For loops don't guarantee return for similar reasons
+                Ok(false)
+            }
+            Statement::Match(match_stmt) => {
+                // Match guarantees return only if:
+                // 1. All patterns are covered (exhaustive)
+                // 2. All arms guarantee return
+                // For now, conservatively return false
+                // TODO: Implement exhaustiveness checking
+                Ok(false)
+            }
+            Statement::Expression(_) |
+            Statement::Let(_) |
+            Statement::Assignment(_, _) => {
+                // These statements never guarantee return
+                Ok(false)
+            }
+            _ => {
+                // Conservative approach: unknown statements don't guarantee return
+                Ok(false)
+            }
         }
     }
 }
@@ -605,6 +762,14 @@ pub enum AnnotatedExpressionKind {
         operator: BinaryOperator,
         right: Box<AnnotatedExpression>,
     },
+    StructLiteral {
+        name: String,
+        fields: Vec<(String, AnnotatedExpression)>,
+    },
+    FieldAccess {
+        object: Box<AnnotatedExpression>,
+        field: String,
+    },
 }
 
 /// Resolved type information
@@ -672,6 +837,21 @@ pub enum SemanticError {
 
     #[error("Undefined relation: {0}")]
     UndefinedRelation(String),
+
+    #[error("Undefined type: {0}")]
+    UndefinedType(String),
+
+    #[error("Undefined field {field_name} in struct {struct_name}")]
+    UndefinedField {
+        struct_name: String,
+        field_name: String,
+    },
+
+    #[error("Missing field {field_name} in struct {struct_name}")]
+    MissingField {
+        struct_name: String,
+        field_name: String,
+    },
 
     #[error("Type mismatch: expected {expected:?}, found {found:?}")]
     TypeMismatch {

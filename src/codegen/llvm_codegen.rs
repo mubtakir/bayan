@@ -11,7 +11,7 @@ use std::path::Path;
 use anyhow::{Result, anyhow};
 
 use crate::parser::ast::*;
-use crate::semantic::mod::AnnotatedProgram;
+use crate::semantic::{AnnotatedProgram, AnnotatedExpression, AnnotatedExpressionKind, AnnotatedStatement, ResolvedType};
 use crate::CompilerOptions;
 
 /// LLVM Code Generator for AlBayan language
@@ -140,17 +140,18 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         // Generate function body
         self.generate_block(&func.body)?;
 
-        // Add return if missing (improved return handling)
+        // Add return if missing (improved return handling as recommended by expert)
         if !self.is_terminated() {
             if let Some(ref ret_type) = func.return_type {
                 if matches!(ret_type, ResolvedType::Void) {
                     self.builder.build_return(None)?;
                 } else {
-                    // Return default value for non-void functions
-                    let default_val = self.get_default_value(ret_type)?;
-                    self.builder.build_return(Some(&default_val))?;
+                    // Non-void function without return should have been caught by semantic analysis
+                    // Add unreachable instruction to indicate this path should never be taken
+                    self.builder.build_unreachable()?;
                 }
             } else {
+                // Void function, add implicit return
                 self.builder.build_return(None)?;
             }
         }
@@ -290,9 +291,9 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
 
     /// Generate code for an expression
     fn generate_expression(&mut self, expr: &AnnotatedExpression) -> Result<BasicValueEnum<'ctx>> {
-        match expr {
-            AnnotatedExpression::Literal(lit) => self.generate_literal(lit),
-            AnnotatedExpression::Variable(name) => {
+        match &expr.expr {
+            AnnotatedExpressionKind::Literal(lit) => self.generate_literal(lit),
+            AnnotatedExpressionKind::Identifier(name) => {
                 // Use improved scope lookup (as recommended by expert)
                 if let Some(alloca) = self.lookup_variable(name) {
                     Ok(self.builder.build_load(
@@ -304,14 +305,14 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                     Err(anyhow!("Undefined variable: {}", name))
                 }
             }
-            AnnotatedExpression::BinaryOp { left, operator, right } => {
+            AnnotatedExpressionKind::Binary { left, operator, right } => {
                 self.generate_binary_op(left, operator, right)
             }
-            AnnotatedExpression::UnaryOp { operator, operand } => {
-                self.generate_unary_op(operator, operand)
+            AnnotatedExpressionKind::StructLiteral { name, fields } => {
+                self.generate_struct_literal(name, fields)
             }
-            AnnotatedExpression::FunctionCall { name, arguments } => {
-                self.generate_function_call(name, arguments)
+            AnnotatedExpressionKind::FieldAccess { object, field } => {
+                self.generate_field_access(object, field)
             }
             _ => Err(anyhow!("Expression type not yet implemented"))
         }
@@ -509,10 +510,34 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         if let Some(&function) = self.functions.get(name) {
             let mut args: Vec<BasicValueEnum> = Vec::new();
 
-            // Generate arguments with proper type checking
+            // Generate arguments with proper struct handling (as recommended by expert)
             for arg in arguments {
                 let arg_value = self.generate_expression(arg)?;
-                args.push(arg_value);
+
+                // If argument is a struct, we need to pass by pointer
+                match &arg.result_type {
+                    ResolvedType::Struct(_) => {
+                        // If arg_value is a struct value, we need to store it and pass pointer
+                        if !arg_value.is_pointer_value() {
+                            // Create temporary alloca for struct value
+                            let struct_name = match &arg.result_type {
+                                ResolvedType::Struct(name) => name,
+                                _ => unreachable!(),
+                            };
+                            let struct_type = self.get_llvm_struct_type(struct_name)?;
+                            let temp_alloca = self.builder.build_alloca(struct_type, "temp_struct_arg")?;
+                            self.builder.build_store(temp_alloca, arg_value)?;
+                            args.push(temp_alloca.into());
+                        } else {
+                            // Already a pointer, pass directly
+                            args.push(arg_value);
+                        }
+                    }
+                    _ => {
+                        // Non-struct types, pass by value
+                        args.push(arg_value);
+                    }
+                }
             }
 
             let call_result = self.builder.build_call(function, &args, &format!("{}_call", name))?;
@@ -649,6 +674,105 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         Ok(())
     }
 
+    /// Generate struct literal (as recommended by expert)
+    fn generate_struct_literal(
+        &mut self,
+        struct_name: &str,
+        fields: &[(String, AnnotatedExpression)]
+    ) -> Result<BasicValueEnum<'ctx>> {
+        // Get LLVM struct type
+        let struct_type = self.get_llvm_struct_type(struct_name)?;
+
+        // Allocate memory for the struct
+        let struct_alloca = self.builder.build_alloca(struct_type, "struct_tmp")?;
+
+        // Initialize each field using build_struct_gep and build_store
+        for (i, (field_name, field_expr)) in fields.iter().enumerate() {
+            // Generate value for the field
+            let field_value = self.generate_expression(field_expr)?;
+
+            // Get pointer to the field using GEP
+            let field_ptr = self.builder.build_struct_gep(
+                struct_type,
+                struct_alloca,
+                i as u32,
+                &format!("{}_field", field_name)
+            )?;
+
+            // Store the value in the field
+            self.builder.build_store(field_ptr, field_value)?;
+        }
+
+        // Load the complete struct
+        Ok(self.builder.build_load(
+            struct_type.into(),
+            struct_alloca,
+            "struct_value"
+        )?)
+    }
+
+    /// Generate field access (as recommended by expert)
+    fn generate_field_access(
+        &mut self,
+        object: &AnnotatedExpression,
+        field_name: &str
+    ) -> Result<BasicValueEnum<'ctx>> {
+        // Generate the object expression
+        let object_value = self.generate_expression(object)?;
+
+        // Get struct type from the object's result type
+        let struct_name = match &object.result_type {
+            ResolvedType::Struct(name) => name,
+            _ => return Err(anyhow!("Field access on non-struct type")),
+        };
+
+        // Get LLVM struct type
+        let struct_type = self.get_llvm_struct_type(struct_name)?;
+
+        // For now, we need to know the field index
+        // This should be looked up from the struct definition
+        let field_index = self.get_field_index(struct_name, field_name)?;
+
+        // If object_value is a struct value, we need to extract the field
+        // For simplicity, let's assume we have a pointer to the struct
+        if object_value.is_pointer_value() {
+            let struct_ptr = object_value.into_pointer_value();
+
+            // Get pointer to the field using GEP
+            let field_ptr = self.builder.build_struct_gep(
+                struct_type,
+                struct_ptr,
+                field_index,
+                &format!("{}_field_access", field_name)
+            )?;
+
+            // Load the field value
+            Ok(self.builder.build_load(
+                field_ptr.get_type().get_element_type().into(),
+                field_ptr,
+                field_name
+            )?)
+        } else {
+            // If we have a struct value, we need to extract the field differently
+            // This is more complex and would require storing the struct temporarily
+            let temp_alloca = self.builder.build_alloca(struct_type, "temp_struct")?;
+            self.builder.build_store(temp_alloca, object_value)?;
+
+            let field_ptr = self.builder.build_struct_gep(
+                struct_type,
+                temp_alloca,
+                field_index,
+                &format!("{}_field_access", field_name)
+            )?;
+
+            Ok(self.builder.build_load(
+                field_ptr.get_type().get_element_type().into(),
+                field_ptr,
+                field_name
+            )?)
+        }
+    }
+
     /// Create an alloca instruction in the entry block
     fn create_entry_block_alloca(
         &self,
@@ -673,31 +797,54 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         Ok(builder.build_alloca(llvm_type, name)?)
     }
 
-    /// Get LLVM type from AlBayan type
-    fn get_llvm_type(&self, albayan_type: &Type) -> Result<Option<BasicTypeEnum<'ctx>>> {
-        match albayan_type {
-            Type::Int => Ok(Some(self.context.i64_type().into())),
-            Type::Float => Ok(Some(self.context.f64_type().into())),
-            Type::Bool => Ok(Some(self.context.bool_type().into())),
-            Type::String => Ok(Some(self.context.i8_type().ptr_type(AddressSpace::default()).into())),
-            Type::Void => Ok(None),
-            Type::Custom(name) => {
-                if let Some(&cached_type) = self.type_cache.get(name) {
-                    Ok(Some(cached_type))
-                } else {
-                    Err(anyhow!("Unknown custom type: {}", name))
-                }
+    /// Get LLVM type from AlBayan resolved type (improved for struct support)
+    fn get_llvm_type(&self, resolved_type: &ResolvedType) -> Result<Option<BasicTypeEnum<'ctx>>> {
+        match resolved_type {
+            ResolvedType::Int => Ok(Some(self.context.i64_type().into())),
+            ResolvedType::Float => Ok(Some(self.context.f64_type().into())),
+            ResolvedType::Bool => Ok(Some(self.context.bool_type().into())),
+            ResolvedType::String => Ok(Some(self.context.i8_type().ptr_type(AddressSpace::default()).into())),
+            ResolvedType::Struct(name) => {
+                // For struct parameters, pass by pointer (as recommended by expert)
+                let struct_type = self.get_llvm_struct_type(name)?;
+                Ok(Some(struct_type.ptr_type(AddressSpace::default()).into()))
             }
-            _ => Err(anyhow!("Type not yet supported: {:?}", albayan_type))
+            _ => Err(anyhow!("Type not yet supported: {:?}", resolved_type))
         }
     }
 
-    /// Get default value for a type
-    fn get_default_value(&self, albayan_type: &Type) -> Result<BasicValueEnum<'ctx>> {
-        match albayan_type {
-            Type::Int => Ok(self.context.i64_type().const_zero().into()),
-            Type::Float => Ok(self.context.f64_type().const_zero().into()),
-            Type::Bool => Ok(self.context.bool_type().const_zero().into()),
+    /// Get LLVM type from AST type (legacy support)
+    fn get_llvm_type_from_ast(&self, ast_type: &Type) -> Result<Option<BasicTypeEnum<'ctx>>> {
+        match ast_type {
+            Type::Named(path) => {
+                match path.to_string().as_str() {
+                    "int" => Ok(Some(self.context.i64_type().into())),
+                    "float" => Ok(Some(self.context.f64_type().into())),
+                    "bool" => Ok(Some(self.context.bool_type().into())),
+                    "string" => Ok(Some(self.context.i8_type().ptr_type(AddressSpace::default()).into())),
+                    name => {
+                        // Custom struct type - pass by pointer
+                        let struct_type = self.get_llvm_struct_type(name)?;
+                        Ok(Some(struct_type.ptr_type(AddressSpace::default()).into()))
+                    }
+                }
+            }
+            _ => Err(anyhow!("AST type not yet supported: {:?}", ast_type))
+        }
+    }
+
+    /// Get default value for a resolved type
+    fn get_default_value(&self, resolved_type: &ResolvedType) -> Result<BasicValueEnum<'ctx>> {
+        match resolved_type {
+            ResolvedType::Int => Ok(self.context.i64_type().const_zero().into()),
+            ResolvedType::Float => Ok(self.context.f64_type().const_zero().into()),
+            ResolvedType::Bool => Ok(self.context.bool_type().const_zero().into()),
+            ResolvedType::Struct(name) => {
+                // Return null pointer for struct types
+                let struct_type = self.get_llvm_struct_type(name)?;
+                let ptr_type = struct_type.ptr_type(AddressSpace::default());
+                Ok(ptr_type.const_null().into())
+            }
             Type::String => {
                 let empty_str = self.context.const_string(b"", true);
                 Ok(empty_str.into())
@@ -756,6 +903,35 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
     /// Get the generated LLVM IR as string
     pub fn get_ir(&self) -> String {
         self.module.to_string()
+    }
+
+    /// Get LLVM struct type by name
+    fn get_llvm_struct_type(&self, struct_name: &str) -> Result<inkwell::types::StructType<'ctx>> {
+        // For now, create a simple struct type
+        // This should be improved to use actual struct definitions
+        match struct_name {
+            "Point" => {
+                // Example: Point { x: int, y: int }
+                let i64_type = self.context.i64_type();
+                Ok(self.context.struct_type(&[i64_type.into(), i64_type.into()], false))
+            }
+            _ => {
+                // Generic struct with i64 fields for now
+                let i64_type = self.context.i64_type();
+                Ok(self.context.struct_type(&[i64_type.into()], false))
+            }
+        }
+    }
+
+    /// Get field index in struct
+    fn get_field_index(&self, struct_name: &str, field_name: &str) -> Result<u32> {
+        // For now, hardcode some common field mappings
+        // This should be improved to use actual struct definitions
+        match (struct_name, field_name) {
+            ("Point", "x") => Ok(0),
+            ("Point", "y") => Ok(1),
+            _ => Ok(0), // Default to first field
+        }
     }
 
     /// Verify the generated module

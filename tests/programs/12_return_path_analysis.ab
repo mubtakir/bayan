@@ -1,0 +1,30 @@
+// Test 12: Return path analysis (as recommended by expert)
+// Expected output: 42
+
+fn test_if_else_return(x: int) -> int {
+    if x > 0 {
+        return x;
+    } else {
+        return 0;
+    }
+    // This line should be detected as unreachable
+    // let unreachable = 1;
+}
+
+fn test_nested_if(x: int, y: int) -> int {
+    if x > 0 {
+        if y > 0 {
+            return x + y;
+        } else {
+            return x;
+        }
+    } else {
+        return 0;
+    }
+}
+
+fn main() -> int {
+    let result1 = test_if_else_return(10);
+    let result2 = test_nested_if(20, 22);
+    return result1 + result2;
+}

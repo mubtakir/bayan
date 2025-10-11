@@ -1,0 +1,21 @@
+// Test 13: Struct parameters (as recommended by expert)
+// Expected output: 25
+
+struct Rectangle {
+    width: int;
+    height: int;
+}
+
+fn calculate_area(rect: Rectangle) -> int {
+    return rect.width * rect.height;
+}
+
+fn create_rectangle(w: int, h: int) -> Rectangle {
+    return Rectangle { width: w, height: h };
+}
+
+fn main() -> int {
+    let my_rect = create_rectangle(5, 5);
+    let area = calculate_area(my_rect);
+    return area;
+}
