@@ -450,17 +450,18 @@ impl SemanticAnalyzer {
 
     /// Analyze a struct literal expression (as recommended by expert)
     fn analyze_struct_literal(&mut self, struct_expr: &StructExpression) -> Result<AnnotatedExpression, SemanticError> {
-        // Look up struct definition in TypeSystem
-        let struct_info = self.symbol_table.lookup_type(&struct_expr.name)
-            .ok_or_else(|| SemanticError::UndefinedType(struct_expr.name.clone()))?;
+        // Look up struct definition in TypeSystem and clone the fields
+        let struct_fields = {
+            let struct_info = self.symbol_table.lookup_type(&struct_expr.name)
+                .ok_or_else(|| SemanticError::UndefinedType(struct_expr.name.clone()))?;
 
-        // Get struct fields from type info
-        let struct_fields = match &struct_info.kind {
-            symbol_table::TypeKind::Struct(fields) => fields,
-            _ => return Err(SemanticError::TypeMismatch {
-                expected: ResolvedType::Struct(struct_expr.name.clone()),
-                found: ResolvedType::String, // placeholder
-            }),
+            match &struct_info.kind {
+                symbol_table::TypeKind::Struct(fields) => fields.clone(),
+                _ => return Err(SemanticError::TypeMismatch {
+                    expected: ResolvedType::Struct(struct_expr.name.clone()),
+                    found: ResolvedType::String, // placeholder
+                }),
+            }
         };
 
         // Check that all required fields are provided
@@ -556,7 +557,7 @@ impl SemanticAnalyzer {
 
     /// Analyze return path in a block (improved as recommended by expert)
     /// Returns true if the block guarantees a return on ALL possible execution paths
-    fn analyze_block_for_return(&mut self, block: &Block, func_ret_type: &Type) -> Result<bool, SemanticError> {
+    fn analyze_block_for_return(&mut self, block: &Block, func_ret_type: &ResolvedType) -> Result<bool, SemanticError> {
         let mut guarantees_return = false;
         let mut found_unreachable = false;
 
@@ -583,7 +584,7 @@ impl SemanticAnalyzer {
 
     /// Analyze if a statement guarantees a return (improved as recommended by expert)
     /// Returns true only if ALL possible execution paths through this statement end with return
-    fn analyze_statement_for_return(&mut self, stmt: &Statement, func_ret_type: &Type) -> Result<bool, SemanticError> {
+    fn analyze_statement_for_return(&mut self, stmt: &Statement, func_ret_type: &ResolvedType) -> Result<bool, SemanticError> {
         match stmt {
             Statement::Return(_) => {
                 // Direct return statement always guarantees return
@@ -596,19 +597,7 @@ impl SemanticAnalyzer {
                 let then_guarantees = self.analyze_block_for_return(&if_stmt.then_block, func_ret_type)?;
 
                 if let Some(else_block) = &if_stmt.else_block {
-                    let else_guarantees = match else_block {
-                        Statement::Block(block) => {
-                            self.analyze_block_for_return(block, func_ret_type)?
-                        }
-                        Statement::If(_) => {
-                            // Nested if-else chain
-                            self.analyze_statement_for_return(else_block, func_ret_type)?
-                        }
-                        _ => {
-                            // Single statement in else
-                            self.analyze_statement_for_return(else_block, func_ret_type)?
-                        }
-                    };
+                    let else_guarantees = self.analyze_block_for_return(else_block, func_ret_type)?;
 
                     // Both branches must guarantee return
                     Ok(then_guarantees && else_guarantees)
@@ -640,8 +629,7 @@ impl SemanticAnalyzer {
                 Ok(false)
             }
             Statement::Expression(_) |
-            Statement::Let(_) |
-            Statement::Assignment(_, _) => {
+            Statement::Let(_) => {
                 // These statements never guarantee return
                 Ok(false)
             }

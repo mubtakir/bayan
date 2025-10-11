@@ -1,5 +1,5 @@
 //! # Parser Module
-//! 
+//!
 //! This module implements the parser for the AlBayan programming language.
 //! It converts a stream of tokens into an Abstract Syntax Tree (AST).
 
@@ -23,23 +23,23 @@ impl Parser {
             current: 0,
         }
     }
-    
+
     /// Parse the tokens into an AST
     pub fn parse(&mut self) -> Result<Program, ParseError> {
         let mut items = Vec::new();
-        
+
         while !self.is_at_end() {
             if self.match_token(&TokenType::Newline) {
                 continue; // Skip newlines at top level
             }
-            
+
             let item = self.parse_item()?;
             items.push(item);
         }
-        
+
         Ok(Program { items })
     }
-    
+
     /// Parse a top-level item (function, struct, relation, etc.)
     fn parse_item(&mut self) -> Result<Item, ParseError> {
         match &self.peek().token_type {
@@ -59,43 +59,43 @@ impl Parser {
             }),
         }
     }
-    
+
     /// Parse a function declaration
     fn parse_function(&mut self) -> Result<Item, ParseError> {
         self.consume(&TokenType::Fn, "Expected 'fn'")?;
-        
+
         let name = self.consume_identifier("Expected function name")?;
-        
+
         self.consume(&TokenType::LeftParen, "Expected '(' after function name")?;
-        
+
         let mut parameters = Vec::new();
         if !self.check(&TokenType::RightParen) {
             loop {
                 let param_name = self.consume_identifier("Expected parameter name")?;
                 self.consume(&TokenType::Colon, "Expected ':' after parameter name")?;
                 let param_type = self.parse_type()?;
-                
+
                 parameters.push(Parameter {
                     name: param_name,
                     param_type: param_type,
                 });
-                
+
                 if !self.match_token(&TokenType::Comma) {
                     break;
                 }
             }
         }
-        
+
         self.consume(&TokenType::RightParen, "Expected ')' after parameters")?;
-        
+
         let return_type = if self.match_token(&TokenType::Arrow) {
             Some(self.parse_type()?)
         } else {
             None
         };
-        
+
         let body = self.parse_block()?;
-        
+
         Ok(Item::Function(FunctionDecl {
             name,
             parameters,
@@ -103,109 +103,119 @@ impl Parser {
             body,
         }))
     }
-    
+
     /// Parse a struct declaration
     fn parse_struct(&mut self) -> Result<Item, ParseError> {
         self.consume(&TokenType::Struct, "Expected 'struct'")?;
         let name = self.consume_identifier("Expected struct name")?;
-        
+
         self.consume(&TokenType::LeftBrace, "Expected '{' after struct name")?;
-        
+
         let mut fields = Vec::new();
         while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
+            // Skip newlines
+            while self.check(&TokenType::Newline) {
+                self.advance();
+            }
+
+            // Check again after skipping newlines
+            if self.check(&TokenType::RightBrace) || self.is_at_end() {
+                break;
+            }
+
             let field_name = self.consume_identifier("Expected field name")?;
             self.consume(&TokenType::Colon, "Expected ':' after field name")?;
             let field_type = self.parse_type()?;
             self.consume(&TokenType::Semicolon, "Expected ';' after field")?;
-            
+
             fields.push(StructField {
                 name: field_name,
                 field_type: field_type,
             });
         }
-        
+
         self.consume(&TokenType::RightBrace, "Expected '}' after struct fields")?;
-        
+
         Ok(Item::Struct(StructDecl { name, fields }))
     }
-    
+
     /// Parse a relation declaration
     fn parse_relation(&mut self) -> Result<Item, ParseError> {
         self.consume(&TokenType::Relation, "Expected 'relation'")?;
         let name = self.consume_identifier("Expected relation name")?;
-        
+
         self.consume(&TokenType::LeftParen, "Expected '(' after relation name")?;
-        
+
         let mut arg_types = Vec::new();
         if !self.check(&TokenType::RightParen) {
             loop {
                 let arg_type = self.parse_type()?;
                 arg_types.push(arg_type);
-                
+
                 if !self.match_token(&TokenType::Comma) {
                     break;
                 }
             }
         }
-        
+
         self.consume(&TokenType::RightParen, "Expected ')' after relation arguments")?;
         self.consume(&TokenType::Semicolon, "Expected ';' after relation declaration")?;
-        
+
         Ok(Item::Relation(RelationDecl { name, arg_types }))
     }
-    
+
     /// Parse a rule declaration
     fn parse_rule(&mut self) -> Result<Item, ParseError> {
         self.consume(&TokenType::Rule, "Expected 'rule'")?;
-        
+
         let head = self.parse_logic_term()?;
         self.consume(&TokenType::Implies, "Expected ':-' in rule")?;
-        
+
         let mut body = Vec::new();
         loop {
             let term = self.parse_logic_term()?;
             body.push(term);
-            
+
             if !self.match_token(&TokenType::Comma) {
                 break;
             }
         }
-        
+
         self.consume(&TokenType::Semicolon, "Expected ';' after rule")?;
-        
+
         Ok(Item::Rule(RuleDecl { head, body }))
     }
-    
+
     /// Parse a logic term (for relations, rules, queries)
     fn parse_logic_term(&mut self) -> Result<LogicTerm, ParseError> {
         let name = self.consume_identifier("Expected term name")?;
-        
+
         self.consume(&TokenType::LeftParen, "Expected '(' after term name")?;
-        
+
         let mut args = Vec::new();
         if !self.check(&TokenType::RightParen) {
             loop {
                 let arg = self.parse_logic_arg()?;
                 args.push(arg);
-                
+
                 if !self.match_token(&TokenType::Comma) {
                     break;
                 }
             }
         }
-        
+
         self.consume(&TokenType::RightParen, "Expected ')' after term arguments")?;
-        
+
         Ok(LogicTerm { name, args })
     }
-    
+
     /// Parse a logic argument (variable or constant)
     fn parse_logic_arg(&mut self) -> Result<LogicArg, ParseError> {
         match &self.peek().token_type {
             TokenType::Identifier(name) => {
                 let name = name.clone();
                 self.advance();
-                
+
                 // Variables start with uppercase, constants with lowercase
                 if name.chars().next().unwrap().is_uppercase() {
                     Ok(LogicArg::Variable(name))
@@ -229,14 +239,14 @@ impl Parser {
             }),
         }
     }
-    
+
     /// Parse a type annotation
     fn parse_type(&mut self) -> Result<Type, ParseError> {
         match &self.peek().token_type {
             TokenType::Identifier(name) => {
                 let name = name.clone();
                 self.advance();
-                Ok(Type::Named(name))
+                Ok(Type::Named(Path::single(name)))
             }
             _ => Err(ParseError::UnexpectedToken {
                 expected: "type".to_string(),
@@ -244,11 +254,11 @@ impl Parser {
             }),
         }
     }
-    
+
     /// Parse a block statement
     fn parse_block(&mut self) -> Result<Block, ParseError> {
         self.consume(&TokenType::LeftBrace, "Expected '{'")?;
-        
+
         let mut statements = Vec::new();
         while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
             if self.match_token(&TokenType::Newline) {
@@ -257,12 +267,12 @@ impl Parser {
             let stmt = self.parse_statement()?;
             statements.push(stmt);
         }
-        
+
         self.consume(&TokenType::RightBrace, "Expected '}'")?;
-        
+
         Ok(Block { statements })
     }
-    
+
     /// Parse a statement
     fn parse_statement(&mut self) -> Result<Statement, ParseError> {
         match &self.peek().token_type {
@@ -339,67 +349,67 @@ impl Parser {
             right: Box::new(value),
         })))
     }
-    
+
     /// Parse a let statement
     fn parse_let_statement(&mut self) -> Result<Statement, ParseError> {
         self.consume(&TokenType::Let, "Expected 'let'")?;
         let name = self.consume_identifier("Expected variable name")?;
-        
+
         let var_type = if self.match_token(&TokenType::Colon) {
             Some(self.parse_type()?)
         } else {
             None
         };
-        
+
         let initializer = if self.match_token(&TokenType::Assign) {
             Some(self.parse_expression()?)
         } else {
             None
         };
-        
+
         self.consume(&TokenType::Semicolon, "Expected ';' after let statement")?;
-        
+
         Ok(Statement::Let(LetStatement {
             name,
             var_type,
             initializer,
         }))
     }
-    
+
     /// Parse a return statement
     fn parse_return_statement(&mut self) -> Result<Statement, ParseError> {
         self.consume(&TokenType::Return, "Expected 'return'")?;
-        
+
         let value = if !self.check(&TokenType::Semicolon) {
             Some(self.parse_expression()?)
         } else {
             None
         };
-        
+
         self.consume(&TokenType::Semicolon, "Expected ';' after return")?;
-        
+
         Ok(Statement::Return(ReturnStatement { value }))
     }
-    
+
     /// Parse an if statement
     fn parse_if_statement(&mut self) -> Result<Statement, ParseError> {
         self.consume(&TokenType::If, "Expected 'if'")?;
         let condition = self.parse_expression()?;
         let then_block = self.parse_block()?;
-        
+
         let else_block = if self.match_token(&TokenType::Else) {
             Some(self.parse_block()?)
         } else {
             None
         };
-        
+
         Ok(Statement::If(IfStatement {
             condition,
             then_block,
             else_block,
         }))
     }
-    
+
     /// Parse an expression
     fn parse_expression(&mut self) -> Result<Expression, ParseError> {
         self.parse_logical_or()
@@ -436,11 +446,11 @@ impl Parser {
 
         Ok(expr)
     }
-    
+
     /// Parse equality expressions (==, !=)
     fn parse_equality(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.parse_comparison()?;
-        
+
         while self.match_tokens(&[TokenType::Equal, TokenType::NotEqual]) {
             let operator = self.previous().token_type.clone();
             let right = self.parse_comparison()?;
@@ -454,14 +464,14 @@ impl Parser {
                 right: Box::new(right),
             });
         }
-        
+
         Ok(expr)
     }
-    
+
     /// Parse comparison expressions (<, <=, >, >=)
     fn parse_comparison(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.parse_term()?;
-        
+
         while self.match_tokens(&[TokenType::Greater, TokenType::GreaterEqual, TokenType::Less, TokenType::LessEqual]) {
             let operator = self.previous().token_type.clone();
             let right = self.parse_term()?;
@@ -477,14 +487,14 @@ impl Parser {
                 right: Box::new(right),
             });
         }
-        
+
         Ok(expr)
     }
-    
+
     /// Parse term expressions (+, -)
     fn parse_term(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.parse_factor()?;
-        
+
         while self.match_tokens(&[TokenType::Minus, TokenType::Plus]) {
             let operator = self.previous().token_type.clone();
             let right = self.parse_factor()?;
@@ -498,10 +508,10 @@ impl Parser {
                 right: Box::new(right),
             });
         }
-        
+
         Ok(expr)
     }
-    
+
     /// Parse factor expressions (*, /, %)
     fn parse_factor(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.parse_unary()?;
@@ -523,7 +533,7 @@ impl Parser {
 
         Ok(expr)
     }
-    
+
     /// Parse unary expressions (!, -)
     fn parse_unary(&mut self) -> Result<Expression, ParseError> {
         if self.match_tokens(&[TokenType::Not, TokenType::Minus]) {
@@ -538,10 +548,10 @@ impl Parser {
                 operand: Box::new(right),
             }));
         }
-        
+
         self.parse_primary()
     }
-    
+
     /// Parse primary expressions (literals, identifiers, parentheses)
     fn parse_primary(&mut self) -> Result<Expression, ParseError> {
         let mut expr = match &self.peek().token_type {
@@ -580,7 +590,29 @@ impl Parser {
             TokenType::Identifier(name) => {
                 let name = name.clone();
                 self.advance();
-                Expression::Identifier(name)
+
+                // Check if this is a struct literal
+                if self.check(&TokenType::LeftBrace) {
+                    self.advance(); // consume '{'
+
+                    let mut fields = Vec::new();
+                    while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
+                        let field_name = self.consume_identifier("Expected field name")?;
+                        self.consume(&TokenType::Colon, "Expected ':' after field name")?;
+                        let field_value = self.parse_expression()?;
+
+                        fields.push((field_name, field_value));
+
+                        if !self.match_token(&TokenType::Comma) {
+                            break;
+                        }
+                    }
+
+                    self.consume(&TokenType::RightBrace, "Expected '}' after struct fields")?;
+                    Expression::Struct(StructExpression { name, fields })
+                } else {
+                    Expression::Identifier(name)
+                }
             }
             TokenType::LeftParen => {
                 self.advance();
@@ -659,9 +691,9 @@ impl Parser {
 
         Ok(expr)
     }
-    
+
     // Helper methods for parsing
-    
+
     fn match_token(&mut self, token_type: &TokenType) -> bool {
         if self.check(token_type) {
             self.advance();
@@ -670,7 +702,7 @@ impl Parser {
             false
         }
     }
-    
+
     fn match_tokens(&mut self, token_types: &[TokenType]) -> bool {
         for token_type in token_types {
             if self.check(token_type) {
@@ -680,7 +712,7 @@ impl Parser {
         }
         false
     }
-    
+
     fn check(&self, token_type: &TokenType) -> bool {
         if self.is_at_end() {
             false
@@ -688,26 +720,26 @@ impl Parser {
             std::mem::discriminant(&self.peek().token_type) == std::mem::discriminant(token_type)
         }
     }
-    
+
     fn advance(&mut self) -> &Token {
         if !self.is_at_end() {
             self.current += 1;
         }
         self.previous()
     }
-    
+
     fn is_at_end(&self) -> bool {
         matches!(self.peek().token_type, TokenType::Eof)
     }
-    
+
     fn peek(&self) -> &Token {
         &self.tokens[self.current]
     }
-    
+
     fn previous(&self) -> &Token {
         &self.tokens[self.current - 1]
     }
-    
+
     fn consume(&mut self, token_type: &TokenType, message: &str) -> Result<&Token, ParseError> {
         if self.check(token_type) {
             Ok(self.advance())
@@ -718,7 +750,7 @@ impl Parser {
             })
         }
     }
-    
+
     fn consume_identifier(&mut self, message: &str) -> Result<String, ParseError> {
         match &self.peek().token_type {
             TokenType::Identifier(name) => {
@@ -732,7 +764,7 @@ impl Parser {
             }),
         }
     }
-    
+
     // Placeholder implementations for missing items
     fn parse_enum(&mut self) -> Result<Item, ParseError> {
         self.consume(&TokenType::Enum, "Expected 'enum'")?;
@@ -923,10 +955,10 @@ pub enum ParseError {
         expected: String,
         found: Token,
     },
-    
+
     #[error("Unexpected end of input")]
     UnexpectedEof,
-    
+
     #[error("Invalid syntax: {message}")]
     InvalidSyntax { message: String },
 }
@@ -937,7 +969,7 @@ pub enum ParseError {
 mod tests {
     use super::*;
     use crate::lexer::Lexer;
-    
+
     #[test]
     fn test_parse_simple_function() {
         let source = "fn main() { return 42; }";
@@ -945,7 +977,7 @@ mod tests {
         let tokens = lexer.tokenize().unwrap();
         let mut parser = Parser::new(tokens);
         let ast = parser.parse().unwrap();
-        
+
         assert_eq!(ast.items.len(), 1);
         assert!(matches!(ast.items[0], Item::Function(_)));
     }

@@ -1,5 +1,5 @@
 //! # Type Checker Implementation
-//! 
+//!
 //! This module implements type checking and type inference for the AlBayan language.
 
 use crate::parser::ast::*;
@@ -19,17 +19,17 @@ impl TypeChecker {
             current_function_return_type: None,
         }
     }
-    
+
     /// Set the current function return type
     pub fn set_function_return_type(&mut self, return_type: Option<ResolvedType>) {
         self.current_function_return_type = return_type;
     }
-    
+
     /// Resolve a type annotation to a concrete type
     pub fn resolve_type(&self, type_annotation: &Type) -> Result<ResolvedType, SemanticError> {
         match type_annotation {
             Type::Named(name) => {
-                match name.as_str() {
+                match name.to_string().as_str() {
                     "int" => Ok(ResolvedType::Int),
                     "float" => Ok(ResolvedType::Float),
                     "bool" => Ok(ResolvedType::Bool),
@@ -38,7 +38,7 @@ impl TypeChecker {
                     _ => {
                         // For user-defined types, we assume they exist
                         // (this should be validated by the symbol table)
-                        Ok(ResolvedType::Struct(name.clone()))
+                        Ok(ResolvedType::Struct(name.to_string()))
                     }
                 }
             }
@@ -47,7 +47,7 @@ impl TypeChecker {
                 for arg in args {
                     resolved_args.push(self.resolve_type(arg)?);
                 }
-                Ok(ResolvedType::Generic(name.clone(), resolved_args))
+                Ok(ResolvedType::Generic(name.to_string(), resolved_args))
             }
             Type::Function(params, ret) => {
                 let mut resolved_params = Vec::new();
@@ -60,7 +60,7 @@ impl TypeChecker {
             _ => todo!("Other type resolution not yet implemented"),
         }
     }
-    
+
     /// Infer the type of a literal
     pub fn infer_literal_type(&self, literal: &Literal) -> ResolvedType {
         match literal {
@@ -72,7 +72,7 @@ impl TypeChecker {
             Literal::Null => ResolvedType::Null,
         }
     }
-    
+
     /// Check if two types are compatible
     pub fn types_compatible(&self, expected: &ResolvedType, actual: &ResolvedType) -> bool {
         match (expected, actual) {
@@ -83,31 +83,31 @@ impl TypeChecker {
             (ResolvedType::String, ResolvedType::String) => true,
             (ResolvedType::Char, ResolvedType::Char) => true,
             (ResolvedType::Null, ResolvedType::Null) => true,
-            
+
             // Numeric coercion: int can be promoted to float
             (ResolvedType::Float, ResolvedType::Int) => true,
-            
+
             // Struct types
             (ResolvedType::Struct(name1), ResolvedType::Struct(name2)) => name1 == name2,
             (ResolvedType::Enum(name1), ResolvedType::Enum(name2)) => name1 == name2,
-            
+
             // Generic types
             (ResolvedType::Generic(name1, args1), ResolvedType::Generic(name2, args2)) => {
                 name1 == name2 && args1.len() == args2.len() &&
                 args1.iter().zip(args2.iter()).all(|(a1, a2)| self.types_compatible(a1, a2))
             }
-            
+
             // Function types
             (ResolvedType::Function(params1, ret1), ResolvedType::Function(params2, ret2)) => {
                 params1.len() == params2.len() &&
                 params1.iter().zip(params2.iter()).all(|(p1, p2)| self.types_compatible(p1, p2)) &&
                 self.types_compatible(ret1, ret2)
             }
-            
+
             _ => false,
         }
     }
-    
+
     /// Check a binary operation and return the result type
     pub fn check_binary_operation(
         &self,
@@ -117,15 +117,15 @@ impl TypeChecker {
     ) -> Result<ResolvedType, SemanticError> {
         match operator {
             // Arithmetic operations
-            BinaryOperator::Add | BinaryOperator::Subtract | 
-            BinaryOperator::Multiply | BinaryOperator::Divide | 
+            BinaryOperator::Add | BinaryOperator::Subtract |
+            BinaryOperator::Multiply | BinaryOperator::Divide |
             BinaryOperator::Modulo | BinaryOperator::Power => {
                 self.check_arithmetic_operation(operator, left_type, right_type)
             }
-            
+
             // Comparison operations
             BinaryOperator::Equal | BinaryOperator::NotEqual => {
-                if self.types_compatible(left_type, right_type) || 
+                if self.types_compatible(left_type, right_type) ||
                    self.types_compatible(right_type, left_type) {
                     Ok(ResolvedType::Bool)
                 } else {
@@ -136,12 +136,12 @@ impl TypeChecker {
                     ))
                 }
             }
-            
+
             BinaryOperator::Less | BinaryOperator::LessEqual |
             BinaryOperator::Greater | BinaryOperator::GreaterEqual => {
                 self.check_comparison_operation(operator, left_type, right_type)
             }
-            
+
             // Logical operations
             BinaryOperator::And | BinaryOperator::Or => {
                 if matches!(left_type, ResolvedType::Bool) && matches!(right_type, ResolvedType::Bool) {
@@ -154,7 +154,7 @@ impl TypeChecker {
                     ))
                 }
             }
-            
+
             // Assignment operations
             BinaryOperator::Assign => {
                 if self.types_compatible(left_type, right_type) {
@@ -166,7 +166,7 @@ impl TypeChecker {
                     })
                 }
             }
-            
+
             BinaryOperator::AddAssign | BinaryOperator::SubtractAssign |
             BinaryOperator::MultiplyAssign | BinaryOperator::DivideAssign => {
                 // For compound assignment, check the operation first
@@ -177,9 +177,9 @@ impl TypeChecker {
                     BinaryOperator::DivideAssign => BinaryOperator::Divide,
                     _ => unreachable!(),
                 };
-                
+
                 let result_type = self.check_binary_operation(&base_op, left_type, right_type)?;
-                
+
                 if self.types_compatible(left_type, &result_type) {
                     Ok(left_type.clone())
                 } else {
@@ -191,7 +191,7 @@ impl TypeChecker {
             }
         }
     }
-    
+
     /// Check arithmetic operations (+, -, *, /, %, **)
     fn check_arithmetic_operation(
         &self,
@@ -202,19 +202,19 @@ impl TypeChecker {
         match (left_type, right_type) {
             // Integer operations
             (ResolvedType::Int, ResolvedType::Int) => Ok(ResolvedType::Int),
-            
+
             // Float operations
             (ResolvedType::Float, ResolvedType::Float) => Ok(ResolvedType::Float),
-            
+
             // Mixed int/float operations (promote to float)
-            (ResolvedType::Int, ResolvedType::Float) | 
+            (ResolvedType::Int, ResolvedType::Float) |
             (ResolvedType::Float, ResolvedType::Int) => Ok(ResolvedType::Float),
-            
+
             // String concatenation (only for +)
             (ResolvedType::String, ResolvedType::String) if matches!(operator, BinaryOperator::Add) => {
                 Ok(ResolvedType::String)
             }
-            
+
             _ => Err(SemanticError::InvalidBinaryOperation(
                 operator.clone(),
                 left_type.clone(),
@@ -222,7 +222,7 @@ impl TypeChecker {
             )),
         }
     }
-    
+
     /// Check comparison operations (<, <=, >, >=)
     fn check_comparison_operation(
         &self,
@@ -236,13 +236,13 @@ impl TypeChecker {
             (ResolvedType::Float, ResolvedType::Float) |
             (ResolvedType::Int, ResolvedType::Float) |
             (ResolvedType::Float, ResolvedType::Int) => Ok(ResolvedType::Bool),
-            
+
             // String comparisons
             (ResolvedType::String, ResolvedType::String) => Ok(ResolvedType::Bool),
-            
+
             // Character comparisons
             (ResolvedType::Char, ResolvedType::Char) => Ok(ResolvedType::Bool),
-            
+
             _ => Err(SemanticError::InvalidBinaryOperation(
                 operator.clone(),
                 left_type.clone(),
@@ -250,7 +250,7 @@ impl TypeChecker {
             )),
         }
     }
-    
+
     /// Check a unary operation and return the result type
     pub fn check_unary_operation(
         &self,
@@ -268,7 +268,7 @@ impl TypeChecker {
                     })
                 }
             }
-            
+
             UnaryOperator::Negate => {
                 match operand_type {
                     ResolvedType::Int => Ok(ResolvedType::Int),
@@ -279,19 +279,19 @@ impl TypeChecker {
                     }),
                 }
             }
-            
+
             UnaryOperator::Reference => {
                 // TODO: Implement reference types
                 todo!("Reference types not yet implemented")
             }
-            
+
             UnaryOperator::Dereference => {
                 // TODO: Implement reference types
                 todo!("Reference types not yet implemented")
             }
         }
     }
-    
+
     /// Check function call and return the result type
     pub fn check_function_call(
         &self,
@@ -307,7 +307,7 @@ impl TypeChecker {
                         found: argument_types.len(),
                     });
                 }
-                
+
                 for (param_type, arg_type) in param_types.iter().zip(argument_types.iter()) {
                     if !self.types_compatible(param_type, arg_type) {
                         return Err(SemanticError::TypeMismatch {
@@ -316,7 +316,7 @@ impl TypeChecker {
                         });
                     }
                 }
-                
+
                 Ok((**return_type).clone())
             }
             _ => Err(SemanticError::TypeMismatch {
@@ -325,7 +325,7 @@ impl TypeChecker {
             }),
         }
     }
-    
+
     /// Check if a type can be used in a boolean context
     pub fn is_truthy_type(&self, type_: &ResolvedType) -> bool {
         match type_ {
@@ -334,7 +334,7 @@ impl TypeChecker {
             _ => false, // Other types need explicit conversion
         }
     }
-    
+
     /// Get the common type for two types (for type inference)
     pub fn common_type(&self, type1: &ResolvedType, type2: &ResolvedType) -> Option<ResolvedType> {
         if self.types_compatible(type1, type2) {
@@ -344,7 +344,7 @@ impl TypeChecker {
         } else {
             // Special cases for numeric promotion
             match (type1, type2) {
-                (ResolvedType::Int, ResolvedType::Float) | 
+                (ResolvedType::Int, ResolvedType::Float) |
                 (ResolvedType::Float, ResolvedType::Int) => Some(ResolvedType::Float),
                 _ => None,
             }
@@ -414,37 +414,37 @@ impl TypeChecker {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_literal_type_inference() {
         let type_checker = TypeChecker::new();
-        
+
         assert_eq!(type_checker.infer_literal_type(&Literal::Integer(42)), ResolvedType::Int);
         assert_eq!(type_checker.infer_literal_type(&Literal::Float(3.14)), ResolvedType::Float);
         assert_eq!(type_checker.infer_literal_type(&Literal::Boolean(true)), ResolvedType::Bool);
         assert_eq!(type_checker.infer_literal_type(&Literal::String("hello".to_string())), ResolvedType::String);
     }
-    
+
     #[test]
     fn test_type_compatibility() {
         let type_checker = TypeChecker::new();
-        
+
         // Exact matches
         assert!(type_checker.types_compatible(&ResolvedType::Int, &ResolvedType::Int));
         assert!(type_checker.types_compatible(&ResolvedType::String, &ResolvedType::String));
-        
+
         // Numeric promotion
         assert!(type_checker.types_compatible(&ResolvedType::Float, &ResolvedType::Int));
         assert!(!type_checker.types_compatible(&ResolvedType::Int, &ResolvedType::Float));
-        
+
         // Incompatible types
         assert!(!type_checker.types_compatible(&ResolvedType::Int, &ResolvedType::String));
     }
-    
+
     #[test]
     fn test_arithmetic_operations() {
         let type_checker = TypeChecker::new();
-        
+
         // Integer arithmetic
         let result = type_checker.check_binary_operation(
             &BinaryOperator::Add,
@@ -452,7 +452,7 @@ mod tests {
             &ResolvedType::Int,
         );
         assert_eq!(result.unwrap(), ResolvedType::Int);
-        
+
         // Mixed arithmetic (should promote to float)
         let result = type_checker.check_binary_operation(
             &BinaryOperator::Add,
@@ -460,7 +460,7 @@ mod tests {
             &ResolvedType::Float,
         );
         assert_eq!(result.unwrap(), ResolvedType::Float);
-        
+
         // String concatenation
         let result = type_checker.check_binary_operation(
             &BinaryOperator::Add,
@@ -469,11 +469,11 @@ mod tests {
         );
         assert_eq!(result.unwrap(), ResolvedType::String);
     }
-    
+
     #[test]
     fn test_comparison_operations() {
         let type_checker = TypeChecker::new();
-        
+
         // Numeric comparison
         let result = type_checker.check_binary_operation(
             &BinaryOperator::Less,
@@ -481,7 +481,7 @@ mod tests {
             &ResolvedType::Int,
         );
         assert_eq!(result.unwrap(), ResolvedType::Bool);
-        
+
         // String comparison
         let result = type_checker.check_binary_operation(
             &BinaryOperator::Equal,
