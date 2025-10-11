@@ -1,0 +1,325 @@
+// تطبيق معادلة الشكل h(a, b, d) - عرض توضيحي
+// Shape Equation h(a, b, d) Implementation - Demo
+
+// ========== تطبيق معادلة h(a, b, d) ==========
+// Implementation of h(a, b, d) Equation
+
+// تطبيق معادلة h(a, b, d) كما ذكرت في ba.md
+fn evaluate_h_equation(property_a: float, property_b: float, shape_value: float) -> float {
+    // معادلة h(a, b, d) = f(a, b) × g(d)
+    let property_factor = property_a * property_b;
+    let shape_factor = 1.0 + shape_value;
+    
+    return property_factor * shape_factor;
+}
+
+// حساب دالة الشكل للمستطيل
+fn calculate_rectangle_shape(center_x: float, center_y: float, width: float, height: float, x: float, y: float) -> float {
+    if width == 0.0 || height == 0.0 {
+        return 0.0;
+    }
+    
+    let dx = (x - center_x) / width;
+    let dy = (y - center_y) / height;
+    
+    return dx * dx + dy * dy;
+}
+
+// حساب دالة الشكل للدائرة
+fn calculate_circle_shape(center_x: float, center_y: float, radius: float, x: float, y: float) -> float {
+    let dx = x - center_x;
+    let dy = y - center_y;
+    
+    return (dx * dx + dy * dy) - (radius * radius);
+}
+
+// حساب دالة الشكل للمثلث
+fn calculate_triangle_shape(base: float, height: float, x: float, y: float) -> float {
+    if base == 0.0 || height == 0.0 {
+        return 0.0;
+    }
+    
+    return (x / base) + (y / height);
+}
+
+// حساب مساحة المستطيل
+fn calculate_rectangle_area(width: float, height: float) -> float {
+    return width * height;
+}
+
+// حساب مساحة الدائرة
+fn calculate_circle_area(radius: float) -> float {
+    return 3.14159 * radius * radius;
+}
+
+// حساب مساحة المثلث
+fn calculate_triangle_area(base: float, height: float) -> float {
+    return 0.5 * base * height;
+}
+
+// تحويل الشكل (تكبير)
+fn scale_rectangle(width: float, height: float, scale_factor: float) -> string {
+    let new_width = width * scale_factor;
+    let new_height = height * scale_factor;
+    
+    return "مستطيل_جديد: عرض=" + string(new_width) + ", ارتفاع=" + string(new_height);
+}
+
+// تحريك الشكل
+fn move_shape(center_x: float, center_y: float, move_x: float, move_y: float) -> string {
+    let new_x = center_x + move_x;
+    let new_y = center_y + move_y;
+    
+    return "موقع_جديد: (" + string(new_x) + ", " + string(new_y) + ")";
+}
+
+// دمج خصائص شكلين
+fn combine_properties(prop1_a: float, prop1_b: float, prop2_a: float, prop2_b: float) -> string {
+    let combined_a = prop1_a + prop2_a;
+    let combined_b = prop1_b + prop2_b;
+    
+    return "خصائص_مدمجة: a=" + string(combined_a) + ", b=" + string(combined_b);
+}
+
+// حساب الخصائص الناشئة
+fn calculate_emergent_properties(individual_count: int, average_property: float) -> float {
+    let synergy_factor = 1.0 + (float(individual_count) * 0.1);
+    let interaction_bonus = float(individual_count - 1) * 5.0;
+    
+    return (float(individual_count) * average_property * synergy_factor) + interaction_bonus;
+}
+
+// ========== أمثلة تطبيقية ==========
+// Application Examples
+
+fn example_basic_h_equation() -> int {
+    print("📐 === مثال أساسي لمعادلة h(a, b, d) ===");
+    print("");
+    
+    // خصائص الكائن
+    let property_a = 10.0; // مثلاً: الطول
+    let property_b = 5.0;  // مثلاً: العرض
+    
+    // حساب دالة الشكل للمستطيل
+    let shape_d = calculate_rectangle_shape(0.0, 0.0, 8.0, 4.0, 2.0, 1.0);
+    
+    // تطبيق معادلة h(a, b, d)
+    let result = evaluate_h_equation(property_a, property_b, shape_d);
+    
+    print("🧮 تطبيق معادلة h(a, b, d):");
+    print("   الخاصية a: " + string(property_a));
+    print("   الخاصية b: " + string(property_b));
+    print("   دالة الشكل d: " + string(shape_d));
+    print("   النتيجة: h(10, 5, " + string(shape_d) + ") = " + string(result));
+    print("");
+    
+    return 0;
+}
+
+fn example_different_shapes() -> int {
+    print("🔷 === أشكال مختلفة ===");
+    print("");
+    
+    let property_a = 15.0;
+    let property_b = 8.0;
+    let test_x = 1.0;
+    let test_y = 1.0;
+    
+    // مستطيل
+    let rect_shape = calculate_rectangle_shape(0.0, 0.0, 6.0, 3.0, test_x, test_y);
+    let rect_result = evaluate_h_equation(property_a, property_b, rect_shape);
+    
+    // دائرة
+    let circle_shape = calculate_circle_shape(0.0, 0.0, 4.0, test_x, test_y);
+    let circle_result = evaluate_h_equation(property_a, property_b, circle_shape);
+    
+    // مثلث
+    let triangle_shape = calculate_triangle_shape(6.0, 4.0, test_x, test_y);
+    let triangle_result = evaluate_h_equation(property_a, property_b, triangle_shape);
+    
+    print("📊 مقارنة الأشكال:");
+    print("   المستطيل: h(15, 8, مستطيل) = " + string(rect_result));
+    print("   الدائرة: h(15, 8, دائرة) = " + string(circle_result));
+    print("   المثلث: h(15, 8, مثلث) = " + string(triangle_result));
+    print("");
+    
+    return 0;
+}
+
+fn example_shape_areas() -> int {
+    print("📏 === مساحات الأشكال ===");
+    print("");
+    
+    // حساب مساحات مختلفة
+    let rect_area = calculate_rectangle_area(8.0, 4.0);
+    let circle_area = calculate_circle_area(3.0);
+    let triangle_area = calculate_triangle_area(6.0, 4.0);
+    
+    print("📐 المساحات:");
+    print("   مستطيل (8×4): " + string(rect_area));
+    print("   دائرة (نصف قطر=3): " + string(circle_area));
+    print("   مثلث (قاعدة=6، ارتفاع=4): " + string(triangle_area));
+    print("");
+    
+    return 0;
+}
+
+fn example_shape_transformations() -> int {
+    print("🔄 === تحويلات الأشكال ===");
+    print("");
+    
+    // شكل أصلي
+    let original_width = 4.0;
+    let original_height = 2.0;
+    let original_area = calculate_rectangle_area(original_width, original_height);
+    
+    print("📏 الشكل الأصلي:");
+    print("   مستطيل: عرض=" + string(original_width) + ", ارتفاع=" + string(original_height));
+    print("   المساحة: " + string(original_area));
+    print("");
+    
+    // تكبير الشكل
+    let scaled_shape = scale_rectangle(original_width, original_height, 2.0);
+    let scaled_area = calculate_rectangle_area(original_width * 2.0, original_height * 2.0);
+    
+    print("🔍 بعد التكبير (×2):");
+    print("   " + scaled_shape);
+    print("   المساحة الجديدة: " + string(scaled_area));
+    print("");
+    
+    // تحريك الشكل
+    let moved_shape = move_shape(0.0, 0.0, 3.0, 2.0);
+    
+    print("➡️ بعد التحريك:");
+    print("   " + moved_shape);
+    print("");
+    
+    return 0;
+}
+
+fn example_composite_wall() -> int {
+    print("🧱 === الجدار المركب (تطبيق ba.md) ===");
+    print("");
+    
+    // لبنات فردية
+    let brick_width = 2.0;
+    let brick_height = 1.0;
+    let brick_area = calculate_rectangle_area(brick_width, brick_height);
+    
+    let brick_count = 5;
+    let total_individual_area = float(brick_count) * brick_area;
+    
+    print("🏗️ اللبنات الفردية:");
+    print("   عدد اللبنات: " + string(brick_count));
+    print("   مساحة كل لبنة: " + string(brick_area));
+    print("   المساحة الإجمالية الفردية: " + string(total_individual_area));
+    print("");
+    
+    // الخصائص الناشئة
+    let emergent_properties = calculate_emergent_properties(brick_count, brick_area);
+    let emergent_bonus = emergent_properties - total_individual_area;
+    
+    print("🌟 الجدار المركب:");
+    print("   الخصائص الناشئة: " + string(emergent_properties));
+    print("   المكافأة الناشئة: " + string(emergent_bonus));
+    print("   النسبة: " + string((emergent_properties / total_individual_area) * 100.0) + "%");
+    print("");
+    
+    print("💡 ملاحظة: خصائص الجدار أكبر من مجموع خصائص اللبنات!");
+    
+    return 0;
+}
+
+fn example_real_world_applications() -> int {
+    print("🌍 === تطبيقات من العالم الحقيقي ===");
+    print("");
+    
+    // مثال 1: محمد والمدرسة
+    print("👨‍🎓 محمد والمدرسة:");
+    let mohamed_age = 25.0;
+    let mohamed_weight = 70.0;
+    let school_shape = calculate_rectangle_shape(100.0, 50.0, 200.0, 100.0, 150.0, 75.0);
+    let mohamed_at_school = evaluate_h_equation(mohamed_age, mohamed_weight, school_shape);
+    
+    print("   محمد: عمر=" + string(mohamed_age) + ", وزن=" + string(mohamed_weight));
+    print("   المدرسة: مبنى مستطيل");
+    print("   h(محمد, المدرسة) = " + string(mohamed_at_school));
+    print("");
+    
+    // مثال 2: الطفل والحليب
+    print("🥛 الطفل والحليب:");
+    let child_age = 5.0;
+    let child_weight = 20.0;
+    let milk_shape = calculate_circle_shape(0.0, 0.0, 3.0, 1.0, 1.0);
+    let child_with_milk = evaluate_h_equation(child_age, child_weight, milk_shape);
+    
+    print("   الطفل: عمر=" + string(child_age) + ", وزن=" + string(child_weight));
+    print("   الحليب: كوب دائري");
+    print("   h(الطفل, الحليب) = " + string(child_with_milk));
+    print("");
+    
+    // مثال 3: دمج الخصائص
+    print("🔗 دمج الخصائص:");
+    let combined = combine_properties(mohamed_age, mohamed_weight, child_age, child_weight);
+    print("   " + combined);
+    print("");
+    
+    return 0;
+}
+
+fn example_mathematical_beauty() -> int {
+    print("✨ === جمال الرياضيات في h(a, b, d) ===");
+    print("");
+    
+    // إظهار كيف تتغير النتيجة مع تغير المعاملات
+    let base_a = 10.0;
+    let base_b = 5.0;
+    
+    print("🧮 تأثير تغيير المعاملات:");
+    
+    // تغيير a
+    let result1 = evaluate_h_equation(base_a, base_b, 1.0);
+    let result2 = evaluate_h_equation(base_a * 2.0, base_b, 1.0);
+    print("   مضاعفة a: " + string(result1) + " → " + string(result2));
+    
+    // تغيير b
+    let result3 = evaluate_h_equation(base_a, base_b * 2.0, 1.0);
+    print("   مضاعفة b: " + string(result1) + " → " + string(result3));
+    
+    // تغيير d
+    let result4 = evaluate_h_equation(base_a, base_b, 2.0);
+    print("   مضاعفة d: " + string(result1) + " → " + string(result4));
+    print("");
+    
+    print("🌟 المعادلة h(a, b, d) تُظهر كيف تتفاعل الخصائص مع الشكل!");
+    
+    return 0;
+}
+
+// ========== الدالة الرئيسية ==========
+// Main Function
+
+fn main() -> int {
+    print("📐 === معادلة الشكل h(a, b, d) - عرض توضيحي === 📐");
+    print("⚡ تطبيق مباشر لما ذكرته في ba.md");
+    print("🧮 حيث a, b هي الخصائص و d هي دالة الشكل");
+    print("");
+    
+    // تشغيل الأمثلة
+    example_basic_h_equation();
+    example_different_shapes();
+    example_shape_areas();
+    example_shape_transformations();
+    example_composite_wall();
+    example_real_world_applications();
+    example_mathematical_beauty();
+    
+    print("🎊 === انتهى العرض التوضيحي ===");
+    print("✅ تم تطبيق: معادلة h(a, b, d) بالكامل");
+    print("📐 دالة الشكل d مطبقة كما طلبت في ba.md");
+    print("🧱 الأشكال المركبة والخصائص الناشئة");
+    print("🌍 تطبيقات من العالم الحقيقي");
+    print("🧬 لغة البيان - حيث تلتقي الرياضيات بالواقع!");
+    
+    return 0;
+}

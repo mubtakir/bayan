@@ -1,0 +1,380 @@
+// معادلة الشكل العام h(a, b, d) - مثال مبسط
+// General Shape Equation h(a, b, d) - Simplified Example
+
+// ========== تطبيق معادلة الشكل h(a, b, d) ==========
+// Implementation of Shape Equation h(a, b, d)
+
+// تطبيق معادلة h(a, b, d) كما ذكرت في ba.md
+fn evaluate_shape_equation(property_a: float, property_b: float, shape_type: string, param1: float, param2: float, param3: float, param4: float, x: float, y: float) -> float {
+    // حساب دالة الشكل d
+    let shape_value = calculate_shape_function(shape_type, param1, param2, param3, param4, x, y);
+
+    // تطبيق معادلة h(a, b, d) = f(a, b) × g(d)
+    let property_factor = property_a * property_b;
+    let shape_factor = 1.0 + shape_value;
+
+    return property_factor * shape_factor;
+}
+
+// حساب دالة الشكل d بناءً على النوع
+fn calculate_shape_function(shape_type: string, param1: float, param2: float, param3: float, param4: float, x: float, y: float) -> float {
+    if shape_type == "مستطيل" {
+        return calculate_rectangle_function(param1, param2, param3, param4, x, y);
+    } else if shape_type == "دائرة" {
+        return calculate_circle_function(param1, param2, param3, x, y);
+    } else if shape_type == "مثلث" {
+        return calculate_triangle_function(param1, param2, x, y);
+    } else {
+        return calculate_general_function(param1, param2, param3, param4, x, y);
+    }
+}
+
+// دالة المستطيل: (x-cx)²/w² + (y-cy)²/h²
+fn calculate_rectangle_function(center_x: float, center_y: float, width: float, height: float, x: float, y: float) -> float {
+    if width == 0.0 || height == 0.0 {
+        return 0.0;
+    }
+
+    let dx = (x - center_x) / width;
+    let dy = (y - center_y) / height;
+
+    return dx * dx + dy * dy;
+}
+
+// دالة الدائرة: (x-cx)² + (y-cy)² - r²
+fn calculate_circle_function(center_x: float, center_y: float, radius: float, x: float, y: float) -> float {
+    let dx = x - center_x;
+    let dy = y - center_y;
+
+    return (dx * dx + dy * dy) - (radius * radius);
+}
+
+// دالة المثلث: تقريب بسيط
+fn calculate_triangle_function(base: float, height: float, x: float, y: float) -> float {
+    if base == 0.0 || height == 0.0 {
+        return 0.0;
+    }
+
+    // تقريب بسيط للمثلث
+    return (x / base) + (y / height);
+}
+
+// دالة عامة: متعددة الحدود
+fn calculate_general_function(a0: float, a1: float, a2: float, a3: float, x: float, y: float) -> float {
+    // معادلة عامة: a0 + a1*x + a2*y + a3*x*y
+    return a0 + (a1 * x) + (a2 * y) + (a3 * x * y);
+}
+
+// استخراج معامل بأمان
+fn get_param_safe(params: Vec<float>, index: int) -> float {
+    if index < params.len() {
+        return params[index];
+    } else {
+        return 1.0; // قيمة افتراضية
+    }
+}
+
+// حساب مساحة الشكل
+fn calculate_shape_area(shape_type: string, params: Vec<float>) -> float {
+    if shape_type == "مستطيل" {
+        let width = get_param_safe(params, 2);
+        let height = get_param_safe(params, 3);
+        return width * height;
+    } else if shape_type == "دائرة" {
+        let radius = get_param_safe(params, 2);
+        return 3.14159 * radius * radius;
+    } else if shape_type == "مثلث" {
+        let base = get_param_safe(params, 0);
+        let height = get_param_safe(params, 1);
+        return 0.5 * base * height;
+    } else {
+        return estimate_area_numerically(params);
+    }
+}
+
+// تقدير عددي للمساحة
+fn estimate_area_numerically(params: Vec<float>) -> float {
+    let param_sum = sum_parameters(params);
+    return param_sum * 0.5; // تقدير بسيط
+}
+
+// جمع المعاملات
+fn sum_parameters(params: Vec<float>) -> float {
+    let total = 0.0;
+    for param in params {
+        let total = total + param;
+    }
+    return total;
+}
+
+// تحويل الشكل (تدوير، تحريك، تكبير)
+fn transform_shape(shape_type: string, params: Vec<float>, transform_type: string, factor: float) -> Vec<float> {
+    let mut new_params: Vec<float> = Vec::new();
+
+    if transform_type == "تكبير" {
+        for param in params {
+            new_params.push(param * factor);
+        }
+    } else if transform_type == "تحريك_x" {
+        for i in 0..params.len() {
+            if i == 0 { // إحداثي x
+                new_params.push(params[i] + factor);
+            } else {
+                new_params.push(params[i]);
+            }
+        }
+    } else if transform_type == "تحريك_y" {
+        for i in 0..params.len() {
+            if i == 1 { // إحداثي y
+                new_params.push(params[i] + factor);
+            } else {
+                new_params.push(params[i]);
+            }
+        }
+    } else {
+        // تحويل افتراضي
+        for param in params {
+            new_params.push(param);
+        }
+    }
+
+    return new_params;
+}
+
+// دمج شكلين (مثل التحام اللبنات)
+fn combine_shapes(shape1_type: string, params1: Vec<float>, shape2_type: string, params2: Vec<float>) -> Vec<float> {
+    let mut combined_params: Vec<float> = Vec::new();
+
+    // دمج المعاملات
+    for param in params1 {
+        combined_params.push(param);
+    }
+    for param in params2 {
+        combined_params.push(param);
+    }
+
+    return combined_params;
+}
+
+// حساب الخصائص الناشئة من التركيب
+fn calculate_emergent_properties(individual_shapes: Vec<string>, all_params: Vec<Vec<float>>) -> float {
+    let shape_count = float(individual_shapes.len());
+    let total_complexity = calculate_total_complexity(all_params);
+
+    // الخصائص الناشئة = التعقيد الإجمالي × عامل التآزر
+    let synergy_factor = 1.0 + (shape_count * 0.1);
+    let interaction_bonus = (shape_count - 1.0) * 5.0;
+
+    return total_complexity * synergy_factor + interaction_bonus;
+}
+
+// حساب التعقيد الإجمالي
+fn calculate_total_complexity(all_params: Vec<Vec<float>>) -> float {
+    let mut total_complexity = 0.0;
+
+    for params in all_params {
+        let param_complexity = float(params.len()) * 2.0;
+        let total_complexity = total_complexity + param_complexity;
+    }
+
+    return total_complexity;
+}
+
+// ========== أمثلة تطبيقية ==========
+// Application Examples
+
+fn example_basic_shape_equation() -> int {
+    print("📐 === مثال معادلة الشكل الأساسية h(a, b, d) ===");
+    print("");
+
+    // خصائص الكائن (a, b)
+    let property_a = 10.0; // مثلاً: الطول
+    let property_b = 5.0;  // مثلاً: العرض
+
+    // معاملات الشكل (d)
+    let rectangle_params = vec![0.0, 0.0, 8.0, 4.0]; // مستطيل: مركز (0,0)، عرض 8، ارتفاع 4
+
+    // تطبيق معادلة h(a, b, d) في نقطة (2, 1)
+    let result = evaluate_shape_equation(property_a, property_b, "مستطيل", rectangle_params, 2.0, 1.0);
+
+    print("🧮 تطبيق معادلة h(a, b, d):");
+    print("   الخاصية a: " + string(property_a));
+    print("   الخاصية b: " + string(property_b));
+    print("   الشكل d: مستطيل (0,0,8,4)");
+    print("   النقطة: (2, 1)");
+    print("   النتيجة: h(10, 5, مستطيل) = " + string(result));
+    print("");
+
+    return 0;
+}
+
+fn example_different_shapes() -> int {
+    print("🔷 === أشكال مختلفة ومعادلاتها ===");
+    print("");
+
+    let property_a = 15.0;
+    let property_b = 8.0;
+    let test_x = 1.0;
+    let test_y = 1.0;
+
+    // مستطيل
+    let rect_params = vec![0.0, 0.0, 6.0, 3.0];
+    let rect_result = evaluate_shape_equation(property_a, property_b, "مستطيل", rect_params, test_x, test_y);
+
+    // دائرة
+    let circle_params = vec![0.0, 0.0, 4.0];
+    let circle_result = evaluate_shape_equation(property_a, property_b, "دائرة", circle_params, test_x, test_y);
+
+    // مثلث
+    let triangle_params = vec![6.0, 4.0];
+    let triangle_result = evaluate_shape_equation(property_a, property_b, "مثلث", triangle_params, test_x, test_y);
+
+    print("📊 مقارنة الأشكال المختلفة:");
+    print("   المستطيل: h(15, 8, مستطيل) = " + string(rect_result));
+    print("   الدائرة: h(15, 8, دائرة) = " + string(circle_result));
+    print("   المثلث: h(15, 8, مثلث) = " + string(triangle_result));
+    print("");
+
+    return 0;
+}
+
+fn example_shape_transformations() -> int {
+    print("🔄 === تحويلات الأشكال ===");
+    print("");
+
+    // شكل أصلي
+    let original_params = vec![0.0, 0.0, 4.0, 2.0]; // مستطيل
+    let original_area = calculate_shape_area("مستطيل", original_params);
+
+    print("📏 الشكل الأصلي:");
+    print("   النوع: مستطيل");
+    print("   المعاملات: (0, 0, 4, 2)");
+    print("   المساحة: " + string(original_area));
+    print("");
+
+    // تكبير الشكل
+    let scaled_params = transform_shape("مستطيل", original_params, "تكبير", 2.0);
+    let scaled_area = calculate_shape_area("مستطيل", scaled_params);
+
+    print("🔍 بعد التكبير (×2):");
+    print("   المعاملات الجديدة: " + format_params(scaled_params));
+    print("   المساحة الجديدة: " + string(scaled_area));
+    print("");
+
+    // تحريك الشكل
+    let moved_params = transform_shape("مستطيل", original_params, "تحريك_x", 3.0);
+
+    print("➡️ بعد التحريك (+3 في x):");
+    print("   المعاملات الجديدة: " + format_params(moved_params));
+    print("");
+
+    return 0;
+}
+
+fn example_composite_wall_shapes() -> int {
+    print("🧱 === الجدار المركب من اللبنات (تطبيق ba.md) ===");
+    print("");
+
+    // لبنات فردية
+    let brick1_params = vec![0.0, 0.0, 2.0, 1.0]; // لبنة 1
+    let brick2_params = vec![2.0, 0.0, 2.0, 1.0]; // لبنة 2
+    let brick3_params = vec![1.0, 1.0, 2.0, 1.0]; // لبنة 3
+
+    let brick_shapes = vec!["مستطيل", "مستطيل", "مستطيل"];
+    let all_brick_params = vec![brick1_params, brick2_params, brick3_params];
+
+    print("🏗️ اللبنات الفردية:");
+    print("   لبنة 1: مستطيل (0,0,2,1) - مساحة: " + string(calculate_shape_area("مستطيل", all_brick_params[0])));
+    print("   لبنة 2: مستطيل (2,0,2,1) - مساحة: " + string(calculate_shape_area("مستطيل", all_brick_params[1])));
+    print("   لبنة 3: مستطيل (1,1,2,1) - مساحة: " + string(calculate_shape_area("مستطيل", all_brick_params[2])));
+    print("");
+
+    // دمج اللبنات
+    let combined_params = combine_shapes("مستطيل", all_brick_params[0], "مستطيل", all_brick_params[1]);
+    let final_params = combine_shapes("مستطيل", combined_params, "مستطيل", all_brick_params[2]);
+
+    // حساب الخصائص الناشئة
+    let emergent_properties = calculate_emergent_properties(brick_shapes, all_brick_params);
+
+    print("🌟 الجدار المركب:");
+    print("   عدد اللبنات: " + string(brick_shapes.len()));
+    print("   المعاملات المدمجة: " + format_params(final_params));
+    print("   الخصائص الناشئة: " + string(emergent_properties));
+    print("");
+
+    print("💡 ملاحظة: الخصائص الناشئة للجدار أكبر من مجموع خصائص اللبنات!");
+
+    return 0;
+}
+
+fn example_shape_equation_applications() -> int {
+    print("🎯 === تطبيقات معادلة الشكل h(a, b, d) ===");
+    print("");
+
+    // مثال 1: محمد والمدرسة (من ba.md)
+    print("👨‍🎓 مثال محمد والمدرسة:");
+    let mohamed_properties = vec![25.0, 70.0]; // العمر، الوزن
+    let school_shape_params = vec![100.0, 50.0, 200.0, 100.0]; // مبنى مستطيل
+
+    let mohamed_at_school = evaluate_shape_equation(mohamed_properties[0], mohamed_properties[1], "مستطيل", school_shape_params, 150.0, 75.0);
+
+    print("   محمد: عمر=" + string(mohamed_properties[0]) + "، وزن=" + string(mohamed_properties[1]));
+    print("   المدرسة: مبنى مستطيل (100,50,200,100)");
+    print("   h(محمد، المدرسة) = " + string(mohamed_at_school));
+    print("");
+
+    // مثال 2: الطفل والحليب
+    print("🥛 مثال الطفل والحليب:");
+    let child_properties = vec![5.0, 20.0]; // العمر، الوزن
+    let milk_shape_params = vec![0.0, 0.0, 3.0]; // كوب دائري
+
+    let child_with_milk = evaluate_shape_equation(child_properties[0], child_properties[1], "دائرة", milk_shape_params, 1.0, 1.0);
+
+    print("   الطفل: عمر=" + string(child_properties[0]) + "، وزن=" + string(child_properties[1]));
+    print("   الحليب: كوب دائري (0,0,3)");
+    print("   h(الطفل، الحليب) = " + string(child_with_milk));
+    print("");
+
+    return 0;
+}
+
+// دالة مساعدة لتنسيق المعاملات
+fn format_params(params: Vec<float>) -> string {
+    if params.len() == 0 {
+        return "()";
+    }
+
+    let mut result = "(";
+    for i in 0..params.len() {
+        let result = result + string(params[i]);
+        if i < params.len() - 1 {
+            let result = result + ", ";
+        }
+    }
+    let result = result + ")";
+
+    return result;
+}
+
+// ========== الدالة الرئيسية ==========
+// Main Function
+
+fn main() -> int {
+    print("📐 === معادلة الشكل العام h(a, b, d) === 📐");
+    print("⚡ تطبيق مباشر لما ذكرته في ba.md");
+    print("");
+
+    // تشغيل الأمثلة
+    example_basic_shape_equation();
+    example_different_shapes();
+    example_shape_transformations();
+    example_composite_wall_shapes();
+    example_shape_equation_applications();
+
+    print("🎊 === انتهى مثال معادلة الشكل ===");
+    print("✅ تم تطبيق: معادلة h(a, b, d)، أشكال مختلفة، تحويلات، تركيب");
+    print("📐 دالة الشكل d مطبقة بالكامل كما طلبت!");
+    print("🧬 لغة البيان - حيث تلتقي الهندسة بالرياضيات المتكيفة!");
+
+    return 0;
+}

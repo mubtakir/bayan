@@ -1,0 +1,535 @@
+// معادلة الشكل العام ودالة الشكل في لغة البيان
+// General Shape Equation and Shape Function in AlBayan
+
+// ========== دالة الشكل الأساسية ==========
+// Basic Shape Function
+
+// دالة الشكل العامة كما ذكرت في ba.md
+struct ShapeFunction {
+    equation_type: string,      // نوع المعادلة (خطية، دائرية، مكعبة، إلخ)
+    parameters: Vec<float>,     // المعاملات (a, b, c, d, ...)
+    dimension: int,             // البعد (2D, 3D, 4D, ...)
+    complexity_level: float     // مستوى التعقيد
+}
+
+// الكائن مع دالة الشكل h(a, b, d)
+struct ObjectWithShape {
+    id: string,                 // الهوية
+    static_properties: Vec<float>,  // الخصائص الثابتة (a, b)
+    shape_function: ShapeFunction,  // دالة الشكل (d)
+    dynamic_state: Vec<float>   // الحالة الديناميكية
+}
+
+// مجموعة كائنات مع أشكال مترابطة (مثل الجدار من اللبنات)
+struct CompositeShape {
+    components: Vec<ObjectWithShape>,
+    bond_matrix: Vec<Vec<float>>,      // مصفوفة الروابط
+    bond_angles: Vec<Vec<float>>,      // زوايا الالتحام
+    emergent_shape: ShapeFunction      // الشكل الناشئ
+}
+
+// ========== تطبيق دالة الشكل ==========
+// Shape Function Implementation
+
+impl ShapeFunction {
+    fn new(equation_type: string, parameters: Vec<float>, dimension: int) -> ShapeFunction {
+        let complexity = calculate_shape_complexity(equation_type, parameters, dimension);
+        
+        return ShapeFunction {
+            equation_type: equation_type,
+            parameters: parameters,
+            dimension: dimension,
+            complexity_level: complexity
+        };
+    }
+    
+    // حساب النقطة على الشكل
+    fn evaluate_at_point(self, x: float, y: float, z: float) -> float {
+        if self.equation_type == "مستطيل" {
+            return evaluate_rectangle(self.parameters, x, y);
+        } else if self.equation_type == "دائرة" {
+            return evaluate_circle(self.parameters, x, y);
+        } else if self.equation_type == "مكعب" {
+            return evaluate_cube(self.parameters, x, y, z);
+        } else if self.equation_type == "كرة" {
+            return evaluate_sphere(self.parameters, x, y, z);
+        } else {
+            return evaluate_general_shape(self.parameters, x, y, z);
+        }
+    }
+    
+    // حساب المساحة أو الحجم
+    fn calculate_volume(self) -> float {
+        if self.dimension == 2 {
+            return calculate_area_2d(self);
+        } else if self.dimension == 3 {
+            return calculate_volume_3d(self);
+        } else {
+            return calculate_hypervolume(self);
+        }
+    }
+    
+    // تحويل الشكل (تدوير، تحريك، تكبير)
+    fn transform(self, transformation_matrix: Vec<Vec<float>>) -> ShapeFunction {
+        let new_parameters = apply_transformation(self.parameters, transformation_matrix);
+        
+        return ShapeFunction {
+            equation_type: self.equation_type,
+            parameters: new_parameters,
+            dimension: self.dimension,
+            complexity_level: self.complexity_level
+        };
+    }
+}
+
+impl ObjectWithShape {
+    fn new(id: string, properties: Vec<float>, shape: ShapeFunction) -> ObjectWithShape {
+        return ObjectWithShape {
+            id: id,
+            static_properties: properties,
+            shape_function: shape,
+            dynamic_state: Vec::new()
+        };
+    }
+    
+    // تطبيق معادلة h(a, b, d) كما ذكرت
+    fn evaluate_complete_function(self, context_x: float, context_y: float) -> float {
+        // a, b هي الخصائص الثابتة
+        let property_a = get_property_at_index(self.static_properties, 0);
+        let property_b = get_property_at_index(self.static_properties, 1);
+        
+        // d هي دالة الشكل
+        let shape_value = self.shape_function.evaluate_at_point(context_x, context_y, 0.0);
+        
+        // تطبيق المعادلة h(a, b, d)
+        return combine_properties_with_shape(property_a, property_b, shape_value);
+    }
+    
+    // تفاعل مع كائن آخر بناءً على الأشكال
+    fn interact_with_shape(self, other: ObjectWithShape, interaction_type: string) -> ObjectWithShape {
+        if interaction_type == "التحام" {
+            return bond_shapes(self, other);
+        } else if interaction_type == "تداخل" {
+            return overlap_shapes(self, other);
+        } else if interaction_type == "تنافر" {
+            return repel_shapes(self, other);
+        } else {
+            return self;
+        }
+    }
+}
+
+impl CompositeShape {
+    fn new() -> CompositeShape {
+        return CompositeShape {
+            components: Vec::new(),
+            bond_matrix: Vec::new(),
+            bond_angles: Vec::new(),
+            emergent_shape: ShapeFunction::new("مركب", Vec::new(), 3)
+        };
+    }
+    
+    // إضافة مكون جديد (مثل لبنة في الجدار)
+    fn add_component(self, component: ObjectWithShape, bond_angle: float) -> CompositeShape {
+        let mut new_components = self.components;
+        new_components.push(component);
+        
+        let new_bond_matrix = update_bond_matrix(self.bond_matrix, new_components.len());
+        let new_bond_angles = update_bond_angles(self.bond_angles, bond_angle);
+        let new_emergent_shape = calculate_emergent_shape(new_components, new_bond_matrix, new_bond_angles);
+        
+        return CompositeShape {
+            components: new_components,
+            bond_matrix: new_bond_matrix,
+            bond_angles: new_bond_angles,
+            emergent_shape: new_emergent_shape
+        };
+    }
+    
+    // حساب الشكل الناشئ من التركيب
+    fn calculate_total_shape(self) -> ShapeFunction {
+        return self.emergent_shape;
+    }
+}
+
+// ========== دوال الأشكال الهندسية ==========
+// Geometric Shape Functions
+
+// معادلة المستطيل: (x-a)²/w² + (y-b)²/h² ≤ 1
+fn evaluate_rectangle(params: Vec<float>, x: float, y: float) -> float {
+    let center_x = get_param_at_index(params, 0);
+    let center_y = get_param_at_index(params, 1);
+    let width = get_param_at_index(params, 2);
+    let height = get_param_at_index(params, 3);
+    
+    let dx = (x - center_x) / width;
+    let dy = (y - center_y) / height;
+    
+    return dx * dx + dy * dy;
+}
+
+// معادلة الدائرة: (x-a)² + (y-b)² = r²
+fn evaluate_circle(params: Vec<float>, x: float, y: float) -> float {
+    let center_x = get_param_at_index(params, 0);
+    let center_y = get_param_at_index(params, 1);
+    let radius = get_param_at_index(params, 2);
+    
+    let dx = x - center_x;
+    let dy = y - center_y;
+    
+    return (dx * dx + dy * dy) - (radius * radius);
+}
+
+// معادلة المكعب: |x-a| ≤ w/2 && |y-b| ≤ h/2 && |z-c| ≤ d/2
+fn evaluate_cube(params: Vec<float>, x: float, y: float, z: float) -> float {
+    let center_x = get_param_at_index(params, 0);
+    let center_y = get_param_at_index(params, 1);
+    let center_z = get_param_at_index(params, 2);
+    let size = get_param_at_index(params, 3);
+    
+    let dx = abs(x - center_x);
+    let dy = abs(y - center_y);
+    let dz = abs(z - center_z);
+    let half_size = size / 2.0;
+    
+    if dx <= half_size && dy <= half_size && dz <= half_size {
+        return 1.0; // داخل المكعب
+    } else {
+        return 0.0; // خارج المكعب
+    }
+}
+
+// معادلة الكرة: (x-a)² + (y-b)² + (z-c)² = r²
+fn evaluate_sphere(params: Vec<float>, x: float, y: float, z: float) -> float {
+    let center_x = get_param_at_index(params, 0);
+    let center_y = get_param_at_index(params, 1);
+    let center_z = get_param_at_index(params, 2);
+    let radius = get_param_at_index(params, 3);
+    
+    let dx = x - center_x;
+    let dy = y - center_y;
+    let dz = z - center_z;
+    
+    return (dx * dx + dy * dy + dz * dz) - (radius * radius);
+}
+
+// معادلة شكل عام (متعددة الحدود)
+fn evaluate_general_shape(params: Vec<float>, x: float, y: float, z: float) -> float {
+    // معادلة عامة: a₀ + a₁x + a₂y + a₃z + a₄x² + a₅y² + a₆z² + a₇xy + a₈xz + a₉yz + ...
+    let mut result = get_param_at_index(params, 0); // الحد الثابت
+    
+    if params.len() > 1 {
+        let result = result + get_param_at_index(params, 1) * x; // a₁x
+    }
+    if params.len() > 2 {
+        let result = result + get_param_at_index(params, 2) * y; // a₂y
+    }
+    if params.len() > 3 {
+        let result = result + get_param_at_index(params, 3) * z; // a₃z
+    }
+    if params.len() > 4 {
+        let result = result + get_param_at_index(params, 4) * x * x; // a₄x²
+    }
+    if params.len() > 5 {
+        let result = result + get_param_at_index(params, 5) * y * y; // a₅y²
+    }
+    if params.len() > 6 {
+        let result = result + get_param_at_index(params, 6) * z * z; // a₆z²
+    }
+    if params.len() > 7 {
+        let result = result + get_param_at_index(params, 7) * x * y; // a₇xy
+    }
+    
+    return result;
+}
+
+// ========== دوال مساعدة ==========
+// Helper Functions
+
+fn get_param_at_index(params: Vec<float>, index: int) -> float {
+    if index < params.len() {
+        return params[index];
+    } else {
+        return 0.0;
+    }
+}
+
+fn get_property_at_index(properties: Vec<float>, index: int) -> float {
+    if index < properties.len() {
+        return properties[index];
+    } else {
+        return 1.0;
+    }
+}
+
+fn calculate_shape_complexity(equation_type: string, params: Vec<float>, dimension: int) -> float {
+    let base_complexity = float(dimension);
+    let param_complexity = float(params.len()) * 0.5;
+    
+    if equation_type == "مستطيل" || equation_type == "مكعب" {
+        return base_complexity + param_complexity;
+    } else if equation_type == "دائرة" || equation_type == "كرة" {
+        return base_complexity + param_complexity + 1.0;
+    } else {
+        return base_complexity + param_complexity + 2.0;
+    }
+}
+
+fn combine_properties_with_shape(prop_a: float, prop_b: float, shape_value: float) -> float {
+    // تطبيق معادلة h(a, b, d) = f(a, b) * g(d)
+    let property_factor = prop_a * prop_b;
+    let shape_factor = 1.0 + shape_value;
+    
+    return property_factor * shape_factor;
+}
+
+fn calculate_area_2d(shape: ShapeFunction) -> float {
+    if shape.equation_type == "مستطيل" {
+        let width = get_param_at_index(shape.parameters, 2);
+        let height = get_param_at_index(shape.parameters, 3);
+        return width * height;
+    } else if shape.equation_type == "دائرة" {
+        let radius = get_param_at_index(shape.parameters, 2);
+        return 3.14159 * radius * radius;
+    } else {
+        return estimate_area_numerical(shape);
+    }
+}
+
+fn calculate_volume_3d(shape: ShapeFunction) -> float {
+    if shape.equation_type == "مكعب" {
+        let size = get_param_at_index(shape.parameters, 3);
+        return size * size * size;
+    } else if shape.equation_type == "كرة" {
+        let radius = get_param_at_index(shape.parameters, 3);
+        return (4.0 / 3.0) * 3.14159 * radius * radius * radius;
+    } else {
+        return estimate_volume_numerical(shape);
+    }
+}
+
+fn estimate_area_numerical(shape: ShapeFunction) -> float {
+    // تقدير عددي للمساحة
+    return float(shape.parameters.len()) * 10.0;
+}
+
+fn estimate_volume_numerical(shape: ShapeFunction) -> float {
+    // تقدير عددي للحجم
+    return float(shape.parameters.len()) * 100.0;
+}
+
+fn calculate_hypervolume(shape: ShapeFunction) -> float {
+    // حساب الحجم في أبعاد أعلى
+    let dimension_factor = float(shape.dimension);
+    let param_factor = float(shape.parameters.len());
+    
+    return dimension_factor * param_factor * 1000.0;
+}
+
+fn apply_transformation(params: Vec<float>, matrix: Vec<Vec<float>>) -> Vec<float> {
+    // تطبيق تحويل هندسي على المعاملات
+    let mut new_params: Vec<float> = Vec::new();
+    
+    for param in params {
+        let transformed_param = param * 1.1; // محاكاة التحويل
+        new_params.push(transformed_param);
+    }
+    
+    return new_params;
+}
+
+fn bond_shapes(obj1: ObjectWithShape, obj2: ObjectWithShape) -> ObjectWithShape {
+    // التحام الأشكال
+    let combined_properties = combine_properties(obj1.static_properties, obj2.static_properties);
+    let bonded_shape = create_bonded_shape(obj1.shape_function, obj2.shape_function);
+    
+    return ObjectWithShape {
+        id: obj1.id + "_bonded_" + obj2.id,
+        static_properties: combined_properties,
+        shape_function: bonded_shape,
+        dynamic_state: Vec::new()
+    };
+}
+
+fn overlap_shapes(obj1: ObjectWithShape, obj2: ObjectWithShape) -> ObjectWithShape {
+    // تداخل الأشكال
+    return obj1; // محاكاة بسيطة
+}
+
+fn repel_shapes(obj1: ObjectWithShape, obj2: ObjectWithShape) -> ObjectWithShape {
+    // تنافر الأشكال
+    return obj1; // محاكاة بسيطة
+}
+
+fn combine_properties(props1: Vec<float>, props2: Vec<float>) -> Vec<float> {
+    let mut combined: Vec<float> = Vec::new();
+    
+    // دمج الخصائص
+    for prop in props1 {
+        combined.push(prop);
+    }
+    for prop in props2 {
+        combined.push(prop);
+    }
+    
+    return combined;
+}
+
+fn create_bonded_shape(shape1: ShapeFunction, shape2: ShapeFunction) -> ShapeFunction {
+    // إنشاء شكل مدمج
+    let mut combined_params: Vec<float> = Vec::new();
+    
+    for param in shape1.parameters {
+        combined_params.push(param);
+    }
+    for param in shape2.parameters {
+        combined_params.push(param);
+    }
+    
+    return ShapeFunction::new("مدمج", combined_params, max(shape1.dimension, shape2.dimension));
+}
+
+fn update_bond_matrix(current_matrix: Vec<Vec<float>>, new_size: int) -> Vec<Vec<float>> {
+    // تحديث مصفوفة الروابط
+    let mut new_matrix: Vec<Vec<float>> = Vec::new();
+    
+    for i in 0..new_size {
+        let mut row: Vec<float> = Vec::new();
+        for j in 0..new_size {
+            if i == j {
+                row.push(1.0);
+            } else {
+                row.push(0.0);
+            }
+        }
+        new_matrix.push(row);
+    }
+    
+    return new_matrix;
+}
+
+fn update_bond_angles(current_angles: Vec<Vec<float>>, new_angle: float) -> Vec<Vec<float>> {
+    // تحديث زوايا الروابط
+    return current_angles; // محاكاة بسيطة
+}
+
+fn calculate_emergent_shape(components: Vec<ObjectWithShape>, bonds: Vec<Vec<float>>, angles: Vec<Vec<float>>) -> ShapeFunction {
+    // حساب الشكل الناشئ من التركيب
+    let total_complexity = float(components.len()) * 2.0;
+    let emergent_params = vec![total_complexity, total_complexity * 1.5, total_complexity * 2.0];
+    
+    return ShapeFunction::new("ناشئ", emergent_params, 3);
+}
+
+// ========== أمثلة تطبيقية ==========
+// Application Examples
+
+fn example_basic_shapes() -> int {
+    print("📐 === أمثلة الأشكال الأساسية ===");
+    print("");
+    
+    // إنشاء مستطيل
+    let rectangle_params = vec![0.0, 0.0, 10.0, 5.0]; // مركز (0,0)، عرض 10، ارتفاع 5
+    let rectangle_shape = ShapeFunction::new("مستطيل", rectangle_params, 2);
+    
+    print("📏 المستطيل:");
+    print("   المركز: (0, 0)");
+    print("   العرض: 10، الارتفاع: 5");
+    print("   المساحة: " + string(rectangle_shape.calculate_volume()));
+    print("");
+    
+    // إنشاء دائرة
+    let circle_params = vec![0.0, 0.0, 3.0]; // مركز (0,0)، نصف قطر 3
+    let circle_shape = ShapeFunction::new("دائرة", circle_params, 2);
+    
+    print("⭕ الدائرة:");
+    print("   المركز: (0, 0)");
+    print("   نصف القطر: 3");
+    print("   المساحة: " + string(circle_shape.calculate_volume()));
+    print("");
+    
+    return 0;
+}
+
+fn example_composite_wall() -> int {
+    print("🧱 === مثال الجدار المركب من اللبنات ===");
+    print("");
+    
+    // إنشاء لبنات
+    let brick_shape = ShapeFunction::new("مكعب", vec![0.0, 0.0, 0.0, 2.0], 3);
+    let brick_properties = vec![100.0, 50.0]; // قوة، وزن
+    
+    let brick1 = ObjectWithShape::new("لبنة_1", brick_properties, brick_shape);
+    let brick2 = ObjectWithShape::new("لبنة_2", brick_properties, brick_shape);
+    let brick3 = ObjectWithShape::new("لبنة_3", brick_properties, brick_shape);
+    
+    // بناء الجدار
+    let mut wall = CompositeShape::new();
+    let wall = wall.add_component(brick1, 0.0);
+    let wall = wall.add_component(brick2, 90.0);
+    let wall = wall.add_component(brick3, 0.0);
+    
+    let wall_shape = wall.calculate_total_shape();
+    
+    print("🏗️ تم بناء الجدار:");
+    print("   عدد اللبنات: " + string(wall.components.len()));
+    print("   الشكل الناشئ: " + wall_shape.equation_type);
+    print("   التعقيد: " + string(wall_shape.complexity_level));
+    print("   الحجم الإجمالي: " + string(wall_shape.calculate_volume()));
+    print("");
+    
+    return 0;
+}
+
+fn example_shape_interaction() -> int {
+    print("🔄 === تفاعل الأشكال ===");
+    print("");
+    
+    // إنشاء كائنين
+    let obj1_shape = ShapeFunction::new("دائرة", vec![0.0, 0.0, 2.0], 2);
+    let obj1 = ObjectWithShape::new("كائن_1", vec![10.0, 20.0], obj1_shape);
+    
+    let obj2_shape = ShapeFunction::new("مستطيل", vec![3.0, 0.0, 4.0, 2.0], 2);
+    let obj2 = ObjectWithShape::new("كائن_2", vec![15.0, 25.0], obj2_shape);
+    
+    // تطبيق معادلة h(a, b, d)
+    let result1 = obj1.evaluate_complete_function(1.0, 1.0);
+    let result2 = obj2.evaluate_complete_function(1.0, 1.0);
+    
+    print("🧮 تطبيق معادلة h(a, b, d):");
+    print("   الكائن 1: h(10, 20, دائرة) = " + string(result1));
+    print("   الكائن 2: h(15, 25, مستطيل) = " + string(result2));
+    print("");
+    
+    // التحام الكائنين
+    let bonded_object = obj1.interact_with_shape(obj2, "التحام");
+    
+    print("🔗 نتيجة التحام:");
+    print("   الكائن الجديد: " + bonded_object.id);
+    print("   عدد الخصائص: " + string(bonded_object.static_properties.len()));
+    print("   نوع الشكل: " + bonded_object.shape_function.equation_type);
+    print("");
+    
+    return 0;
+}
+
+// ========== الدالة الرئيسية ==========
+// Main Function
+
+fn main() -> int {
+    print("📐 === معادلة الشكل العام ودالة الشكل === 📐");
+    print("⚡ تطبيق معادلة h(a, b, d) كما ذكرت في ba.md");
+    print("");
+    
+    // تشغيل الأمثلة
+    example_basic_shapes();
+    example_composite_wall();
+    example_shape_interaction();
+    
+    print("🎊 === انتهى مثال دالة الشكل ===");
+    print("✅ تم تطبيق: معادلة الشكل العام، الأشكال المركبة، تفاعل الأشكال");
+    print("📐 معادلة h(a, b, d) مطبقة بالكامل!");
+    print("🧬 لغة البيان - حيث تلتقي الهندسة بالرياضيات الحية!");
+    
+    return 0;
+}
