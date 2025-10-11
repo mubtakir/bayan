@@ -1,0 +1,121 @@
+# 🚀 Dockerfile عاجل للغة البيان
+# Urgent AlBayan Docker Image
+
+FROM rust:1.75-slim as builder
+
+# تثبيت التبعيات الأساسية
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    llvm-15-dev \
+    libclang-15-dev \
+    pkg-config \
+    libssl-dev \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# إعداد متغيرات البيئة
+ENV LLVM_SYS_150_PREFIX=/usr/lib/llvm-15
+ENV LIBCLANG_PATH=/usr/lib/llvm-15/lib
+
+# نسخ الكود المصدري
+WORKDIR /app
+COPY . .
+
+# بناء المترجم
+RUN cargo build --release --bin albayan
+
+# مرحلة الإنتاج
+FROM ubuntu:22.04
+
+# تثبيت التبعيات المطلوبة للتشغيل
+RUN apt-get update && apt-get install -y \
+    llvm-15-runtime \
+    libssl3 \
+    ca-certificates \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# إنشاء مستخدم غير جذر
+RUN useradd -m -s /bin/bash albayan
+
+# نسخ المترجم من مرحلة البناء
+COPY --from=builder /app/target/release/albayan /usr/local/bin/albayan
+
+# إنشاء مجلدات العمل
+RUN mkdir -p /workspace /examples /projects
+RUN chown -R albayan:albayan /workspace /examples /projects
+
+# نسخ الأمثلة
+COPY examples/ /examples/
+RUN chown -R albayan:albayan /examples
+
+# إعداد متغيرات البيئة
+ENV PATH="/usr/local/bin:$PATH"
+ENV ALBAYAN_HOME="/usr/local"
+
+# التبديل للمستخدم غير الجذر
+USER albayan
+WORKDIR /workspace
+
+# إنشاء مثال ترحيبي
+RUN echo '// مرحباً بك في لغة البيان!' > /workspace/welcome.ab && \
+    echo '// Welcome to AlBayan Programming Language!' >> /workspace/welcome.ab && \
+    echo '' >> /workspace/welcome.ab && \
+    echo 'fn main() -> int {' >> /workspace/welcome.ab && \
+    echo '    print("🎉 مرحباً بك في لغة البيان!");' >> /workspace/welcome.ab && \
+    echo '    print("🚀 أول لغة برمجة عربية بذكاء اصطناعي مدمج!");' >> /workspace/welcome.ab && \
+    echo '    print("");' >> /workspace/welcome.ab && \
+    echo '    print("🧬 ميزات لغة البيان:");' >> /workspace/welcome.ab && \
+    echo '    print("  ✅ برمجة تقليدية + منطقية");' >> /workspace/welcome.ab && \
+    echo '    print("  ✅ ذكاء اصطناعي مدمج");' >> /workspace/welcome.ab && \
+    echo '    print("  ✅ أداء عالي مع Rust + LLVM");' >> /workspace/welcome.ab && \
+    echo '    print("  ✅ دعم TensorFlow وPyTorch وONNX");' >> /workspace/welcome.ab && \
+    echo '    print("");' >> /workspace/welcome.ab && \
+    echo '    print("🔥 ابدأ رحلتك في البرمجة المتقدمة!");' >> /workspace/welcome.ab && \
+    echo '    print("🐳 تشغيل داخل Docker Container!");' >> /workspace/welcome.ab && \
+    echo '    print("");' >> /workspace/welcome.ab && \
+    echo '    print("📚 الأمثلة متوفرة في: /examples/");' >> /workspace/welcome.ab && \
+    echo '    print("💻 مجلد العمل: /workspace/");' >> /workspace/welcome.ab && \
+    echo '    print("🚀 ابدأ الآن: albayan run welcome.ab");' >> /workspace/welcome.ab && \
+    echo '    ' >> /workspace/welcome.ab && \
+    echo '    return 0;' >> /workspace/welcome.ab && \
+    echo '}' >> /workspace/welcome.ab
+
+# إعداد نقطة الدخول
+COPY docker/entrypoint.sh /entrypoint.sh
+USER root
+RUN chmod +x /entrypoint.sh
+USER albayan
+
+# تشغيل المثال الترحيبي عند البدء
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["albayan", "run", "welcome.ab"]
+
+# إضافة تسميات
+LABEL maintainer="AlBayan Team <team@albayan.dev>"
+LABEL version="1.0.0-urgent"
+LABEL description="لغة البيان - أول لغة برمجة عربية بذكاء اصطناعي مدمج"
+LABEL org.opencontainers.image.title="AlBayan Programming Language"
+LABEL org.opencontainers.image.description="First Arabic programming language with built-in AI"
+LABEL org.opencontainers.image.url="https://github.com/mubtakir/bayan"
+LABEL org.opencontainers.image.source="https://github.com/mubtakir/bayan"
+LABEL org.opencontainers.image.vendor="AlBayan Team"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# إضافة معلومات الصحة
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD albayan --version || exit 1
+
+# تعريف النقاط المتاحة
+VOLUME ["/workspace", "/projects"]
+
+# تعريف المنافذ (للخدمات المستقبلية)
+EXPOSE 8080 3000
+
+# رسالة نهائية
+RUN echo "🔥 Docker Image جاهز للاستخدام الفوري!" && \
+    echo "⚡ استجابة عاجلة لطلب الجماهير!" && \
+    echo "🚀 لغة البيان - سرعة + قوة + إبداع!"
