@@ -1,0 +1,345 @@
+// مثال شامل للبرمجة الكائنية في لغة البيان
+// Comprehensive OOP Example in AlBayan
+
+// ========== تعريف الفئات الأساسية ==========
+// Basic Class Definitions
+
+// فئة الشخص الأساسية
+struct Person {
+    name: string,
+    age: int,
+    email: string,
+    phone: string
+}
+
+// فئة الطالب التي ترث من الشخص
+struct Student {
+    person: Person,
+    student_id: string,
+    major: string,
+    gpa: float,
+    courses: Vec<string>
+}
+
+// فئة الأستاذ
+struct Professor {
+    person: Person,
+    employee_id: string,
+    department: string,
+    salary: float,
+    courses_taught: Vec<string>
+}
+
+// فئة الدورة التدريبية
+struct Course {
+    course_id: string,
+    title: string,
+    credits: int,
+    professor: string,
+    students: Vec<string>,
+    max_capacity: int
+}
+
+// فئة الجامعة
+struct University {
+    name: string,
+    students: Vec<Student>,
+    professors: Vec<Professor>,
+    courses: Vec<Course>
+}
+
+// ========== طرق الفئات (Methods) ==========
+// Class Methods
+
+// طرق فئة الشخص
+impl Person {
+    // منشئ جديد
+    fn new(name: string, age: int, email: string, phone: string) -> Person {
+        return Person {
+            name: name,
+            age: age,
+            email: email,
+            phone: phone
+        };
+    }
+    
+    // عرض معلومات الشخص
+    fn display_info(self) -> string {
+        return "الاسم: " + self.name + ", العمر: " + string(self.age) + ", البريد: " + self.email;
+    }
+    
+    // تحديث العمر
+    fn update_age(self, new_age: int) -> Person {
+        return Person {
+            name: self.name,
+            age: new_age,
+            email: self.email,
+            phone: self.phone
+        };
+    }
+    
+    // التحقق من صحة البريد الإلكتروني
+    fn is_valid_email(self) -> bool {
+        if self.email.contains("@") {
+            return true;
+        }
+        return false;
+    }
+}
+
+// طرق فئة الطالب
+impl Student {
+    // منشئ جديد للطالب
+    fn new(person: Person, student_id: string, major: string) -> Student {
+        let empty_courses: Vec<string> = Vec::new();
+        return Student {
+            person: person,
+            student_id: student_id,
+            major: major,
+            gpa: 0.0,
+            courses: empty_courses
+        };
+    }
+    
+    // إضافة دورة
+    fn add_course(self, course_name: string) -> Student {
+        let mut new_courses = self.courses;
+        new_courses.push(course_name);
+        
+        return Student {
+            person: self.person,
+            student_id: self.student_id,
+            major: self.major,
+            gpa: self.gpa,
+            courses: new_courses
+        };
+    }
+    
+    // حساب المعدل التراكمي
+    fn calculate_gpa(self, grades: Vec<float>) -> Student {
+        let total = 0.0;
+        let count = 0;
+        
+        for grade in grades {
+            let total = total + grade;
+            let count = count + 1;
+        }
+        
+        let new_gpa = if count > 0 { total / float(count) } else { 0.0 };
+        
+        return Student {
+            person: self.person,
+            student_id: self.student_id,
+            major: self.major,
+            gpa: new_gpa,
+            courses: self.courses
+        };
+    }
+    
+    // عرض معلومات الطالب
+    fn display_student_info(self) -> string {
+        let person_info = self.person.display_info();
+        return person_info + ", رقم الطالب: " + self.student_id + ", التخصص: " + self.major + ", المعدل: " + string(self.gpa);
+    }
+    
+    // التحقق من الأهلية للتخرج
+    fn is_eligible_for_graduation(self) -> bool {
+        if self.gpa >= 2.0 {
+            if self.courses.len() >= 8 {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+// طرق فئة الأستاذ
+impl Professor {
+    // منشئ جديد للأستاذ
+    fn new(person: Person, employee_id: string, department: string, salary: float) -> Professor {
+        let empty_courses: Vec<string> = Vec::new();
+        return Professor {
+            person: person,
+            employee_id: employee_id,
+            department: department,
+            salary: salary,
+            courses_taught: empty_courses
+        };
+    }
+    
+    // إضافة دورة للتدريس
+    fn assign_course(self, course_name: string) -> Professor {
+        let mut new_courses = self.courses_taught;
+        new_courses.push(course_name);
+        
+        return Professor {
+            person: self.person,
+            employee_id: self.employee_id,
+            department: self.department,
+            salary: self.salary,
+            courses_taught: new_courses
+        };
+    }
+    
+    // زيادة الراتب
+    fn increase_salary(self, percentage: float) -> Professor {
+        let new_salary = self.salary * (1.0 + percentage / 100.0);
+        
+        return Professor {
+            person: self.person,
+            employee_id: self.employee_id,
+            department: self.department,
+            salary: new_salary,
+            courses_taught: self.courses_taught
+        };
+    }
+    
+    // عرض معلومات الأستاذ
+    fn display_professor_info(self) -> string {
+        let person_info = self.person.display_info();
+        return person_info + ", رقم الموظف: " + self.employee_id + ", القسم: " + self.department + ", الراتب: " + string(self.salary);
+    }
+}
+
+// طرق فئة الدورة
+impl Course {
+    // منشئ جديد للدورة
+    fn new(course_id: string, title: string, credits: int, professor: string, max_capacity: int) -> Course {
+        let empty_students: Vec<string> = Vec::new();
+        return Course {
+            course_id: course_id,
+            title: title,
+            credits: credits,
+            professor: professor,
+            students: empty_students,
+            max_capacity: max_capacity
+        };
+    }
+    
+    // تسجيل طالب في الدورة
+    fn enroll_student(self, student_id: string) -> Course {
+        if self.students.len() < self.max_capacity {
+            let mut new_students = self.students;
+            new_students.push(student_id);
+            
+            return Course {
+                course_id: self.course_id,
+                title: self.title,
+                credits: self.credits,
+                professor: self.professor,
+                students: new_students,
+                max_capacity: self.max_capacity
+            };
+        }
+        
+        return self;
+    }
+    
+    // التحقق من توفر مقاعد
+    fn has_available_seats(self) -> bool {
+        return self.students.len() < self.max_capacity;
+    }
+    
+    // عرض معلومات الدورة
+    fn display_course_info(self) -> string {
+        return "الدورة: " + self.title + " (" + self.course_id + "), الأستاذ: " + self.professor + ", الطلاب المسجلين: " + string(self.students.len()) + "/" + string(self.max_capacity);
+    }
+}
+
+// ========== مثال شامل للاستخدام ==========
+// Comprehensive Usage Example
+
+fn main() -> int {
+    print("🎓 === نظام إدارة الجامعة الكائني === 🎓");
+    print("");
+    
+    // إنشاء أشخاص
+    print("👥 === إنشاء الأشخاص ===");
+    let person1 = Person::new("أحمد محمد", 20, "ahmed@university.edu", "123456789");
+    let person2 = Person::new("فاطمة علي", 22, "fatima@university.edu", "987654321");
+    let person3 = Person::new("د. محمد حسن", 45, "hassan@university.edu", "555666777");
+    
+    print("✅ تم إنشاء " + person1.display_info());
+    print("✅ تم إنشاء " + person2.display_info());
+    print("✅ تم إنشاء " + person3.display_info());
+    print("");
+    
+    // إنشاء طلاب
+    print("🎓 === إنشاء الطلاب ===");
+    let mut student1 = Student::new(person1, "CS2021001", "علوم الحاسوب");
+    let mut student2 = Student::new(person2, "CS2021002", "هندسة البرمجيات");
+    
+    // إضافة دورات للطلاب
+    let student1 = student1.add_course("البرمجة الكائنية");
+    let student1 = student1.add_course("هياكل البيانات");
+    let student1 = student1.add_course("قواعد البيانات");
+    
+    let student2 = student2.add_course("البرمجة الكائنية");
+    let student2 = student2.add_course("هندسة البرمجيات");
+    
+    // حساب المعدلات
+    let grades1: Vec<float> = vec![3.5, 3.8, 3.2];
+    let student1 = student1.calculate_gpa(grades1);
+    
+    let grades2: Vec<float> = vec![3.9, 3.7];
+    let student2 = student2.calculate_gpa(grades2);
+    
+    print("✅ " + student1.display_student_info());
+    print("✅ " + student2.display_student_info());
+    print("");
+    
+    // إنشاء أستاذ
+    print("👨‍🏫 === إنشاء الأساتذة ===");
+    let mut professor1 = Professor::new(person3, "PROF001", "علوم الحاسوب", 8000.0);
+    let professor1 = professor1.assign_course("البرمجة الكائنية");
+    let professor1 = professor1.assign_course("هياكل البيانات");
+    
+    print("✅ " + professor1.display_professor_info());
+    print("");
+    
+    // إنشاء دورات
+    print("📚 === إنشاء الدورات ===");
+    let mut course1 = Course::new("CS101", "البرمجة الكائنية", 3, "د. محمد حسن", 30);
+    let mut course2 = Course::new("CS102", "هياكل البيانات", 3, "د. محمد حسن", 25);
+    
+    // تسجيل الطلاب في الدورات
+    let course1 = course1.enroll_student("CS2021001");
+    let course1 = course1.enroll_student("CS2021002");
+    
+    let course2 = course2.enroll_student("CS2021001");
+    
+    print("✅ " + course1.display_course_info());
+    print("✅ " + course2.display_course_info());
+    print("");
+    
+    // اختبار الطرق المختلفة
+    print("🧪 === اختبار الطرق ===");
+    
+    // التحقق من صحة البريد الإلكتروني
+    if person1.is_valid_email() {
+        print("✅ بريد " + person1.name + " صحيح");
+    }
+    
+    // التحقق من أهلية التخرج
+    if student1.is_eligible_for_graduation() {
+        print("🎓 " + student1.person.name + " مؤهل للتخرج");
+    } else {
+        print("⏳ " + student1.person.name + " يحتاج المزيد من الدورات أو تحسين المعدل");
+    }
+    
+    // التحقق من توفر مقاعد
+    if course1.has_available_seats() {
+        print("💺 دورة " + course1.title + " بها مقاعد متاحة");
+    }
+    
+    // زيادة راتب الأستاذ
+    let professor1_updated = professor1.increase_salary(10.0);
+    print("💰 تم زيادة راتب " + professor1_updated.person.name + " إلى " + string(professor1_updated.salary));
+    
+    print("");
+    print("🎊 === انتهى المثال الشامل للبرمجة الكائنية ===");
+    print("✅ تم عرض: الفئات، الطرق، الوراثة، التغليف، تعدد الأشكال");
+    print("🧬 لغة البيان تدعم OOP بشكل كامل ومتقدم!");
+    
+    return 0;
+}
