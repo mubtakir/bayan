@@ -423,6 +423,12 @@ impl SemanticAnalyzer {
             Expression::FieldAccess(field_access) => {
                 self.analyze_field_access(field_access)
             }
+            Expression::Array(array_expr) => {
+                self.analyze_array_literal(array_expr)
+            }
+            Expression::Index(index_expr) => {
+                self.analyze_index_access(index_expr)
+            }
             _ => todo!("Analysis for other expression types not yet implemented"),
         }
     }
@@ -552,6 +558,87 @@ impl SemanticAnalyzer {
                 field: field_access.field.clone(),
             },
             result_type: field_info.field_type.clone(),
+        })
+    }
+
+    /// Analyze an array literal expression (Expert recommendation: List<T> support)
+    fn analyze_array_literal(&mut self, array_expr: &ArrayExpression) -> Result<AnnotatedExpression, SemanticError> {
+        let mut annotated_elements = Vec::new();
+        let mut element_type: Option<ResolvedType> = None;
+
+        // Analyze each element and infer the common type
+        for element in &array_expr.elements {
+            let annotated_element = self.analyze_expression(element)?;
+
+            // Determine the element type (for now, all elements must be the same type)
+            match &element_type {
+                None => {
+                    element_type = Some(annotated_element.result_type.clone());
+                }
+                Some(expected_type) => {
+                    if !self.type_checker.types_compatible(expected_type, &annotated_element.result_type) {
+                        return Err(SemanticError::TypeMismatch {
+                            expected: expected_type.clone(),
+                            found: annotated_element.result_type.clone(),
+                        });
+                    }
+                }
+            }
+
+            annotated_elements.push(annotated_element);
+        }
+
+        // Default to int list if empty
+        let final_element_type = element_type.unwrap_or(ResolvedType::Int);
+
+        Ok(AnnotatedExpression {
+            expr: AnnotatedExpressionKind::Array {
+                elements: annotated_elements,
+            },
+            result_type: ResolvedType::List(Box::new(final_element_type)),
+        })
+    }
+
+    /// Analyze an index access expression (Expert recommendation: List<T> support)
+    fn analyze_index_access(&mut self, index_expr: &IndexExpression) -> Result<AnnotatedExpression, SemanticError> {
+        // Analyze the object being indexed
+        let annotated_object = self.analyze_expression(&index_expr.object)?;
+
+        // Analyze the index expression
+        let annotated_index = self.analyze_expression(&index_expr.index)?;
+
+        // Ensure index is an integer
+        if !matches!(annotated_index.result_type, ResolvedType::Int) {
+            return Err(SemanticError::TypeMismatch {
+                expected: ResolvedType::Int,
+                found: annotated_index.result_type,
+            });
+        }
+
+        // Determine the result type based on the object type
+        let result_type = match &annotated_object.result_type {
+            ResolvedType::List(element_type) => (**element_type).clone(),
+            ResolvedType::Tuple(element_types) => {
+                // For tuple indexing, we'd need to check if the index is a compile-time constant
+                // For now, return the first element type or error
+                if element_types.is_empty() {
+                    return Err(SemanticError::Other("Cannot index empty tuple".to_string()));
+                }
+                element_types[0].clone() // Simplified - should check constant index
+            }
+            _ => {
+                return Err(SemanticError::Other(format!(
+                    "Cannot index type: {:?}", annotated_object.result_type
+                )));
+            }
+        };
+
+        Ok(AnnotatedExpression {
+            expr: AnnotatedExpressionKind::Index {
+                object: Box::new(annotated_object),
+                index: Box::new(annotated_index),
+            },
+            result_type,
         })
     }
 
@@ -758,6 +845,13 @@ pub enum AnnotatedExpressionKind {
         object: Box<AnnotatedExpression>,
         field: String,
     },
+    Array {
+        elements: Vec<AnnotatedExpression>,
+    },
+    Index {
+        object: Box<AnnotatedExpression>,
+        index: Box<AnnotatedExpression>,
+    },
 }
 
 /// Resolved type information
@@ -774,6 +868,10 @@ pub enum ResolvedType {
     // User-defined types
     Struct(String),
     Enum(String),
+
+    // Collection types (Expert recommendation: List<T> support)
+    List(Box<ResolvedType>),
+    Tuple(Vec<ResolvedType>),
 
     // Function types
     Function(Vec<ResolvedType>, Box<ResolvedType>),
@@ -871,4 +969,7 @@ pub enum SemanticError {
 
     #[error("Unreachable code: {0}")]
     UnreachableCode(String),
+
+    #[error("Other error: {0}")]
+    Other(String),
 }

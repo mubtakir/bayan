@@ -1,0 +1,16 @@
+// Simple list test for AlBayan language
+// Testing basic list operations as recommended by expert
+
+fn main() -> int {
+    // Create a simple list with integers
+    let numbers = [1, 2, 3, 4, 5];
+    
+    // Access first element
+    let first = numbers[0];
+    
+    // Access last element  
+    let last = numbers[4];
+    
+    // Return sum of first and last
+    return first + last;
+}

@@ -314,6 +314,12 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             AnnotatedExpressionKind::FieldAccess { object, field } => {
                 self.generate_field_access(object, field)
             }
+            AnnotatedExpressionKind::Array { elements } => {
+                self.generate_array_literal(elements, &expr.result_type)
+            }
+            AnnotatedExpressionKind::Index { object, index } => {
+                self.generate_index_access(object, index)
+            }
             _ => Err(anyhow!("Expression type not yet implemented"))
         }
     }
@@ -940,6 +946,345 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             Err(anyhow!("LLVM module verification failed: {}", errors))
         } else {
             Ok(())
+        }
+    }
+
+    // =============================================================================
+    // AlbayanValue Integration Functions (Expert Recommendation)
+    // =============================================================================
+
+    /// Get the LLVM type for AlbayanValue struct
+    /// This creates the struct type that matches the C representation
+    fn get_albayan_value_llvm_type(&self) -> BasicTypeEnum<'ctx> {
+        // AlbayanValue struct layout:
+        // struct AlbayanValue {
+        //     tag: i32,           // AlbayanValueTag (4 bytes)
+        //     payload: union {    // 8 bytes (largest member)
+        //         int_val: i64,
+        //         float_val: f64,
+        //         bool_val: bool,
+        //         ptr_val: *mut T,
+        //     }
+        // }
+
+        let i32_type = self.context.i32_type();
+        let i64_type = self.context.i64_type();
+
+        // Create the struct type with tag and payload
+        let struct_type = self.context.struct_type(&[
+            i32_type.into(),  // tag
+            i64_type.into(),  // payload (using i64 as largest union member)
+        ], false);
+
+        struct_type.into()
+    }
+
+    /// Build an AlbayanValue from an LLVM value
+    /// This function takes an LLVM value and wraps it in an AlbayanValue struct
+    fn build_albayan_value_from_llvm(&self, value: BasicValueEnum<'ctx>, resolved_type: &ResolvedType) -> Result<BasicValueEnum<'ctx>> {
+        let albayan_value_type = self.get_albayan_value_llvm_type();
+        let struct_type = albayan_value_type.into_struct_type();
+
+        // Allocate space for the AlbayanValue
+        let alloca = self.builder.build_alloca(struct_type, "albayan_value")?;
+
+        // Determine the tag based on the resolved type
+        let tag_value = match resolved_type {
+            ResolvedType::Int => self.context.i32_type().const_int(0, false), // AlbayanValueTag::Int
+            ResolvedType::Float => self.context.i32_type().const_int(1, false), // AlbayanValueTag::Float
+            ResolvedType::Bool => self.context.i32_type().const_int(2, false), // AlbayanValueTag::Bool
+            ResolvedType::String => self.context.i32_type().const_int(3, false), // AlbayanValueTag::String
+            ResolvedType::List(_) => self.context.i32_type().const_int(4, false), // AlbayanValueTag::List
+            ResolvedType::Struct(_) => self.context.i32_type().const_int(5, false), // AlbayanValueTag::Struct
+            ResolvedType::Tuple(_) => self.context.i32_type().const_int(6, false), // AlbayanValueTag::Tuple
+            _ => self.context.i32_type().const_int(7, false), // AlbayanValueTag::Null
+        };
+
+        // Store the tag
+        let tag_ptr = self.builder.build_struct_gep(struct_type, alloca, 0, "tag_ptr")?;
+        self.builder.build_store(tag_ptr, tag_value)?;
+
+        // Convert and store the payload
+        let payload_value = match resolved_type {
+            ResolvedType::Int => {
+                // Value should already be i64 or convertible
+                if value.is_int_value() {
+                    let int_val = value.into_int_value();
+                    if int_val.get_type() == self.context.i64_type() {
+                        int_val
+                    } else {
+                        // Extend to i64
+                        self.builder.build_int_s_extend(int_val, self.context.i64_type(), "extend_to_i64")?
+                    }
+                } else {
+                    return Err(anyhow!("Expected int value for Int type"));
+                }
+            },
+            ResolvedType::Float => {
+                // Convert float to i64 bits
+                if value.is_float_value() {
+                    let float_val = value.into_float_value();
+                    self.builder.build_bitcast(float_val, self.context.i64_type(), "float_to_bits")?
+                        .into_int_value()
+                } else {
+                    return Err(anyhow!("Expected float value for Float type"));
+                }
+            },
+            ResolvedType::Bool => {
+                // Convert bool to i64
+                if value.is_int_value() {
+                    let bool_val = value.into_int_value();
+                    self.builder.build_int_z_extend(bool_val, self.context.i64_type(), "bool_to_i64")?
+                } else {
+                    return Err(anyhow!("Expected bool value for Bool type"));
+                }
+            },
+            _ => {
+                // For pointers (String, List, Struct, Tuple), cast to i64
+                if value.is_pointer_value() {
+                    let ptr_val = value.into_pointer_value();
+                    self.builder.build_ptr_to_int(ptr_val, self.context.i64_type(), "ptr_to_int")?
+                } else {
+                    return Err(anyhow!("Expected pointer value for reference type"));
+                }
+            }
+        };
+
+        // Store the payload
+        let payload_ptr = self.builder.build_struct_gep(struct_type, alloca, 1, "payload_ptr")?;
+        self.builder.build_store(payload_ptr, payload_value)?;
+
+        // Load and return the complete AlbayanValue
+        let loaded_value = self.builder.build_load(struct_type, alloca, "albayan_value")?;
+        Ok(loaded_value)
+    }
+
+    /// Extract an LLVM value from an AlbayanValue
+    /// This function takes an AlbayanValue and extracts the underlying LLVM value
+    fn build_llvm_value_from_albayan(&self, albayan_value: BasicValueEnum<'ctx>, expected_type: &ResolvedType) -> Result<BasicValueEnum<'ctx>> {
+        let albayan_value_type = self.get_albayan_value_llvm_type();
+        let struct_type = albayan_value_type.into_struct_type();
+
+        // Allocate space and store the AlbayanValue
+        let alloca = self.builder.build_alloca(struct_type, "temp_albayan_value")?;
+        self.builder.build_store(alloca, albayan_value)?;
+
+        // Extract the tag for runtime type checking (optional - could be used for safety)
+        let tag_ptr = self.builder.build_struct_gep(struct_type, alloca, 0, "tag_ptr")?;
+        let _tag_value = self.builder.build_load(self.context.i32_type(), tag_ptr, "tag")?;
+
+        // Extract the payload
+        let payload_ptr = self.builder.build_struct_gep(struct_type, alloca, 1, "payload_ptr")?;
+        let payload_value = self.builder.build_load(self.context.i64_type(), payload_ptr, "payload")?
+            .into_int_value();
+
+        // Convert payload back to the expected type
+        match expected_type {
+            ResolvedType::Int => {
+                // Payload is already i64
+                Ok(payload_value.into())
+            },
+            ResolvedType::Float => {
+                // Convert i64 bits back to float
+                let float_val = self.builder.build_bitcast(payload_value, self.context.f64_type(), "bits_to_float")?;
+                Ok(float_val)
+            },
+            ResolvedType::Bool => {
+                // Convert i64 back to bool (i1)
+                let bool_val = self.builder.build_int_truncate(payload_value, self.context.bool_type(), "i64_to_bool")?;
+                Ok(bool_val.into())
+            },
+            ResolvedType::String => {
+                // Convert i64 back to string pointer
+                let string_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+                let ptr_val = self.builder.build_int_to_ptr(payload_value, string_ptr_type, "int_to_string_ptr")?;
+                Ok(ptr_val.into())
+            },
+            ResolvedType::List(_) => {
+                // Convert i64 back to list pointer
+                let list_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default()); // Generic pointer
+                let ptr_val = self.builder.build_int_to_ptr(payload_value, list_ptr_type, "int_to_list_ptr")?;
+                Ok(ptr_val.into())
+            },
+            ResolvedType::Struct(_) => {
+                // Convert i64 back to struct pointer
+                let struct_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+                let ptr_val = self.builder.build_int_to_ptr(payload_value, struct_ptr_type, "int_to_struct_ptr")?;
+                Ok(ptr_val.into())
+            },
+            ResolvedType::Tuple(_) => {
+                // Convert i64 back to tuple pointer
+                let tuple_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+                let ptr_val = self.builder.build_int_to_ptr(payload_value, tuple_ptr_type, "int_to_tuple_ptr")?;
+                Ok(ptr_val.into())
+            },
+            _ => {
+                Err(anyhow!("Unsupported type for AlbayanValue extraction: {:?}", expected_type))
+            }
+        }
+    }
+
+    /// Declare runtime API functions for list operations
+    /// This makes the runtime functions available for calling from generated code
+    fn declare_runtime_api_functions(&mut self) -> Result<()> {
+        let i8_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+        let i32_type = self.context.i32_type();
+        let i64_type = self.context.i64_type();
+        let usize_type = self.context.i64_type(); // Assuming 64-bit platform
+        let albayan_value_type = self.get_albayan_value_llvm_type();
+
+        // albayan_rt_list_create() -> *mut AlbayanList
+        let list_create_fn_type = self.context.void_type().fn_type(&[], false);
+        let list_create_fn = self.module.add_function("albayan_rt_list_create", list_create_fn_type, None);
+
+        // albayan_rt_list_push(list_ptr: *mut AlbayanList, value: AlbayanValue) -> i32
+        let list_push_fn_type = i32_type.fn_type(&[
+            i8_ptr_type.into(), // list_ptr (generic pointer)
+            albayan_value_type.into(), // value
+        ], false);
+        let list_push_fn = self.module.add_function("albayan_rt_list_push", list_push_fn_type, None);
+
+        // albayan_rt_list_get(list_ptr: *const AlbayanList, index: usize) -> AlbayanValue
+        let list_get_fn_type = albayan_value_type.fn_type(&[
+            i8_ptr_type.into(), // list_ptr
+            usize_type.into(),  // index
+        ], false);
+        let list_get_fn = self.module.add_function("albayan_rt_list_get", list_get_fn_type, None);
+
+        // albayan_rt_list_len(list_ptr: *const AlbayanList) -> usize
+        let list_len_fn_type = usize_type.fn_type(&[
+            i8_ptr_type.into(), // list_ptr
+        ], false);
+        let list_len_fn = self.module.add_function("albayan_rt_list_len", list_len_fn_type, None);
+
+        // Store function references for later use
+        self.functions.insert("albayan_rt_list_create".to_string(), list_create_fn);
+        self.functions.insert("albayan_rt_list_push".to_string(), list_push_fn);
+        self.functions.insert("albayan_rt_list_get".to_string(), list_get_fn);
+        self.functions.insert("albayan_rt_list_len".to_string(), list_len_fn);
+
+        Ok(())
+    }
+
+    /// Resolve a ResolvedType to an LLVM BasicTypeEnum
+    fn resolve_llvm_type(&self, resolved_type: &ResolvedType) -> Result<BasicTypeEnum<'ctx>> {
+        match resolved_type {
+            ResolvedType::Int => Ok(self.context.i64_type().into()),
+            ResolvedType::Float => Ok(self.context.f64_type().into()),
+            ResolvedType::Bool => Ok(self.context.bool_type().into()),
+            ResolvedType::String => Ok(self.context.i8_type().ptr_type(AddressSpace::default()).into()),
+            ResolvedType::List(_) => {
+                // Lists are represented as pointers to AlbayanList
+                Ok(self.context.i8_type().ptr_type(AddressSpace::default()).into())
+            }
+            ResolvedType::Tuple(element_types) => {
+                // Create a struct type for the tuple
+                let mut field_types = Vec::new();
+                for elem_type in element_types {
+                    field_types.push(self.resolve_llvm_type(elem_type)?);
+                }
+                let tuple_type = self.context.struct_type(&field_types, false);
+                Ok(tuple_type.into())
+            }
+            ResolvedType::Struct(name) => {
+                // Get the struct type from cache or create it
+                self.get_llvm_struct_type(name).map(|t| t.into())
+            }
+            _ => Err(anyhow!("Unsupported type for LLVM resolution: {:?}", resolved_type)),
+        }
+    }
+
+    /// Generate code for an array literal (Expert recommendation: List<T> support)
+    fn generate_array_literal(&mut self, elements: &[AnnotatedExpression], result_type: &ResolvedType) -> Result<BasicValueEnum<'ctx>> {
+        // Ensure runtime API functions are declared
+        self.declare_runtime_api_functions()?;
+
+        // Extract element type from List<T>
+        let element_type = match result_type {
+            ResolvedType::List(elem_type) => elem_type.as_ref(),
+            _ => return Err(anyhow!("Expected List type for array literal")),
+        };
+
+        // Create a new list
+        let create_fn = self.functions.get("albayan_rt_list_create")
+            .ok_or_else(|| anyhow!("List create function not found"))?;
+        let list_ptr = self.builder.build_call(*create_fn, &[], "new_list")?
+            .try_as_basic_value().left()
+            .ok_or_else(|| anyhow!("List create returned void"))?;
+
+        // Push each element to the list
+        let push_fn = self.functions.get("albayan_rt_list_push")
+            .ok_or_else(|| anyhow!("List push function not found"))?;
+
+        for element in elements {
+            // Generate the element value
+            let element_value = self.generate_expression(element)?;
+
+            // Convert to AlbayanValue
+            let albayan_value = self.build_albayan_value_from_llvm(element_value, element_type)?;
+
+            // Push to list
+            self.builder.build_call(*push_fn, &[list_ptr, albayan_value], "push_element")?;
+        }
+
+        // Return the list pointer
+        Ok(list_ptr)
+    }
+
+    /// Generate code for index access (Expert recommendation: List<T> support)
+    fn generate_index_access(&mut self, object: &AnnotatedExpression, index: &AnnotatedExpression) -> Result<BasicValueEnum<'ctx>> {
+        // Generate the object and index values
+        let object_value = self.generate_expression(object)?;
+        let index_value = self.generate_expression(index)?;
+
+        match &object.result_type {
+            ResolvedType::List(element_type) => {
+                // Ensure runtime API functions are declared
+                self.declare_runtime_api_functions()?;
+
+                // Call albayan_rt_list_get
+                let get_fn = self.functions.get("albayan_rt_list_get")
+                    .ok_or_else(|| anyhow!("List get function not found"))?;
+
+                let albayan_value = self.builder.build_call(*get_fn, &[object_value, index_value], "list_get")?
+                    .try_as_basic_value().left()
+                    .ok_or_else(|| anyhow!("List get returned void"))?;
+
+                // Convert AlbayanValue back to LLVM value
+                self.build_llvm_value_from_albayan(albayan_value, element_type)
+            }
+            ResolvedType::Tuple(element_types) => {
+                // For tuple indexing, we need to extract the field at compile time
+                if let AnnotatedExpressionKind::Literal(Literal::Integer(idx)) = &index.expr {
+                    let idx = *idx as u32;
+                    if (idx as usize) < element_types.len() {
+                        // Generate GEP for tuple field access
+                        if object_value.is_pointer_value() {
+                            let tuple_ptr = object_value.into_pointer_value();
+                            let tuple_type = self.resolve_llvm_type(&object.result_type)?;
+
+                            let field_ptr = self.builder.build_struct_gep(
+                                tuple_type.into_struct_type(),
+                                tuple_ptr,
+                                idx,
+                                &format!("tuple_field_{}", idx)
+                            )?;
+
+                            let field_type = self.resolve_llvm_type(&element_types[idx as usize])?;
+                            Ok(self.builder.build_load(field_type, field_ptr, "tuple_element")?)
+                        } else {
+                            Err(anyhow!("Tuple indexing requires pointer value"))
+                        }
+                    } else {
+                        Err(anyhow!("Tuple index out of bounds"))
+                    }
+                } else {
+                    Err(anyhow!("Tuple indexing requires compile-time constant index"))
+                }
+            }
+            _ => {
+                Err(anyhow!("Index access not supported for type: {:?}", object.result_type))
+            }
         }
     }
 }
