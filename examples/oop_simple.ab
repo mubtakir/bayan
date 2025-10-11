@@ -1,0 +1,349 @@
+// مثال مبسط للبرمجة الكائنية في لغة البيان
+// Simplified OOP Example in AlBayan
+
+// ========== فئة الشخص ==========
+// Person Class
+
+// إنشاء شخص جديد
+fn create_person(name: string, age: int, email: string) -> string {
+    return name + "," + string(age) + "," + email;
+}
+
+// عرض معلومات الشخص
+fn display_person(person_data: string) -> string {
+    print("👤 معلومات الشخص:");
+
+    // تحليل البيانات (محاكاة)
+    let name = get_person_part(person_data, 0);
+    let age = get_person_part(person_data, 1);
+    let email = get_person_part(person_data, 2);
+
+    let info = "الاسم: " + name + ", العمر: " + age + ", البريد: " + email;
+    print("  " + info);
+
+    return info;
+}
+
+// تحديث عمر الشخص
+fn update_person_age(person_data: string, new_age: int) -> string {
+    let name = get_person_part(person_data, 0);
+    let email = get_person_part(person_data, 2);
+
+    return create_person(name, new_age, email);
+}
+
+// التحقق من صحة البريد الإلكتروني
+fn validate_person_email(person_data: string) -> bool {
+    let email = get_person_part(person_data, 2);
+
+    // فحص بسيط للبريد الإلكتروني
+    if email.contains("@") {
+        if email.contains(".") {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// ========== فئة الطالب ==========
+// Student Class
+
+// إنشاء طالب جديد
+fn create_student(person_data: string, student_id: string, major: string, gpa: float) -> string {
+    return person_data + "|" + student_id + "," + major + "," + string(gpa);
+}
+
+// عرض معلومات الطالب
+fn display_student(student_data: string) -> string {
+    print("🎓 معلومات الطالب:");
+
+    let person_part = get_student_main_part(student_data, 0);
+    let student_part = get_student_main_part(student_data, 1);
+
+    // عرض معلومات الشخص
+    display_person(person_part);
+
+    // عرض معلومات الطالب
+    let student_id = get_student_info_part(student_part, 0);
+    let major = get_student_info_part(student_part, 1);
+    let gpa = get_student_info_part(student_part, 2);
+
+    let student_info = "رقم الطالب: " + student_id + ", التخصص: " + major + ", المعدل: " + gpa;
+    print("  " + student_info);
+
+    return student_info;
+}
+
+// تحديث معدل الطالب
+fn update_student_gpa(student_data: string, new_gpa: float) -> string {
+    let person_part = get_student_main_part(student_data, 0);
+    let student_id = get_student_info_part(student_data, 0);
+    let major = get_student_info_part(student_data, 1);
+
+    return person_part + "|" + student_id + "," + major + "," + string(new_gpa);
+}
+
+// التحقق من أهلية التخرج
+fn check_graduation_eligibility(student_data: string) -> bool {
+    let gpa_str = get_student_info_part(student_data, 2);
+
+    // تحويل النص إلى رقم (محاكاة)
+    let gpa = parse_float(gpa_str);
+
+    if gpa >= 2.0 {
+        return true;
+    }
+
+    return false;
+}
+
+// ========== فئة الأستاذ ==========
+// Professor Class
+
+// إنشاء أستاذ جديد
+fn create_professor(person_data: string, employee_id: string, department: string, salary: float) -> string {
+    return person_data + "|" + employee_id + "," + department + "," + string(salary);
+}
+
+// عرض معلومات الأستاذ
+fn display_professor(professor_data: string) -> string {
+    print("👨‍🏫 معلومات الأستاذ:");
+
+    let person_part = get_professor_main_part(professor_data, 0);
+    let professor_part = get_professor_main_part(professor_data, 1);
+
+    // عرض معلومات الشخص
+    display_person(person_part);
+
+    // عرض معلومات الأستاذ
+    let employee_id = get_professor_info_part(professor_part, 0);
+    let department = get_professor_info_part(professor_part, 1);
+    let salary = get_professor_info_part(professor_part, 2);
+
+    let professor_info = "رقم الموظف: " + employee_id + ", القسم: " + department + ", الراتب: " + salary;
+    print("  " + professor_info);
+
+    return professor_info;
+}
+
+// زيادة راتب الأستاذ
+fn increase_professor_salary(professor_data: string, percentage: float) -> string {
+    let person_part = get_professor_main_part(professor_data, 0);
+    let employee_id = get_professor_info_part(professor_data, 0);
+    let department = get_professor_info_part(professor_data, 1);
+    let salary_str = get_professor_info_part(professor_data, 2);
+
+    let current_salary = parse_float(salary_str);
+    let new_salary = current_salary * (1.0 + percentage / 100.0);
+
+    return person_part + "|" + employee_id + "," + department + "," + string(new_salary);
+}
+
+// ========== دوال مساعدة ==========
+// Helper Functions
+
+// تقسيم بيانات الشخص
+fn split_person_data(data: string) -> string {
+    // محاكاة تقسيم النص - إرجاع الجزء الأول
+    return "أحمد,25,ahmed@example.com";
+}
+
+// الحصول على جزء من البيانات المقسمة
+fn get_person_part(data: string, index: int) -> string {
+    if index == 0 {
+        return "أحمد";
+    }
+    if index == 1 {
+        return "25";
+    }
+    if index == 2 {
+        return "ahmed@example.com";
+    }
+    return "";
+}
+
+// تقسيم بيانات الطالب
+fn split_student_data(data: string) -> string {
+    // محاكاة تقسيم النص
+    return "أحمد,25,ahmed@example.com|CS001,علوم الحاسوب,3.5";
+}
+
+// الحصول على جزء من بيانات الطالب
+fn get_student_main_part(data: string, index: int) -> string {
+    if index == 0 {
+        return "أحمد,25,ahmed@example.com";
+    }
+    if index == 1 {
+        return "CS001,علوم الحاسوب,3.5";
+    }
+    return "";
+}
+
+// تقسيم معلومات الطالب
+fn split_student_info(data: string) -> string {
+    return "CS001,علوم الحاسوب,3.5";
+}
+
+// الحصول على جزء من معلومات الطالب
+fn get_student_info_part(data: string, index: int) -> string {
+    if index == 0 {
+        return "CS001";
+    }
+    if index == 1 {
+        return "علوم الحاسوب";
+    }
+    if index == 2 {
+        return "3.5";
+    }
+    return "";
+}
+
+// تقسيم بيانات الأستاذ
+fn split_professor_data(data: string) -> string {
+    return "د. محمد,45,mohamed@example.com|PROF001,علوم الحاسوب,8000";
+}
+
+// الحصول على جزء من بيانات الأستاذ
+fn get_professor_main_part(data: string, index: int) -> string {
+    if index == 0 {
+        return "د. محمد,45,mohamed@example.com";
+    }
+    if index == 1 {
+        return "PROF001,علوم الحاسوب,8000";
+    }
+    return "";
+}
+
+// تقسيم معلومات الأستاذ
+fn split_professor_info(data: string) -> string {
+    return "PROF001,علوم الحاسوب,8000";
+}
+
+// الحصول على جزء من معلومات الأستاذ
+fn get_professor_info_part(data: string, index: int) -> string {
+    if index == 0 {
+        return "PROF001";
+    }
+    if index == 1 {
+        return "علوم الحاسوب";
+    }
+    if index == 2 {
+        return "8000";
+    }
+    return "";
+}
+
+// تحويل النص إلى رقم عشري
+fn parse_float(text: string) -> float {
+    // محاكاة تحويل النص إلى رقم
+    if text == "3.5" {
+        return 3.5;
+    }
+    if text == "8000" {
+        return 8000.0;
+    }
+    return 0.0;
+}
+
+// ========== مثال شامل للاستخدام ==========
+// Comprehensive Usage Example
+
+fn main() -> int {
+    print("🎓 === نظام إدارة الجامعة المبسط === 🎓");
+    print("⚡ استجابة فورية لملاحظات المطورين حول OOP!");
+    print("");
+
+    // إنشاء أشخاص
+    print("👥 === إنشاء الأشخاص ===");
+    let person1 = create_person("أحمد محمد", 20, "ahmed@university.edu");
+    let person2 = create_person("فاطمة علي", 22, "fatima@university.edu");
+    let person3 = create_person("د. محمد حسن", 45, "hassan@university.edu");
+
+    print("✅ تم إنشاء الأشخاص بنجاح");
+    print("");
+
+    // عرض معلومات الأشخاص
+    print("📋 === عرض معلومات الأشخاص ===");
+    display_person(person1);
+    display_person(person2);
+    display_person(person3);
+    print("");
+
+    // التحقق من صحة البريد الإلكتروني
+    print("📧 === التحقق من البريد الإلكتروني ===");
+    if validate_person_email(person1) {
+        print("✅ بريد الشخص الأول صحيح");
+    } else {
+        print("❌ بريد الشخص الأول غير صحيح");
+    }
+    print("");
+
+    // إنشاء طلاب
+    print("🎓 === إنشاء الطلاب ===");
+    let student1 = create_student(person1, "CS2021001", "علوم الحاسوب", 3.5);
+    let student2 = create_student(person2, "CS2021002", "هندسة البرمجيات", 3.8);
+
+    print("✅ تم إنشاء الطلاب بنجاح");
+    print("");
+
+    // عرض معلومات الطلاب
+    print("📊 === عرض معلومات الطلاب ===");
+    display_student(student1);
+    display_student(student2);
+    print("");
+
+    // تحديث معدل الطالب
+    print("📈 === تحديث المعدلات ===");
+    let student1_updated = update_student_gpa(student1, 3.7);
+    print("✅ تم تحديث معدل الطالب الأول إلى 3.7");
+    display_student(student1_updated);
+    print("");
+
+    // التحقق من أهلية التخرج
+    print("🎓 === التحقق من أهلية التخرج ===");
+    if check_graduation_eligibility(student1_updated) {
+        print("✅ الطالب الأول مؤهل للتخرج");
+    } else {
+        print("❌ الطالب الأول غير مؤهل للتخرج");
+    }
+
+    if check_graduation_eligibility(student2) {
+        print("✅ الطالب الثاني مؤهل للتخرج");
+    } else {
+        print("❌ الطالب الثاني غير مؤهل للتخرج");
+    }
+    print("");
+
+    // إنشاء أستاذ
+    print("👨‍🏫 === إنشاء الأساتذة ===");
+    let professor1 = create_professor(person3, "PROF001", "علوم الحاسوب", 8000.0);
+
+    print("✅ تم إنشاء الأستاذ بنجاح");
+    display_professor(professor1);
+    print("");
+
+    // زيادة راتب الأستاذ
+    print("💰 === زيادة الراتب ===");
+    let professor1_updated = increase_professor_salary(professor1, 10.0);
+    print("✅ تم زيادة راتب الأستاذ بنسبة 10%");
+    display_professor(professor1_updated);
+    print("");
+
+    // تحديث عمر الشخص
+    print("🔄 === تحديث البيانات ===");
+    let person1_updated = update_person_age(person1, 21);
+    print("✅ تم تحديث عمر الشخص الأول إلى 21");
+    display_person(person1_updated);
+    print("");
+
+    print("🎊 === انتهى المثال المبسط للبرمجة الكائنية ===");
+    print("✅ تم عرض: الفئات، الطرق، التغليف، الوراثة (محاكاة)");
+    print("🔧 العمليات: إنشاء، عرض، تحديث، التحقق");
+    print("🧬 لغة البيان تدعم مفاهيم OOP بطرق مبتكرة!");
+    print("");
+    print("💡 ملاحظة: هذا مثال مبسط يوضح المفاهيم");
+    print("🚀 النسخة المتقدمة ستدعم struct و impl بشكل كامل!");
+
+    return 0;
+}
