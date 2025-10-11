@@ -1,0 +1,46 @@
+// Test match exhaustiveness checking
+fn test_bool_exhaustive() -> int {
+    let x = true;
+
+    // This should be exhaustive (covers both true and false)
+    return match x {
+        true => 1,
+        false => 0
+    };
+}
+
+fn test_bool_with_wildcard() -> int {
+    let x = false;
+
+    // This should be exhaustive (wildcard catches all)
+    return match x {
+        true => 1,
+        _ => 0
+    };
+}
+
+fn test_int_with_wildcard() -> int {
+    let x = 42;
+
+    // This should be exhaustive (wildcard catches all)
+    return match x {
+        1 => 10,
+        2 => 20,
+        _ => 0
+    };
+}
+
+fn test_int_with_identifier() -> int {
+    let x = 42;
+
+    // This should be exhaustive (identifier catches all)
+    return match x {
+        1 => 10,
+        2 => 20,
+        other => other
+    };
+}
+
+fn main() -> int {
+    return test_bool_exhaustive() + test_bool_with_wildcard() + test_int_with_wildcard() + test_int_with_identifier();
+}

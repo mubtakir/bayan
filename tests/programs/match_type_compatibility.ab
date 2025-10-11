@@ -1,0 +1,44 @@
+// Test match arm type compatibility
+fn test_same_types() -> int {
+    let x = 5;
+
+    // All arms return int - should work
+    return match x {
+        1 => 10,
+        2 => 20,
+        _ => 30
+    };
+}
+
+fn test_compatible_types() -> float {
+    let x = 5;
+
+    // Mix of int and float - should promote to float
+    return match x {
+        1 => 10,      // int
+        2 => 20.5,    // float
+        _ => 30       // int
+    };
+}
+
+fn test_unit_type() {
+    let x = 5;
+
+    // All arms return unit - should work
+    match x {
+        1 => {
+            // do something
+        }
+        2 => {
+            // do something else
+        }
+        _ => {
+            // default case
+        }
+    }
+}
+
+fn main() -> int {
+    test_unit_type();
+    return test_same_types();
+}

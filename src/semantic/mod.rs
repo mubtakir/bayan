@@ -436,6 +436,9 @@ impl SemanticAnalyzer {
             Expression::Match(match_expr) => {
                 self.analyze_match_expression(match_expr)
             }
+            Expression::Call(call_expr) => {
+                self.analyze_call_expression(call_expr)
+            }
             _ => todo!("Analysis for other expression types not yet implemented"),
         }
     }
@@ -651,12 +654,12 @@ impl SemanticAnalyzer {
 
     /// Analyze a match expression (Expert recommendation: Priority 1 - Complete match support)
     fn analyze_match_expression(&mut self, match_expr: &Box<MatchStatement>) -> Result<AnnotatedExpression, SemanticError> {
+
         // Reuse match statement analysis
         let annotated_match = self.analyze_match_statement(match_expr)?;
 
-        // Match expression must have a result type
-        let result_type = annotated_match.result_type
-            .ok_or_else(|| SemanticError::Other("Match expression must have a result type".to_string()))?;
+        // Match expression result type
+        let result_type = annotated_match.result_type.clone();
 
         Ok(AnnotatedExpression {
             expr: AnnotatedExpressionKind::Match {
@@ -664,6 +667,58 @@ impl SemanticAnalyzer {
                 arms: annotated_match.arms,
             },
             result_type,
+        })
+    }
+
+    /// Analyze a call expression
+    fn analyze_call_expression(&mut self, call_expr: &CallExpression) -> Result<AnnotatedExpression, SemanticError> {
+        // For now, only support simple function calls (identifier)
+        let function_name = match call_expr.callee.as_ref() {
+            Expression::Identifier(name) => name.clone(),
+            _ => return Err(SemanticError::TypeMismatch {
+                expected: ResolvedType::Unit,
+                found: ResolvedType::Unit,
+            }),
+        };
+
+        // Look up the function in the symbol table
+        let func_info = self.symbol_table.lookup_function(&function_name)
+            .ok_or_else(|| SemanticError::UndefinedVariable(function_name.clone()))?
+            .clone(); // Clone to avoid borrowing issues
+
+        // Check argument count
+        if call_expr.arguments.len() != func_info.parameters.len() {
+            return Err(SemanticError::TypeMismatch {
+                expected: ResolvedType::Unit, // Placeholder
+                found: ResolvedType::Unit,    // Placeholder
+            });
+        }
+
+        // Analyze arguments and check types
+        let mut annotated_args = Vec::new();
+        for (i, arg) in call_expr.arguments.iter().enumerate() {
+            let annotated_arg = self.analyze_expression(arg)?;
+            let expected_type = &func_info.parameters[i];
+
+            // Simple type compatibility check
+            if annotated_arg.result_type != *expected_type {
+                return Err(SemanticError::TypeMismatch {
+                    expected: expected_type.clone(),
+                    found: annotated_arg.result_type.clone(),
+                });
+            }
+
+            annotated_args.push(annotated_arg);
+        }
+
+        let return_type = func_info.return_type.clone().unwrap_or(ResolvedType::Unit);
+
+        Ok(AnnotatedExpression {
+            expr: AnnotatedExpressionKind::Call {
+                function: function_name,
+                arguments: annotated_args,
+            },
+            result_type: return_type,
         })
     }
 
@@ -732,24 +787,31 @@ impl SemanticAnalyzer {
             self.symbol_table.exit_scope();
         }
 
-        // Check arm type compatibility for match expressions
+        // Check arm type compatibility for match expressions (Expert recommendation: Enhanced type checking)
         let result_type = if arm_types.is_empty() {
-            None
+            // No arms - this should be caught by exhaustiveness checking
+            ResolvedType::Unit
+        } else if arm_types.len() == 1 {
+            // Single arm - use its type
+            arm_types[0].clone()
         } else {
-            // Find common type among all arms
+            // Multiple arms - find common super type
             let mut common_type = arm_types[0].clone();
             for arm_type in &arm_types[1..] {
-                common_type = self.type_checker.common_super_type(&common_type, arm_type)
-                    .ok_or_else(|| SemanticError::TypeMismatch {
-                        expected: common_type.clone(),
+                if let Some(super_type) = self.type_checker.common_super_type(&common_type, arm_type) {
+                    common_type = super_type;
+                } else {
+                    // No common type found - report detailed error
+                    return Err(SemanticError::TypeMismatch {
+                        expected: common_type,
                         found: arm_type.clone(),
-                    })?;
+                    });
+                }
             }
-            Some(common_type)
+            common_type
         };
 
-        // TODO: Check exhaustiveness (Expert recommendation)
-        // For now, we'll implement basic exhaustiveness checking for simple types
+        // Check exhaustiveness (Expert recommendation: Enhanced exhaustiveness checking)
         self.check_match_exhaustiveness(&match_type, &annotated_arms)?;
 
         Ok(AnnotatedMatchStatement {
@@ -952,7 +1014,7 @@ pub struct AnnotatedExpression {
 pub struct AnnotatedMatchStatement {
     pub expression: AnnotatedExpression,
     pub arms: Vec<AnnotatedMatchArm>,
-    pub result_type: Option<ResolvedType>, // Some if match is expression, None if statement
+    pub result_type: ResolvedType, // Type of the match expression/statement
 }
 
 #[derive(Debug, Clone)]
@@ -1000,6 +1062,10 @@ pub enum AnnotatedExpressionKind {
     Match {
         expression: Box<AnnotatedExpression>,
         arms: Vec<AnnotatedMatchArm>,
+    },
+    Call {
+        function: String,
+        arguments: Vec<AnnotatedExpression>,
     },
 }
 
@@ -1225,26 +1291,27 @@ impl SemanticAnalyzer {
         }
     }
 
-    /// Check match exhaustiveness (Expert recommendation: Basic exhaustiveness checking)
+    /// Check match exhaustiveness (Expert recommendation: Enhanced exhaustiveness checking)
     fn check_match_exhaustiveness(&self, match_type: &ResolvedType, arms: &[AnnotatedMatchArm]) -> Result<(), SemanticError> {
-        // For now, implement basic exhaustiveness checking for simple types
+        // Enhanced exhaustiveness checking for simple types as recommended by expert
         match match_type {
             ResolvedType::Bool => {
-                // Check if we have patterns for both true and false, or a wildcard
+                // Check if we have patterns for both true and false, or a catch-all pattern
                 let mut has_true = false;
                 let mut has_false = false;
-                let mut has_wildcard = false;
+                let mut has_catch_all = false;
 
                 for arm in arms {
                     match &arm.pattern {
-                        AnnotatedPattern::Wildcard => has_wildcard = true,
+                        AnnotatedPattern::Wildcard => has_catch_all = true,
+                        AnnotatedPattern::Identifier(_, _) => has_catch_all = true, // Identifier patterns catch all
                         AnnotatedPattern::Literal(Literal::Boolean(true), _) => has_true = true,
                         AnnotatedPattern::Literal(Literal::Boolean(false), _) => has_false = true,
                         _ => {}
                     }
                 }
 
-                if !has_wildcard && (!has_true || !has_false) {
+                if !has_catch_all && (!has_true || !has_false) {
                     let mut missing = Vec::new();
                     if !has_true { missing.push("true".to_string()); }
                     if !has_false { missing.push("false".to_string()); }
@@ -1252,20 +1319,58 @@ impl SemanticAnalyzer {
                 }
             }
             ResolvedType::Int => {
-                // For integers, we require a wildcard pattern since we can't enumerate all values
-                let has_wildcard = arms.iter().any(|arm| matches!(arm.pattern, AnnotatedPattern::Wildcard));
-                if !has_wildcard {
+                // For integers, we require a catch-all pattern since we can't enumerate all values
+                let has_catch_all = arms.iter().any(|arm| {
+                    matches!(arm.pattern,
+                        AnnotatedPattern::Wildcard |
+                        AnnotatedPattern::Identifier(_, _)
+                    )
+                });
+                if !has_catch_all {
                     return Err(SemanticError::NonExhaustiveMatch {
-                        missing_patterns: vec!["_ (wildcard)".to_string()]
+                        missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()]
+                    });
+                }
+            }
+            ResolvedType::Float => {
+                // For floats, we require a catch-all pattern
+                let has_catch_all = arms.iter().any(|arm| {
+                    matches!(arm.pattern,
+                        AnnotatedPattern::Wildcard |
+                        AnnotatedPattern::Identifier(_, _)
+                    )
+                });
+                if !has_catch_all {
+                    return Err(SemanticError::NonExhaustiveMatch {
+                        missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()]
+                    });
+                }
+            }
+            ResolvedType::String => {
+                // For strings, we require a catch-all pattern
+                let has_catch_all = arms.iter().any(|arm| {
+                    matches!(arm.pattern,
+                        AnnotatedPattern::Wildcard |
+                        AnnotatedPattern::Identifier(_, _)
+                    )
+                });
+                if !has_catch_all {
+                    return Err(SemanticError::NonExhaustiveMatch {
+                        missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()]
                     });
                 }
             }
             _ => {
-                // For other types, require a wildcard for now
-                let has_wildcard = arms.iter().any(|arm| matches!(arm.pattern, AnnotatedPattern::Wildcard));
-                if !has_wildcard {
+                // For other types (List, Struct, etc.), require a catch-all pattern for now
+                let has_catch_all = arms.iter().any(|arm| {
+                    matches!(arm.pattern,
+                        AnnotatedPattern::Wildcard |
+                        AnnotatedPattern::Identifier(_, _)
+                    )
+                });
+                if !has_catch_all {
                     return Err(SemanticError::NonExhaustiveMatch {
-                        missing_patterns: vec!["_ (wildcard)".to_string()]
+                        missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()]
                     });
                 }
             }
