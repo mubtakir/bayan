@@ -1,0 +1,81 @@
+// اختبار PHI Nodes في Match Expression كما أوصى الخبير
+// Expert recommendation: Test PHI nodes for match expressions
+
+fn test_simple_phi() -> int {
+    let x = 2;
+    
+    // Match expression يجب أن يستخدم PHI node لجمع النتائج
+    let result = match x {
+        1 => 100,
+        2 => 200,
+        3 => 300,
+        _ => 999
+    };
+    
+    return result; // Expected: 200
+}
+
+fn test_mixed_types_phi() -> int {
+    let flag = true;
+    
+    // Match expression مع أنواع مختلفة (int promotion)
+    let result = match flag {
+        true => 42,
+        false => 0
+    };
+    
+    return result; // Expected: 42
+}
+
+fn test_nested_phi() -> int {
+    let x = 1;
+    let y = 2;
+    
+    // Nested match expressions مع PHI nodes
+    let result = match x {
+        1 => match y {
+            1 => 11,
+            2 => 12,
+            _ => 13
+        },
+        2 => match y {
+            1 => 21,
+            2 => 22,
+            _ => 23
+        },
+        _ => 99
+    };
+    
+    return result; // Expected: 12
+}
+
+fn test_complex_phi() -> int {
+    let a = 3;
+    let b = 4;
+    
+    // Match expression مع عمليات حسابية
+    let result1 = match a {
+        1 => 10,
+        2 => 20,
+        3 => 30,
+        _ => 0
+    };
+    
+    let result2 = match b {
+        4 => 40,
+        5 => 50,
+        _ => 0
+    };
+    
+    return result1 + result2; // Expected: 30 + 40 = 70
+}
+
+fn main() -> int {
+    let test1 = test_simple_phi();      // 200
+    let test2 = test_mixed_types_phi();  // 42
+    let test3 = test_nested_phi();       // 12
+    let test4 = test_complex_phi();      // 70
+    
+    // Total: 200 + 42 + 12 + 70 = 324
+    return test1 + test2 + test3 + test4;
+}

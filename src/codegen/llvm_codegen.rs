@@ -895,7 +895,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         }
     }
 
-    /// Generate match expression (Expert recommendation: Match as expression)
+    /// Generate match expression (Expert recommendation: Match as expression with PHI nodes)
     fn generate_match_expression(
         &mut self,
         expression: &AnnotatedExpression,
@@ -916,41 +916,45 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             .map(|(i, _)| self.context.append_basic_block(function, &format!("match_expr_arm_{}", i)))
             .collect();
 
-        // Allocate result variable for PHI node
-        let result_alloca = self.create_entry_block_alloca("match_result", result_type)?;
+        // Vector to collect incoming values for PHI node (Expert recommendation)
+        let mut incoming_values_for_phi = Vec::new();
 
         // Generate pattern matching logic (similar to statement version)
         match &expression.result_type {
             ResolvedType::Int | ResolvedType::Bool => {
-                self.generate_match_expr_with_switch(matched_val, arms, &arm_blocks, otherwise_bb, merge_bb, result_alloca)?;
+                self.generate_match_expr_with_switch_phi(matched_val, arms, &arm_blocks, otherwise_bb, merge_bb, &mut incoming_values_for_phi)?;
             }
             _ => {
-                self.generate_match_expr_with_if_else(matched_val, arms, &arm_blocks, otherwise_bb, merge_bb, result_alloca)?;
+                self.generate_match_expr_with_if_else_phi(matched_val, arms, &arm_blocks, otherwise_bb, merge_bb, &mut incoming_values_for_phi)?;
             }
         }
 
-        // Position at merge block and load result
+        // Position at merge block and create PHI node (Expert recommendation)
         self.builder.position_at_end(merge_bb);
-        let result_val = self.builder.build_load(
-            result_alloca.get_type().get_element_type().into(),
-            result_alloca,
-            "match_result_load"
-        )?;
 
-        Ok(result_val)
+        // Get the expected LLVM type for the match expression
+        let expected_llvm_type = self.resolve_llvm_type(result_type)?;
+
+        let phi = self.builder.build_phi(expected_llvm_type, "match_result")?;
+        for (value, block) in incoming_values_for_phi {
+            phi.add_incoming(&[(&value, block)]);
+        }
+
+        // The value of the match expression is the result of the PHI node
+        Ok(phi.as_basic_value())
     }
 
-    /// Generate match expression with switch (Expert recommendation: Switch for simple types)
-    fn generate_match_expr_with_switch(
+    /// Generate match expression with switch using PHI nodes (Expert recommendation: Switch for simple types with PHI)
+    fn generate_match_expr_with_switch_phi(
         &mut self,
         matched_val: BasicValueEnum<'ctx>,
         arms: &[AnnotatedMatchArm],
         arm_blocks: &[BasicBlock<'ctx>],
         otherwise_bb: BasicBlock<'ctx>,
         merge_bb: BasicBlock<'ctx>,
-        result_alloca: PointerValue<'ctx>
+        incoming_values_for_phi: &mut Vec<(BasicValueEnum<'ctx>, BasicBlock<'ctx>)>
     ) -> Result<()> {
-        // Similar to statement version but store results
+        // Similar to statement version but collect results for PHI
         let mut switch_cases = Vec::new();
         let mut default_arm_index = None;
 
@@ -980,35 +984,38 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
 
         self.builder.build_switch(switch_val, default_bb, &switch_cases)?;
 
-        // Generate code for each arm and store result
+        // Generate code for each arm and collect results for PHI (Expert recommendation)
         for (i, arm) in arms.iter().enumerate() {
             self.builder.position_at_end(arm_blocks[i]);
 
             // Generate arm body and get result
             let arm_result = self.generate_block_expression(&arm.body)?;
-            self.builder.build_store(result_alloca, arm_result)?;
+            let last_block_of_arm = self.builder.get_insert_block().unwrap();
+
+            // Collect value and block for PHI node (Expert recommendation)
+            incoming_values_for_phi.push((arm_result, last_block_of_arm));
 
             if !self.is_terminated() {
                 self.builder.build_unconditional_branch(merge_bb)?;
             }
         }
 
-        // Generate otherwise block
+        // Generate otherwise block (for non-exhaustive matches)
         self.builder.position_at_end(otherwise_bb);
         self.builder.build_unconditional_branch(merge_bb)?;
 
         Ok(())
     }
 
-    /// Generate match expression with if/else (Expert recommendation: If/else for complex types)
-    fn generate_match_expr_with_if_else(
+    /// Generate match expression with if/else using PHI nodes (Expert recommendation: If/else for complex types with PHI)
+    fn generate_match_expr_with_if_else_phi(
         &mut self,
         matched_val: BasicValueEnum<'ctx>,
         arms: &[AnnotatedMatchArm],
         arm_blocks: &[BasicBlock<'ctx>],
         otherwise_bb: BasicBlock<'ctx>,
         merge_bb: BasicBlock<'ctx>,
-        result_alloca: PointerValue<'ctx>
+        incoming_values_for_phi: &mut Vec<(BasicValueEnum<'ctx>, BasicBlock<'ctx>)>
     ) -> Result<()> {
         let mut current_bb = self.builder.get_insert_block().unwrap();
 
@@ -1025,7 +1032,10 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
 
             self.builder.position_at_end(arm_blocks[i]);
             let arm_result = self.generate_block_expression(&arm.body)?;
-            self.builder.build_store(result_alloca, arm_result)?;
+            let last_block_of_arm = self.builder.get_insert_block().unwrap();
+
+            // Collect value and block for PHI node (Expert recommendation)
+            incoming_values_for_phi.push((arm_result, last_block_of_arm));
 
             if !self.is_terminated() {
                 self.builder.build_unconditional_branch(merge_bb)?;
@@ -1034,10 +1044,24 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             current_bb = next_check_bb;
         }
 
+        // Generate otherwise block (for non-exhaustive matches)
         self.builder.position_at_end(otherwise_bb);
         self.builder.build_unconditional_branch(merge_bb)?;
 
         Ok(())
+    }
+
+    /// Create a default value for a given type (Expert recommendation: For non-exhaustive matches)
+    fn create_default_value_for_type(&self, result_type: &ResolvedType) -> Result<BasicValueEnum<'ctx>> {
+        let llvm_type = self.resolve_llvm_type(result_type)?;
+        let default_value = match llvm_type {
+            BasicTypeEnum::IntType(int_type) => int_type.const_zero().into(),
+            BasicTypeEnum::FloatType(float_type) => float_type.const_zero().into(),
+            BasicTypeEnum::PointerType(ptr_type) => ptr_type.const_null().into(),
+            BasicTypeEnum::StructType(struct_type) => struct_type.const_zero().into(),
+            _ => self.context.i64_type().const_zero().into(),
+        };
+        Ok(default_value)
     }
 
     /// Generate block as expression (returns the last expression value)

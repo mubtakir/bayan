@@ -1,0 +1,23 @@
+// Generated AlBayan code
+// 5 items in program
+
+function test_simple_phi() -> Int {
+    // Function body
+}
+
+function test_mixed_types_phi() -> Int {
+    // Function body
+}
+
+function test_nested_phi() -> Int {
+    // Function body
+}
+
+function test_complex_phi() -> Int {
+    // Function body
+}
+
+function main() -> Int {
+    // Function body
+}
+
