@@ -1,0 +1,43 @@
+// Test successful enum exhaustiveness checking (Expert recommendation: Priority 1)
+
+enum Color { Red, Green, Blue }
+
+enum Option { Some(int), None }
+
+// Test 1: Exhaustive enum match (should pass)
+fn test_exhaustive_color() -> int {
+    let color = Color::Red;
+
+    return match color {
+        Color::Red => 1,
+        Color::Green => 2,
+        Color::Blue => 3,
+    };
+}
+
+// Test 2: Exhaustive enum match with wildcard (should pass)
+fn test_exhaustive_with_wildcard() -> int {
+    let color = Color::Green;
+
+    return match color {
+        Color::Red => 1,
+        _ => 0,
+    };
+}
+
+// Test 3: Exhaustive Option enum (should pass)
+fn test_exhaustive_option() -> int {
+    let opt = Option::None;
+
+    return match opt {
+        Option::Some(_) => 42,
+        Option::None => 0,
+    };
+}
+
+fn main() -> int {
+    let result1 = test_exhaustive_color();
+    let result2 = test_exhaustive_with_wildcard();
+    let result3 = test_exhaustive_option();
+    return result1 + result2 + result3;
+}

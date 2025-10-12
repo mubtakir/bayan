@@ -1468,31 +1468,42 @@ impl SemanticAnalyzer {
                     }),
                 }
             }
-            Pattern::Enum(enum_name, variant_patterns) => {
+            Pattern::Enum(enum_variant_full, variant_patterns) => {
+                // Parse "EnumName::VariantName" format
+                let (enum_name, variant_name) = enum_variant_full.split_once("::")
+                    .ok_or_else(|| SemanticError::UndefinedType(enum_variant_full.clone()))?;
+
                 // Check if we're matching against an enum type
                 match match_type {
                     ResolvedType::Enum(expected_enum_name) => {
                         if enum_name != expected_enum_name {
                             return Err(SemanticError::PatternTypeMismatch {
                                 expected: match_type.clone(),
-                                found: ResolvedType::Enum(enum_name.clone()),
+                                found: ResolvedType::Enum(enum_name.to_string()),
                             });
                         }
 
                         // Look up enum definition
                         let enum_info = self.symbol_table.lookup_type(enum_name)
-                            .ok_or_else(|| SemanticError::UndefinedType(enum_name.clone()))?;
+                            .ok_or_else(|| SemanticError::UndefinedType(enum_name.to_string()))?;
 
                         let enum_variants = match &enum_info.kind {
                             symbol_table::TypeKind::Enum(variants) => variants,
                             _ => return Err(SemanticError::TypeMismatch {
-                                expected: ResolvedType::Enum(enum_name.clone()),
+                                expected: ResolvedType::Enum(enum_name.to_string()),
                                 found: ResolvedType::String, // placeholder
                             }),
                         };
 
-                        // For now, just return the pattern as-is
-                        // TODO: Implement proper variant pattern checking
+                        // Check if variant exists
+                        let variant_info = enum_variants.iter()
+                            .find(|v| v.name == variant_name)
+                            .ok_or_else(|| SemanticError::UndefinedVariant {
+                                enum_name: enum_name.to_string(),
+                                variant_name: variant_name.to_string(),
+                            })?;
+
+                        // Check variant patterns
                         let annotated_variant_patterns = if let Some(patterns) = variant_patterns {
                             let annotated_patterns = patterns.iter()
                                 .map(|pattern| self.check_pattern(pattern, &ResolvedType::Int)) // placeholder
@@ -1502,11 +1513,11 @@ impl SemanticAnalyzer {
                             None
                         };
 
-                        Ok(AnnotatedPattern::Enum(enum_name.clone(), annotated_variant_patterns, match_type.clone()))
+                        Ok(AnnotatedPattern::Enum(enum_variant_full.clone(), annotated_variant_patterns, match_type.clone()))
                     }
                     _ => Err(SemanticError::PatternTypeMismatch {
                         expected: match_type.clone(),
-                        found: ResolvedType::Enum(enum_name.clone()),
+                        found: ResolvedType::Enum(enum_name.to_string()),
                     }),
                 }
             }
@@ -1580,6 +1591,57 @@ impl SemanticAnalyzer {
                     return Err(SemanticError::NonExhaustiveMatch {
                         missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()]
                     });
+                }
+            }
+            ResolvedType::Enum(enum_name) => {
+                // Expert recommendation: Exhaustiveness checking for Enum types
+                // Get all variants from the enum definition
+                let enum_info = self.symbol_table.lookup_type(enum_name)
+                    .ok_or_else(|| SemanticError::UndefinedType(enum_name.clone()))?;
+
+                let enum_variants = match &enum_info.kind {
+                    symbol_table::TypeKind::Enum(variants) => variants,
+                    _ => return Err(SemanticError::TypeMismatch {
+                        expected: ResolvedType::Enum(enum_name.clone()),
+                        found: ResolvedType::String, // placeholder
+                    }),
+                };
+
+                // Track which variants are covered
+                let mut covered_variants = std::collections::HashSet::new();
+                let mut has_catch_all = false;
+
+                for arm in arms {
+                    match &arm.pattern {
+                        AnnotatedPattern::Enum(enum_variant_full, _, _) => {
+                            // Parse "EnumName::VariantName" format
+                            if let Some((pattern_enum_name, variant_name)) = enum_variant_full.split_once("::") {
+                                if pattern_enum_name == enum_name {
+                                    covered_variants.insert(variant_name.to_string());
+                                }
+                            }
+                        }
+                        AnnotatedPattern::Wildcard | AnnotatedPattern::Identifier(_, _) => {
+                            has_catch_all = true;
+                        }
+                        _ => {}
+                    }
+                }
+
+                // If we have a catch-all pattern, all remaining variants are covered
+                if !has_catch_all {
+                    let mut missing_variants = Vec::new();
+                    for variant in enum_variants {
+                        if !covered_variants.contains(&variant.name) {
+                            missing_variants.push(format!("{}::{}", enum_name, variant.name));
+                        }
+                    }
+
+                    if !missing_variants.is_empty() {
+                        return Err(SemanticError::NonExhaustiveMatch {
+                            missing_patterns: missing_variants
+                        });
+                    }
                 }
             }
             _ => {

@@ -1,0 +1,18 @@
+// Test non-exhaustive enum match (should fail)
+
+enum Color { Red, Green, Blue }
+
+// Test: Non-exhaustive enum match (should fail)
+fn test_non_exhaustive_color() -> int {
+    let color = Color::Blue;
+    
+    // Missing Color::Blue - should cause exhaustiveness error
+    return match color {
+        Color::Red => 1,
+        Color::Green => 2,
+    };
+}
+
+fn main() -> int {
+    return test_non_exhaustive_color();
+}

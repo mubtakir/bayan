@@ -538,7 +538,37 @@ impl Parser {
             TokenType::Identifier(name) => {
                 let name = name.clone();
                 self.advance();
-                Ok(Pattern::Identifier(name))
+
+                // Check if this is an enum pattern (EnumName::VariantName)
+                if self.check(&TokenType::DoubleColon) {
+                    self.advance(); // consume '::'
+                    let variant_name = self.consume_identifier("Expected variant name")?;
+
+                    // Check if variant has fields (tuple-like patterns)
+                    let fields = if self.check(&TokenType::LeftParen) {
+                        self.advance(); // consume '('
+                        let mut field_patterns = Vec::new();
+
+                        if !self.check(&TokenType::RightParen) {
+                            loop {
+                                field_patterns.push(self.parse_pattern()?);
+                                if !self.match_token(&TokenType::Comma) {
+                                    break;
+                                }
+                            }
+                        }
+
+                        self.consume(&TokenType::RightParen, "Expected ')' after enum variant fields")?;
+                        Some(field_patterns)
+                    } else {
+                        None
+                    };
+
+                    // Store the full enum pattern as "EnumName::VariantName" in the first String
+                    Ok(Pattern::Enum(format!("{}::{}", name, variant_name), fields))
+                } else {
+                    Ok(Pattern::Identifier(name))
+                }
             }
             _ => Err(ParseError::UnexpectedToken {
                 expected: "pattern".to_string(),
