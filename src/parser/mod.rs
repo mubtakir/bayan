@@ -48,6 +48,8 @@ impl Parser {
             TokenType::Enum => self.parse_enum(),
             TokenType::Class => self.parse_class(),
             TokenType::Interface => self.parse_interface(),
+            TokenType::Trait => self.parse_trait(),      // NEWLY ADDED: Expert recommendation
+            TokenType::Impl => self.parse_impl(),        // NEWLY ADDED: Expert recommendation
             TokenType::Relation => self.parse_relation(),
             TokenType::Rule => self.parse_rule(),
             TokenType::Fact => self.parse_fact(),
@@ -98,6 +100,7 @@ impl Parser {
 
         Ok(Item::Function(FunctionDecl {
             name,
+            generic_params: None,  // TODO: Parse generic parameters
             parameters,
             return_type,
             body,
@@ -136,7 +139,11 @@ impl Parser {
 
         self.consume(&TokenType::RightBrace, "Expected '}' after struct fields")?;
 
-        Ok(Item::Struct(StructDecl { name, fields }))
+        Ok(Item::Struct(StructDecl {
+            name,
+            generic_params: None,  // TODO: Parse generic parameters
+            fields
+        }))
     }
 
     /// Parse a relation declaration
@@ -1181,6 +1188,127 @@ impl Parser {
         self.consume(&TokenType::Semicolon, "Expected ';' after using declaration")?;
 
         Ok(Item::Using(UsingDecl { path, alias }))
+    }
+
+    /// Parse a trait declaration (Expert recommendation: Priority 1)
+    fn parse_trait(&mut self) -> Result<Item, ParseError> {
+        self.consume(&TokenType::Trait, "Expected 'trait'")?;
+        let name = self.consume_identifier("Expected trait name")?;
+
+        self.consume(&TokenType::LeftBrace, "Expected '{' after trait name")?;
+
+        let mut methods = Vec::new();
+        while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
+            // Skip newlines
+            while self.check(&TokenType::Newline) {
+                self.advance();
+            }
+
+            // Check again after skipping newlines
+            if self.check(&TokenType::RightBrace) || self.is_at_end() {
+                break;
+            }
+
+            // Expect 'fn' keyword for trait methods
+            self.consume(&TokenType::Fn, "Expected 'fn' for trait method")?;
+            let method_name = self.consume_identifier("Expected method name")?;
+
+            self.consume(&TokenType::LeftParen, "Expected '(' after method name")?;
+
+            let mut parameters = Vec::new();
+            if !self.check(&TokenType::RightParen) {
+                loop {
+                    let param_name = self.consume_identifier("Expected parameter name")?;
+                    self.consume(&TokenType::Colon, "Expected ':' after parameter name")?;
+                    let param_type = self.parse_type()?;
+
+                    parameters.push(Parameter {
+                        name: param_name,
+                        param_type,
+                    });
+
+                    if !self.match_token(&TokenType::Comma) {
+                        break;
+                    }
+                }
+            }
+
+            self.consume(&TokenType::RightParen, "Expected ')' after parameters")?;
+
+            let return_type = if self.match_token(&TokenType::Arrow) {
+                Some(self.parse_type()?)
+            } else {
+                None
+            };
+
+            // Check for default implementation
+            let body = if self.check(&TokenType::LeftBrace) {
+                Some(self.parse_block()?)
+            } else {
+                self.consume(&TokenType::Semicolon, "Expected ';' after method signature")?;
+                None
+            };
+
+            methods.push(TraitMethod {
+                name: method_name,
+                parameters,
+                return_type,
+                body,
+            });
+        }
+
+        self.consume(&TokenType::RightBrace, "Expected '}' after trait methods")?;
+
+        Ok(Item::Trait(TraitDecl {
+            name,
+            generic_params: None,  // TODO: Parse generic parameters
+            methods,
+        }))
+    }
+
+    /// Parse an impl declaration (Expert recommendation: Priority 1)
+    fn parse_impl(&mut self) -> Result<Item, ParseError> {
+        self.consume(&TokenType::Impl, "Expected 'impl'")?;
+
+        // Parse either "impl Type" or "impl Trait for Type"
+        let first_name = self.consume_identifier("Expected type or trait name")?;
+
+        let (trait_name, type_name) = if self.match_token(&TokenType::For) {
+            // impl Trait for Type
+            let type_name = self.consume_identifier("Expected type name after 'for'")?;
+            (Some(first_name), type_name)
+        } else {
+            // impl Type
+            (None, first_name)
+        };
+
+        self.consume(&TokenType::LeftBrace, "Expected '{' after impl declaration")?;
+
+        let mut methods = Vec::new();
+        while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
+            // Skip newlines
+            while self.check(&TokenType::Newline) {
+                self.advance();
+            }
+
+            // Check again after skipping newlines
+            if self.check(&TokenType::RightBrace) || self.is_at_end() {
+                break;
+            }
+
+            if let Item::Function(func) = self.parse_function()? {
+                methods.push(func);
+            }
+        }
+
+        self.consume(&TokenType::RightBrace, "Expected '}' after impl methods")?;
+
+        Ok(Item::Impl(ImplDecl {
+            trait_name,
+            type_name,
+            generic_params: None,  // TODO: Parse generic parameters
+            methods,
+        }))
     }
 }
 

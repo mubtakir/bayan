@@ -55,6 +55,8 @@ pub enum Item {
     Enum(EnumDecl),
     Class(ClassDecl),
     Interface(InterfaceDecl),
+    Trait(TraitDecl),        // NEWLY ADDED: Expert recommendation
+    Impl(ImplDecl),          // NEWLY ADDED: Expert recommendation
     Relation(RelationDecl),
     Rule(RuleDecl),
     Fact(FactDecl),
@@ -66,6 +68,7 @@ pub enum Item {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FunctionDecl {
     pub name: String,
+    pub generic_params: Option<Vec<GenericParam>>,  // NEWLY ADDED: Expert recommendation
     pub parameters: Vec<Parameter>,
     pub return_type: Option<Type>,
     pub body: Block,
@@ -82,6 +85,7 @@ pub struct Parameter {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct StructDecl {
     pub name: String,
+    pub generic_params: Option<Vec<GenericParam>>,  // NEWLY ADDED: Expert recommendation
     pub fields: Vec<StructField>,
 }
 
@@ -119,6 +123,45 @@ pub struct ClassDecl {
 pub struct InterfaceDecl {
     pub name: String,
     pub methods: Vec<FunctionSignature>,
+}
+
+/// Trait declaration (Expert recommendation: Priority 1)
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TraitDecl {
+    pub name: String,
+    pub generic_params: Option<Vec<GenericParam>>,
+    pub methods: Vec<TraitMethod>,
+}
+
+/// Trait method (can be required or have default implementation)
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TraitMethod {
+    pub name: String,
+    pub parameters: Vec<Parameter>,
+    pub return_type: Option<Type>,
+    pub body: Option<Block>,  // None for required methods, Some for default implementations
+}
+
+/// Impl declaration (Expert recommendation: Priority 1)
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ImplDecl {
+    pub trait_name: Option<String>,  // None for inherent impl, Some for trait impl
+    pub type_name: String,
+    pub generic_params: Option<Vec<GenericParam>>,
+    pub methods: Vec<FunctionDecl>,
+}
+
+/// Generic parameter (Expert recommendation: Priority 1)
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct GenericParam {
+    pub name: String,
+    pub bounds: Vec<TraitBound>,  // Trait bounds like T: Display + Clone
+}
+
+/// Trait bound (Expert recommendation: Priority 1)
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TraitBound {
+    pub trait_name: String,
 }
 
 /// Function signature (for interfaces)

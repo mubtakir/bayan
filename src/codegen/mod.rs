@@ -102,6 +102,12 @@ impl SimpleCodeGenerator {
                 AnnotatedItem::Enum(_) => {
                     output.push_str("// Enum definition\n");
                 }
+                AnnotatedItem::Trait(_) => {
+                    output.push_str("// Trait definition\n");  // NEWLY ADDED: Expert recommendation
+                }
+                AnnotatedItem::Impl(_) => {
+                    output.push_str("// Impl definition\n");   // NEWLY ADDED: Expert recommendation
+                }
             }
         }
 

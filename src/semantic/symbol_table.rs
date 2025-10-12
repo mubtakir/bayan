@@ -18,6 +18,10 @@ pub struct SymbolTable {
     functions: HashMap<String, FunctionInfo>,
     /// Global relation definitions
     relations: HashMap<String, RelationInfo>,
+    /// Global trait definitions (Expert recommendation: Priority 1)
+    traits: HashMap<String, TraitInfo>,
+    /// Global impl definitions (Expert recommendation: Priority 1)
+    impls: Vec<ImplInfo>,
 }
 
 /// A single scope containing local symbols
@@ -86,6 +90,30 @@ pub struct EnumVariantInfo {
     pub fields: Option<Vec<ResolvedType>>,
 }
 
+/// Information about a trait (Expert recommendation: Priority 1)
+#[derive(Debug, Clone)]
+pub struct TraitInfo {
+    pub name: String,
+    pub methods: Vec<TraitMethodInfo>,
+}
+
+/// Information about a trait method (Expert recommendation: Priority 1)
+#[derive(Debug, Clone)]
+pub struct TraitMethodInfo {
+    pub name: String,
+    pub parameters: Vec<ResolvedType>,
+    pub return_type: Option<ResolvedType>,
+    pub has_default_impl: bool,
+}
+
+/// Information about an impl block (Expert recommendation: Priority 1)
+#[derive(Debug, Clone)]
+pub struct ImplInfo {
+    pub trait_name: Option<String>,  // None for inherent impl
+    pub type_name: String,
+    pub methods: Vec<FunctionInfo>,
+}
+
 impl SymbolTable {
     /// Create a new symbol table with global scope
     pub fn new() -> Self {
@@ -97,6 +125,8 @@ impl SymbolTable {
             types: HashMap::new(),
             functions: HashMap::new(),
             relations: HashMap::new(),
+            traits: HashMap::new(),  // NEWLY ADDED: Expert recommendation
+            impls: Vec::new(),       // NEWLY ADDED: Expert recommendation
         };
 
         // Add built-in types
@@ -361,9 +391,89 @@ impl SymbolTable {
         Ok(())
     }
 
+    /// Declare a trait (Expert recommendation: Priority 1)
+    pub fn declare_trait(&mut self, name: &str, trait_decl: &TraitDecl) -> Result<(), SemanticError> {
+        if self.traits.contains_key(name) {
+            return Err(SemanticError::Redefinition(name.to_string()));
+        }
+
+        let mut methods = Vec::new();
+        for method in &trait_decl.methods {
+            let mut parameters = Vec::new();
+            for param in &method.parameters {
+                let resolved_type = self.resolve_type_name(&param.param_type)?;
+                parameters.push(resolved_type);
+            }
+
+            let return_type = if let Some(ret_type) = &method.return_type {
+                Some(self.resolve_type_name(ret_type)?)
+            } else {
+                None
+            };
+
+            methods.push(TraitMethodInfo {
+                name: method.name.clone(),
+                parameters,
+                return_type,
+                has_default_impl: method.body.is_some(),
+            });
+        }
+
+        self.traits.insert(name.to_string(), TraitInfo {
+            name: name.to_string(),
+            methods,
+        });
+
+        Ok(())
+    }
+
+    /// Declare an impl block (Expert recommendation: Priority 1)
+    pub fn declare_impl(&mut self, impl_decl: &ImplDecl) -> Result<(), SemanticError> {
+        let mut methods = Vec::new();
+        for method in &impl_decl.methods {
+            let mut parameters = Vec::new();
+            for param in &method.parameters {
+                let resolved_type = self.resolve_type_name(&param.param_type)?;
+                parameters.push(resolved_type);
+            }
+
+            let return_type = if let Some(ret_type) = &method.return_type {
+                Some(self.resolve_type_name(ret_type)?)
+            } else {
+                None
+            };
+
+            methods.push(FunctionInfo {
+                name: method.name.clone(),
+                parameters,
+                return_type,
+            });
+        }
+
+        self.impls.push(ImplInfo {
+            trait_name: impl_decl.trait_name.clone(),
+            type_name: impl_decl.type_name.clone(),
+            methods,
+        });
+
+        Ok(())
+    }
+
     /// Look up a relation
     pub fn lookup_relation(&self, name: &str) -> Option<&RelationInfo> {
         self.relations.get(name)
+    }
+
+    /// Look up a trait (Expert recommendation: Priority 1)
+    pub fn lookup_trait(&self, name: &str) -> Option<&TraitInfo> {
+        self.traits.get(name)
+    }
+
+    /// Find impl for a type and trait (Expert recommendation: Priority 1)
+    pub fn find_impl(&self, type_name: &str, trait_name: Option<&str>) -> Option<&ImplInfo> {
+        self.impls.iter().find(|impl_info| {
+            impl_info.type_name == type_name && impl_info.trait_name.as_deref() == trait_name
+        })
     }
 
     /// Look up a type

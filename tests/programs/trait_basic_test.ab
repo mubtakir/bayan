@@ -1,0 +1,21 @@
+// Basic trait test (Expert recommendation: Priority 1)
+
+trait Display {
+    fn to_string() -> string;
+}
+
+struct Point {
+    x: int;
+    y: int;
+}
+
+impl Display for Point {
+    fn to_string() -> string {
+        return "Point";
+    }
+}
+
+fn main() -> int {
+    let p = Point { x: 10, y: 20 };
+    return 42;
+}

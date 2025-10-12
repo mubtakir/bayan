@@ -67,6 +67,12 @@ impl SemanticAnalyzer {
                 Item::Interface(interface_decl) => {
                     self.symbol_table.declare_interface(&interface_decl.name, interface_decl)?;
                 }
+                Item::Trait(trait_decl) => {
+                    self.symbol_table.declare_trait(&trait_decl.name, trait_decl)?;  // NEWLY ADDED: Expert recommendation
+                }
+                Item::Impl(impl_decl) => {
+                    self.symbol_table.declare_impl(impl_decl)?;  // NEWLY ADDED: Expert recommendation
+                }
                 Item::Relation(relation_decl) => {
                     self.symbol_table.declare_relation(&relation_decl.name, relation_decl)?;
                 }
@@ -117,6 +123,14 @@ impl SemanticAnalyzer {
             Item::Enum(enum_decl) => {
                 let annotated_enum = self.analyze_enum(enum_decl)?;
                 Ok(AnnotatedItem::Enum(annotated_enum))
+            }
+            Item::Trait(trait_decl) => {
+                let annotated_trait = self.analyze_trait(trait_decl)?;  // NEWLY ADDED: Expert recommendation
+                Ok(AnnotatedItem::Trait(annotated_trait))
+            }
+            Item::Impl(impl_decl) => {
+                let annotated_impl = self.analyze_impl(impl_decl)?;  // NEWLY ADDED: Expert recommendation
+                Ok(AnnotatedItem::Impl(annotated_impl))
             }
             _ => todo!("Analysis for other item types not yet implemented"),
         }
@@ -220,6 +234,97 @@ impl SemanticAnalyzer {
             name: enum_decl.name.clone(),
             variants: annotated_variants,
         })
+    }
+
+    /// Analyze a trait declaration (Expert recommendation: Priority 1)
+    fn analyze_trait(&mut self, trait_decl: &TraitDecl) -> Result<AnnotatedTrait, SemanticError> {
+        let mut annotated_methods = Vec::new();
+
+        for method in &trait_decl.methods {
+            let mut annotated_params = Vec::new();
+            for param in &method.parameters {
+                let resolved_type = self.type_checker.resolve_type(&param.param_type)?;
+                annotated_params.push(AnnotatedParameter {
+                    name: param.name.clone(),
+                    param_type: resolved_type,
+                });
+            }
+
+            let return_type = if let Some(ret_type) = &method.return_type {
+                Some(self.type_checker.resolve_type(ret_type)?)
+            } else {
+                None
+            };
+
+            let body = if let Some(method_body) = &method.body {
+                Some(self.analyze_block(method_body)?)
+            } else {
+                None
+            };
+
+            annotated_methods.push(AnnotatedTraitMethod {
+                name: method.name.clone(),
+                parameters: annotated_params,
+                return_type,
+                body,
+            });
+        }
+
+        let generic_params = if let Some(generics) = &trait_decl.generic_params {
+            Some(self.analyze_generic_params(generics)?)
+        } else {
+            None
+        };
+
+        Ok(AnnotatedTrait {
+            name: trait_decl.name.clone(),
+            generic_params,
+            methods: annotated_methods,
+        })
+    }
+
+    /// Analyze an impl declaration (Expert recommendation: Priority 1)
+    fn analyze_impl(&mut self, impl_decl: &ImplDecl) -> Result<AnnotatedImpl, SemanticError> {
+        let mut annotated_methods = Vec::new();
+
+        for method in &impl_decl.methods {
+            let annotated_method = self.analyze_function(method)?;
+            annotated_methods.push(annotated_method);
+        }
+
+        let generic_params = if let Some(generics) = &impl_decl.generic_params {
+            Some(self.analyze_generic_params(generics)?)
+        } else {
+            None
+        };
+
+        Ok(AnnotatedImpl {
+            trait_name: impl_decl.trait_name.clone(),
+            type_name: impl_decl.type_name.clone(),
+            generic_params,
+            methods: annotated_methods,
+        })
+    }
+
+    /// Analyze generic parameters (Expert recommendation: Priority 1)
+    fn analyze_generic_params(&mut self, generics: &[GenericParam]) -> Result<Vec<AnnotatedGenericParam>, SemanticError> {
+        let mut annotated_generics = Vec::new();
+
+        for generic in generics {
+            let mut annotated_bounds = Vec::new();
+            for bound in &generic.bounds {
+                annotated_bounds.push(AnnotatedTraitBound {
+                    trait_name: bound.trait_name.clone(),
+                });
+            }
+
+            annotated_generics.push(AnnotatedGenericParam {
+                name: generic.name.clone(),
+                bounds: annotated_bounds,
+            });
+        }
+
+        Ok(annotated_generics)
     }
 
     /// Analyze a relation declaration
@@ -1174,6 +1279,8 @@ pub enum AnnotatedItem {
     Function(AnnotatedFunction),
     Struct(AnnotatedStruct),
     Enum(AnnotatedEnum),
+    Trait(AnnotatedTrait),      // NEWLY ADDED: Expert recommendation
+    Impl(AnnotatedImpl),        // NEWLY ADDED: Expert recommendation
     Relation(AnnotatedRelation),
     Rule(AnnotatedRule),
 }
@@ -1214,6 +1321,45 @@ pub struct AnnotatedEnum {
 pub struct AnnotatedEnumVariant {
     pub name: String,
     pub fields: Option<Vec<ResolvedType>>,
+}
+
+/// Annotated trait declaration (Expert recommendation: Priority 1)
+#[derive(Debug, Clone)]
+pub struct AnnotatedTrait {
+    pub name: String,
+    pub generic_params: Option<Vec<AnnotatedGenericParam>>,
+    pub methods: Vec<AnnotatedTraitMethod>,
+}
+
+/// Annotated trait method (Expert recommendation: Priority 1)
+#[derive(Debug, Clone)]
+pub struct AnnotatedTraitMethod {
+    pub name: String,
+    pub parameters: Vec<AnnotatedParameter>,
+    pub return_type: Option<ResolvedType>,
+    pub body: Option<AnnotatedBlock>,  // None for required methods
+}
+
+/// Annotated impl declaration (Expert recommendation: Priority 1)
+#[derive(Debug, Clone)]
+pub struct AnnotatedImpl {
+    pub trait_name: Option<String>,  // None for inherent impl
+    pub type_name: String,
+    pub generic_params: Option<Vec<AnnotatedGenericParam>>,
+    pub methods: Vec<AnnotatedFunction>,
+}
+
+/// Annotated generic parameter (Expert recommendation: Priority 1)
+#[derive(Debug, Clone)]
+pub struct AnnotatedGenericParam {
+    pub name: String,
+    pub bounds: Vec<AnnotatedTraitBound>,
+}
+
+/// Annotated trait bound (Expert recommendation: Priority 1)
+#[derive(Debug, Clone)]
+pub struct AnnotatedTraitBound {
+    pub trait_name: String,
 }
 
 #[derive(Debug, Clone)]

@@ -16,6 +16,12 @@ pub enum TokenType {
     Class,
     #[token("interface")]
     Interface,
+    #[token("trait")]
+    Trait,          // NEWLY ADDED: Expert recommendation
+    #[token("impl")]
+    Impl,           // NEWLY ADDED: Expert recommendation
+    #[token("for")]
+    For,            // NEWLY ADDED: Expert recommendation (for impl Trait for Type)
     #[token("enum")]
     Enum,
     #[token("struct")]
@@ -36,8 +42,6 @@ pub enum TokenType {
     Else,
     #[token("match")]
     Match,
-    #[token("for")]
-    For,
     #[token("in")]
     In,
     #[token("while")]
