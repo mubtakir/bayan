@@ -728,9 +728,40 @@ impl Parser {
                 let name = name.clone();
                 self.advance();
 
+                // Check if this is an enum expression (EnumName::VariantName)
+                if self.check(&TokenType::DoubleColon) {
+                    self.advance(); // consume '::'
+                    let variant_name = self.consume_identifier("Expected variant name")?;
+
+                    // Check if variant has fields (tuple-like)
+                    let fields = if self.check(&TokenType::LeftParen) {
+                        self.advance(); // consume '('
+                        let mut field_exprs = Vec::new();
+
+                        if !self.check(&TokenType::RightParen) {
+                            loop {
+                                field_exprs.push(self.parse_expression()?);
+                                if !self.match_token(&TokenType::Comma) {
+                                    break;
+                                }
+                            }
+                        }
+
+                        self.consume(&TokenType::RightParen, "Expected ')' after enum variant fields")?;
+                        Some(field_exprs)
+                    } else {
+                        None
+                    };
+
+                    Expression::Enum(EnumExpression {
+                        enum_name: name,
+                        variant_name,
+                        fields,
+                    })
+                }
                 // Check if this is a struct literal
                 // Only parse as struct literal if we see field_name: pattern
-                if self.check(&TokenType::LeftBrace) && self.is_struct_literal() {
+                else if self.check(&TokenType::LeftBrace) && self.is_struct_literal() {
                     self.advance(); // consume '{'
 
                     let mut fields = Vec::new();

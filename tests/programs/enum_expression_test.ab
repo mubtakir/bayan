@@ -1,0 +1,18 @@
+enum Color {
+    Red,
+    Green,
+    Blue
+}
+
+fn test_enum_creation() -> int {
+    let red = Color::Red;
+    let green = Color::Green;
+    let blue = Color::Blue;
+
+    return 1;
+}
+
+fn main() -> int {
+    let test1 = test_enum_creation();
+    return test1;
+}

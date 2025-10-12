@@ -1,0 +1,5 @@
+enum Color { Red }
+
+fn main() -> int {
+    return 1;
+}

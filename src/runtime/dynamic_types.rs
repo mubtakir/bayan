@@ -18,7 +18,8 @@ pub enum AlbayanValueTag {
     List = 4,
     Struct = 5,
     Tuple = 6,
-    Null = 7,
+    Enum = 7,
+    Null = 8,
 }
 
 /// Union-like structure to hold different types of values at runtime
@@ -42,6 +43,7 @@ pub union AlbayanValuePayload {
     pub list_val: *mut AlbayanList,
     pub struct_val: *mut AlbayanStruct,
     pub tuple_val: *mut AlbayanTuple,
+    pub enum_val: *mut AlbayanEnum,
 }
 
 impl fmt::Debug for AlbayanValuePayload {
@@ -82,6 +84,16 @@ pub struct AlbayanStruct {
 pub struct AlbayanTuple {
     pub elements: *mut AlbayanValue,
     pub len: usize,
+}
+
+/// Dynamic enum type for AlBayan (Expert recommendation: tagged unions)
+#[repr(C)]
+#[derive(Debug, Clone)]
+pub struct AlbayanEnum {
+    pub variant_tag: u32,  // Which variant is active
+    pub enum_name: *mut AlbayanString,  // Name of the enum type
+    pub variant_name: *mut AlbayanString,  // Name of the active variant
+    pub payload: *mut AlbayanValue,  // Optional data for the variant (null if no data)
 }
 
 impl AlbayanValue {
@@ -125,6 +137,14 @@ impl AlbayanValue {
         }
     }
 
+    /// Create a new enum value (Expert recommendation: tagged unions)
+    pub fn new_enum(enum_val: *mut AlbayanEnum) -> Self {
+        Self {
+            tag: AlbayanValueTag::Enum,
+            payload: AlbayanValuePayload { enum_val },
+        }
+    }
+
     /// Get the integer value (unsafe - caller must ensure tag is Int)
     pub unsafe fn as_int(&self) -> i64 {
         self.payload.int_val
@@ -145,6 +165,11 @@ impl AlbayanValue {
         self.payload.list_val
     }
 
+    /// Get the enum pointer (unsafe - caller must ensure tag is Enum)
+    pub unsafe fn as_enum(&self) -> *mut AlbayanEnum {
+        self.payload.enum_val
+    }
+
     /// Check if this value is of a specific type
     pub fn is_type(&self, tag: AlbayanValueTag) -> bool {
         self.tag == tag
@@ -160,6 +185,7 @@ impl AlbayanValue {
             AlbayanValueTag::List => "list",
             AlbayanValueTag::Struct => "struct",
             AlbayanValueTag::Tuple => "tuple",
+            AlbayanValueTag::Enum => "enum",
             AlbayanValueTag::Null => "null",
         }
     }

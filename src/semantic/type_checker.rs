@@ -302,7 +302,6 @@ impl TypeChecker {
             ResolvedType::Function(param_types, return_type) => {
                 if param_types.len() != argument_types.len() {
                     return Err(SemanticError::ArityMismatch {
-                        relation: "function".to_string(),
                         expected: param_types.len(),
                         found: argument_types.len(),
                     });

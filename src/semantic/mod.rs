@@ -267,7 +267,6 @@ impl SemanticAnalyzer {
             // Check argument count
             if term.args.len() != info.arg_types.len() {
                 return Err(SemanticError::ArityMismatch {
-                    relation: term.name.clone(),
                     expected: info.arg_types.len(),
                     found: term.args.len(),
                 });
@@ -479,6 +478,9 @@ impl SemanticAnalyzer {
             Expression::Struct(struct_expr) => {
                 self.analyze_struct_literal(struct_expr)
             }
+            Expression::Enum(enum_expr) => {
+                self.analyze_enum_expression(enum_expr)
+            }
             Expression::FieldAccess(field_access) => {
                 self.analyze_field_access(field_access)
             }
@@ -579,6 +581,80 @@ impl SemanticAnalyzer {
                 fields: annotated_fields,
             },
             result_type: ResolvedType::Struct(struct_expr.name.clone()),
+        })
+    }
+
+    /// Analyze an enum expression (Expert recommendation: Enum support)
+    fn analyze_enum_expression(&mut self, enum_expr: &EnumExpression) -> Result<AnnotatedExpression, SemanticError> {
+        // Look up enum definition in TypeSystem and clone the variants
+        let enum_variants = {
+            let enum_info = self.symbol_table.lookup_type(&enum_expr.enum_name)
+                .ok_or_else(|| SemanticError::UndefinedType(enum_expr.enum_name.clone()))?;
+
+            match &enum_info.kind {
+                symbol_table::TypeKind::Enum(variants) => variants.clone(),
+                _ => return Err(SemanticError::TypeMismatch {
+                    expected: ResolvedType::Enum(enum_expr.enum_name.clone()),
+                    found: ResolvedType::String, // placeholder
+                }),
+            }
+        };
+
+        // Find the variant
+        let variant_info = enum_variants.iter()
+            .find(|v| v.name == enum_expr.variant_name)
+            .ok_or_else(|| SemanticError::UndefinedVariant {
+                enum_name: enum_expr.enum_name.clone(),
+                variant_name: enum_expr.variant_name.clone(),
+            })?;
+
+        // Check variant fields
+        let annotated_fields = match (&variant_info.fields, &enum_expr.fields) {
+            (None, None) => None, // Unit variant
+            (Some(expected_types), Some(provided_exprs)) => {
+                if expected_types.len() != provided_exprs.len() {
+                    return Err(SemanticError::ArityMismatch {
+                        expected: expected_types.len(),
+                        found: provided_exprs.len(),
+                    });
+                }
+
+                let mut annotated_fields = Vec::new();
+                for (expected_type, provided_expr) in expected_types.iter().zip(provided_exprs.iter()) {
+                    let annotated_expr = self.analyze_expression(provided_expr)?;
+
+                    if !self.type_checker.types_compatible(expected_type, &annotated_expr.result_type) {
+                        return Err(SemanticError::TypeMismatch {
+                            expected: expected_type.clone(),
+                            found: annotated_expr.result_type,
+                        });
+                    }
+
+                    annotated_fields.push(annotated_expr);
+                }
+                Some(annotated_fields)
+            }
+            (None, Some(_)) => {
+                return Err(SemanticError::ArityMismatch {
+                    expected: 0,
+                    found: enum_expr.fields.as_ref().unwrap().len(),
+                });
+            }
+            (Some(expected), None) => {
+                return Err(SemanticError::ArityMismatch {
+                    expected: expected.len(),
+                    found: 0,
+                });
+            }
+        };
+
+        Ok(AnnotatedExpression {
+            expr: AnnotatedExpressionKind::EnumLiteral {
+                enum_name: enum_expr.enum_name.clone(),
+                variant_name: enum_expr.variant_name.clone(),
+                fields: annotated_fields,
+            },
+            result_type: ResolvedType::Enum(enum_expr.enum_name.clone()),
         })
     }
 
@@ -1147,6 +1223,11 @@ pub enum AnnotatedExpressionKind {
         name: String,
         fields: Vec<(String, AnnotatedExpression)>,
     },
+    EnumLiteral {
+        enum_name: String,
+        variant_name: String,
+        fields: Option<Vec<AnnotatedExpression>>,
+    },
     FieldAccess {
         object: Box<AnnotatedExpression>,
         field: String,
@@ -1254,15 +1335,20 @@ pub enum SemanticError {
         field_name: String,
     },
 
+    #[error("Undefined variant {variant_name} in enum {enum_name}")]
+    UndefinedVariant {
+        enum_name: String,
+        variant_name: String,
+    },
+
     #[error("Type mismatch: expected {expected:?}, found {found:?}")]
     TypeMismatch {
         expected: ResolvedType,
         found: ResolvedType,
     },
 
-    #[error("Arity mismatch for relation {relation}: expected {expected} arguments, found {found}")]
+    #[error("Arity mismatch: expected {expected} arguments, found {found}")]
     ArityMismatch {
-        relation: String,
         expected: usize,
         found: usize,
     },
@@ -1383,9 +1469,46 @@ impl SemanticAnalyzer {
                 }
             }
             Pattern::Enum(enum_name, variant_patterns) => {
-                // TODO: Implement enum pattern checking
-                // For now, return a placeholder
-                Ok(AnnotatedPattern::Enum(enum_name.clone(), None, match_type.clone()))
+                // Check if we're matching against an enum type
+                match match_type {
+                    ResolvedType::Enum(expected_enum_name) => {
+                        if enum_name != expected_enum_name {
+                            return Err(SemanticError::PatternTypeMismatch {
+                                expected: match_type.clone(),
+                                found: ResolvedType::Enum(enum_name.clone()),
+                            });
+                        }
+
+                        // Look up enum definition
+                        let enum_info = self.symbol_table.lookup_type(enum_name)
+                            .ok_or_else(|| SemanticError::UndefinedType(enum_name.clone()))?;
+
+                        let enum_variants = match &enum_info.kind {
+                            symbol_table::TypeKind::Enum(variants) => variants,
+                            _ => return Err(SemanticError::TypeMismatch {
+                                expected: ResolvedType::Enum(enum_name.clone()),
+                                found: ResolvedType::String, // placeholder
+                            }),
+                        };
+
+                        // For now, just return the pattern as-is
+                        // TODO: Implement proper variant pattern checking
+                        let annotated_variant_patterns = if let Some(patterns) = variant_patterns {
+                            let annotated_patterns = patterns.iter()
+                                .map(|pattern| self.check_pattern(pattern, &ResolvedType::Int)) // placeholder
+                                .collect::<Result<Vec<_>, SemanticError>>()?;
+                            Some(annotated_patterns)
+                        } else {
+                            None
+                        };
+
+                        Ok(AnnotatedPattern::Enum(enum_name.clone(), annotated_variant_patterns, match_type.clone()))
+                    }
+                    _ => Err(SemanticError::PatternTypeMismatch {
+                        expected: match_type.clone(),
+                        found: ResolvedType::Enum(enum_name.clone()),
+                    }),
+                }
             }
         }
     }

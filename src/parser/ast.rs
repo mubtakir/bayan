@@ -358,6 +358,7 @@ pub enum Expression {
     Array(ArrayExpression),
     Tuple(TupleExpression),
     Struct(StructExpression),
+    Enum(EnumExpression),
     Lambda(LambdaExpression),
     Async(AsyncExpression),
     Await(AwaitExpression),
@@ -468,6 +469,14 @@ pub struct TupleExpression {
 pub struct StructExpression {
     pub name: String,
     pub fields: Vec<(String, Expression)>,
+}
+
+/// Enum variant construction expression (Expert recommendation)
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct EnumExpression {
+    pub enum_name: String,
+    pub variant_name: String,
+    pub fields: Option<Vec<Expression>>, // For tuple-like variants: Some(Color::RGB(255, 0, 0))
 }
 
 /// Lambda expression

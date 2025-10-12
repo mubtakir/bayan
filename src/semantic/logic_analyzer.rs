@@ -144,7 +144,6 @@ impl LogicAnalyzer {
         // Check arity
         if term.args.len() != relation_info.arg_types.len() {
             return Err(SemanticError::ArityMismatch {
-                relation: term.name.clone(),
                 expected: relation_info.arg_types.len(),
                 found: term.args.len(),
             });
