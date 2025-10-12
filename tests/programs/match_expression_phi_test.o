@@ -1,0 +1,15 @@
+// Generated AlBayan code
+// 3 items in program
+
+function test_match_expression() -> Int {
+    // Function body
+}
+
+function test_match_bool_expression() -> Int {
+    // Function body
+}
+
+function main() -> Int {
+    // Function body
+}
+

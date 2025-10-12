@@ -379,6 +379,13 @@ pub extern "C" fn albayan_rt_list_free(list_ptr: *mut AlbayanList) {
     }
 }
 
+/// Destroy a list and all its resources (Expert recommendation: Automatic destroy calls)
+/// Alias for albayan_rt_list_free for consistency with borrow checker terminology
+#[no_mangle]
+pub extern "C" fn albayan_rt_list_destroy(list_ptr: *mut AlbayanList) {
+    albayan_rt_list_free(list_ptr);
+}
+
 // =============================================================================
 // AlbayanValue Helper Functions
 // =============================================================================

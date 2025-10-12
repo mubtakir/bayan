@@ -1,0 +1,28 @@
+fn test_match_expression() -> int {
+    let x = 42;
+    
+    let result = match x {
+        42 => 100,
+        0 => 200,
+        _ => 300,
+    };
+    
+    return result;
+}
+
+fn test_match_bool_expression() -> int {
+    let flag = true;
+    
+    let value = match flag {
+        true => 1,
+        false => 0,
+    };
+    
+    return value;
+}
+
+fn main() -> int {
+    let test1 = test_match_expression();
+    let test2 = test_match_bool_expression();
+    return test1 + test2;
+}

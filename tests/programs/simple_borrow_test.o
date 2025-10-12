@@ -1,0 +1,23 @@
+// Generated AlBayan code
+// 5 items in program
+
+function test_simple_variables() -> Int {
+    // Function body
+}
+
+function test_variable_scopes() -> Int {
+    // Function body
+}
+
+function test_inner_function() -> Int {
+    // Function body
+}
+
+function test_function_parameters(param: Int) -> Int {
+    // Function body
+}
+
+function main() -> Int {
+    // Function body
+}
+
