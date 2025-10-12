@@ -887,14 +887,16 @@ impl SemanticAnalyzer {
                 Ok(false)
             }
             Statement::Match(match_stmt) => {
-                let _annotated_match = self.analyze_match_statement(match_stmt)?;
+                let annotated_match = self.analyze_match_statement(match_stmt)?;
 
                 // Match guarantees return only if:
-                // 1. All patterns are covered (exhaustive)
+                // 1. All patterns are covered (exhaustive) - already checked in analyze_match_statement
                 // 2. All arms guarantee return
-                // For now, conservatively return false
-                // TODO: Implement exhaustiveness checking
-                Ok(false)
+                let all_arms_return = annotated_match.arms.iter().all(|arm| {
+                    self.analyze_annotated_block_for_return(&arm.body, func_ret_type).unwrap_or(false)
+                });
+
+                Ok(all_arms_return)
             }
             Statement::Expression(_) |
             Statement::Let(_) => {
@@ -906,6 +908,35 @@ impl SemanticAnalyzer {
                 Ok(false)
             }
         }
+    }
+
+    /// Analyze an annotated block for return guarantee (helper for match statements)
+    fn analyze_annotated_block_for_return(&mut self, block: &AnnotatedBlock, func_ret_type: &ResolvedType) -> Result<bool, SemanticError> {
+        let mut guarantees_return = false;
+
+        for stmt in &block.statements {
+            match stmt {
+                AnnotatedStatement::Return(_) => {
+                    guarantees_return = true;
+                    break; // Found return, no need to check further
+                }
+                AnnotatedStatement::Match(match_stmt) => {
+                    // Check if this match guarantees return
+                    let all_arms_return = match_stmt.arms.iter().all(|arm| {
+                        self.analyze_annotated_block_for_return(&arm.body, func_ret_type).unwrap_or(false)
+                    });
+                    if all_arms_return {
+                        guarantees_return = true;
+                        break;
+                    }
+                }
+                _ => {
+                    // Other statements don't guarantee return
+                }
+            }
+        }
+
+        Ok(guarantees_return)
     }
 }
 

@@ -1,0 +1,19 @@
+// Generated AlBayan code
+// 4 items in program
+
+function test_bool_match(flag: Bool) -> Int {
+    // Function body
+}
+
+function test_int_match(num: Int) -> String {
+    // Function body
+}
+
+function test_wildcard_match(value: Int) -> Int {
+    // Function body
+}
+
+function main() -> Int {
+    // Function body
+}
+

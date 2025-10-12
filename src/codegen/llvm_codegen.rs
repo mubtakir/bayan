@@ -295,6 +295,9 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                     self.generate_statement(stmt)?;
                 }
             }
+            AnnotatedStatement::Match(match_stmt) => {
+                self.generate_match_statement(match_stmt)?;
+            }
         }
 
         Ok(())
@@ -330,6 +333,12 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             }
             AnnotatedExpressionKind::Index { object, index } => {
                 self.generate_index_access(object, index)
+            }
+            AnnotatedExpressionKind::Match { expression, arms } => {
+                self.generate_match_expression(expression, arms, &expr.result_type)
+            }
+            AnnotatedExpressionKind::Call { function, arguments } => {
+                self.generate_function_call(function, arguments)
             }
             _ => Err(anyhow!("Expression type not yet implemented"))
         }
@@ -689,6 +698,377 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         self.builder.position_at_end(after_block);
 
         Ok(())
+    }
+
+    /// Generate match statement (Expert recommendation: Priority 1 - Complete match IR generation)
+    fn generate_match_statement(&mut self, match_stmt: &AnnotatedMatchStatement) -> Result<()> {
+        // Generate the matched expression
+        let matched_val = self.generate_expression(&match_stmt.expression)?;
+        let function = self.current_function.unwrap();
+
+        // Create basic blocks
+        let merge_bb = self.context.append_basic_block(function, "match_cont");
+        let otherwise_bb = self.context.append_basic_block(function, "match_otherwise");
+
+        // Create a basic block for each arm
+        let arm_blocks: Vec<_> = match_stmt.arms.iter()
+            .enumerate()
+            .map(|(i, _)| self.context.append_basic_block(function, &format!("match_arm_{}", i)))
+            .collect();
+
+        // For simple types (int, bool), use switch instruction
+        match &match_stmt.expression.result_type {
+            ResolvedType::Int | ResolvedType::Bool => {
+                self.generate_match_with_switch(matched_val, match_stmt, &arm_blocks, otherwise_bb, merge_bb)?;
+            }
+            _ => {
+                // For complex types, use if/else chain
+                self.generate_match_with_if_else(matched_val, match_stmt, &arm_blocks, otherwise_bb, merge_bb)?;
+            }
+        }
+
+        // Position at merge block for continuation
+        self.builder.position_at_end(merge_bb);
+        Ok(())
+    }
+
+    /// Generate match using LLVM switch instruction (Expert recommendation: For simple types)
+    fn generate_match_with_switch(
+        &mut self,
+        matched_val: BasicValueEnum<'ctx>,
+        match_stmt: &AnnotatedMatchStatement,
+        arm_blocks: &[BasicBlock<'ctx>],
+        otherwise_bb: BasicBlock<'ctx>,
+        merge_bb: BasicBlock<'ctx>
+    ) -> Result<()> {
+        // Collect switch cases
+        let mut switch_cases = Vec::new();
+        let mut default_arm_index = None;
+
+        for (i, arm) in match_stmt.arms.iter().enumerate() {
+            match &arm.pattern {
+                AnnotatedPattern::Literal(literal, _) => {
+                    let case_val = match literal {
+                        Literal::Integer(n) => self.context.i64_type().const_int(*n as u64, false),
+                        Literal::Boolean(b) => self.context.bool_type().const_int(if *b { 1 } else { 0 }, false),
+                        _ => continue, // Skip non-integer/bool literals for switch
+                    };
+                    switch_cases.push((case_val, arm_blocks[i]));
+                }
+                AnnotatedPattern::Wildcard | AnnotatedPattern::Identifier(_, _) => {
+                    default_arm_index = Some(i);
+                }
+                _ => {
+                    // Complex patterns - skip for switch, handle in if/else
+                    continue;
+                }
+            }
+        }
+
+        // Build switch instruction
+        let switch_val = if matched_val.is_int_value() {
+            matched_val.into_int_value()
+        } else {
+            return Err(anyhow!("Switch requires integer value"));
+        };
+
+        let default_bb = if let Some(idx) = default_arm_index {
+            arm_blocks[idx]
+        } else {
+            otherwise_bb
+        };
+
+        self.builder.build_switch(switch_val, default_bb, &switch_cases)?;
+
+        // Generate code for each arm
+        for (i, arm) in match_stmt.arms.iter().enumerate() {
+            self.builder.position_at_end(arm_blocks[i]);
+
+            // TODO: Bind pattern variables
+            // TODO: Handle guard conditions
+
+            // Generate arm body
+            self.generate_block(&arm.body)?;
+
+            // Branch to merge if not terminated
+            if !self.is_terminated() {
+                self.builder.build_unconditional_branch(merge_bb)?;
+            }
+        }
+
+        // Generate otherwise block (for non-exhaustive matches)
+        self.builder.position_at_end(otherwise_bb);
+        // For now, just branch to merge (should be unreachable if exhaustive)
+        self.builder.build_unconditional_branch(merge_bb)?;
+
+        Ok(())
+    }
+
+    /// Generate match using if/else chain (Expert recommendation: For complex types)
+    fn generate_match_with_if_else(
+        &mut self,
+        matched_val: BasicValueEnum<'ctx>,
+        match_stmt: &AnnotatedMatchStatement,
+        arm_blocks: &[BasicBlock<'ctx>],
+        otherwise_bb: BasicBlock<'ctx>,
+        merge_bb: BasicBlock<'ctx>
+    ) -> Result<()> {
+        // For complex patterns, generate if/else chain
+        let mut current_bb = self.builder.get_insert_block().unwrap();
+
+        for (i, arm) in match_stmt.arms.iter().enumerate() {
+            let next_check_bb = if i < match_stmt.arms.len() - 1 {
+                self.context.append_basic_block(self.current_function.unwrap(), &format!("match_check_{}", i + 1))
+            } else {
+                otherwise_bb
+            };
+
+            self.builder.position_at_end(current_bb);
+
+            // Generate pattern matching condition
+            let matches = self.generate_pattern_match(&matched_val, &arm.pattern)?;
+
+            // Branch based on pattern match
+            self.builder.build_conditional_branch(matches, arm_blocks[i], next_check_bb)?;
+
+            // Generate arm body
+            self.builder.position_at_end(arm_blocks[i]);
+            self.generate_block(&arm.body)?;
+
+            if !self.is_terminated() {
+                self.builder.build_unconditional_branch(merge_bb)?;
+            }
+
+            current_bb = next_check_bb;
+        }
+
+        // Generate otherwise block
+        self.builder.position_at_end(otherwise_bb);
+        self.builder.build_unconditional_branch(merge_bb)?;
+
+        Ok(())
+    }
+
+    /// Generate pattern matching condition (Expert recommendation: Pattern matching logic)
+    fn generate_pattern_match(
+        &mut self,
+        matched_val: &BasicValueEnum<'ctx>,
+        pattern: &AnnotatedPattern
+    ) -> Result<IntValue<'ctx>> {
+        match pattern {
+            AnnotatedPattern::Literal(literal, _) => {
+                let literal_val = self.generate_literal(literal)?;
+                self.generate_equality_check(matched_val, &literal_val)
+            }
+            AnnotatedPattern::Wildcard => {
+                // Wildcard always matches
+                Ok(self.context.bool_type().const_int(1, false))
+            }
+            AnnotatedPattern::Identifier(_, _) => {
+                // Identifier pattern always matches (binds the value)
+                Ok(self.context.bool_type().const_int(1, false))
+            }
+            _ => {
+                // TODO: Implement other pattern types
+                Ok(self.context.bool_type().const_int(0, false))
+            }
+        }
+    }
+
+    /// Generate equality check between two values
+    fn generate_equality_check(
+        &mut self,
+        left: &BasicValueEnum<'ctx>,
+        right: &BasicValueEnum<'ctx>
+    ) -> Result<IntValue<'ctx>> {
+        match (left, right) {
+            (BasicValueEnum::IntValue(l), BasicValueEnum::IntValue(r)) => {
+                Ok(self.builder.build_int_compare(IntPredicate::EQ, *l, *r, "eq_cmp")?)
+            }
+            (BasicValueEnum::FloatValue(l), BasicValueEnum::FloatValue(r)) => {
+                Ok(self.builder.build_float_compare(FloatPredicate::OEQ, *l, *r, "eq_cmp")?)
+            }
+            _ => {
+                // TODO: Handle other types
+                Ok(self.context.bool_type().const_int(0, false))
+            }
+        }
+    }
+
+    /// Generate match expression (Expert recommendation: Match as expression)
+    fn generate_match_expression(
+        &mut self,
+        expression: &AnnotatedExpression,
+        arms: &[AnnotatedMatchArm],
+        result_type: &ResolvedType
+    ) -> Result<BasicValueEnum<'ctx>> {
+        // Generate the matched expression
+        let matched_val = self.generate_expression(expression)?;
+        let function = self.current_function.unwrap();
+
+        // Create basic blocks
+        let merge_bb = self.context.append_basic_block(function, "match_expr_cont");
+        let otherwise_bb = self.context.append_basic_block(function, "match_expr_otherwise");
+
+        // Create a basic block for each arm
+        let arm_blocks: Vec<_> = arms.iter()
+            .enumerate()
+            .map(|(i, _)| self.context.append_basic_block(function, &format!("match_expr_arm_{}", i)))
+            .collect();
+
+        // Allocate result variable for PHI node
+        let result_alloca = self.create_entry_block_alloca("match_result", result_type)?;
+
+        // Generate pattern matching logic (similar to statement version)
+        match &expression.result_type {
+            ResolvedType::Int | ResolvedType::Bool => {
+                self.generate_match_expr_with_switch(matched_val, arms, &arm_blocks, otherwise_bb, merge_bb, result_alloca)?;
+            }
+            _ => {
+                self.generate_match_expr_with_if_else(matched_val, arms, &arm_blocks, otherwise_bb, merge_bb, result_alloca)?;
+            }
+        }
+
+        // Position at merge block and load result
+        self.builder.position_at_end(merge_bb);
+        let result_val = self.builder.build_load(
+            result_alloca.get_type().get_element_type().into(),
+            result_alloca,
+            "match_result_load"
+        )?;
+
+        Ok(result_val)
+    }
+
+    /// Generate match expression with switch (Expert recommendation: Switch for simple types)
+    fn generate_match_expr_with_switch(
+        &mut self,
+        matched_val: BasicValueEnum<'ctx>,
+        arms: &[AnnotatedMatchArm],
+        arm_blocks: &[BasicBlock<'ctx>],
+        otherwise_bb: BasicBlock<'ctx>,
+        merge_bb: BasicBlock<'ctx>,
+        result_alloca: PointerValue<'ctx>
+    ) -> Result<()> {
+        // Similar to statement version but store results
+        let mut switch_cases = Vec::new();
+        let mut default_arm_index = None;
+
+        for (i, arm) in arms.iter().enumerate() {
+            match &arm.pattern {
+                AnnotatedPattern::Literal(literal, _) => {
+                    let case_val = match literal {
+                        Literal::Integer(n) => self.context.i64_type().const_int(*n as u64, false),
+                        Literal::Boolean(b) => self.context.bool_type().const_int(if *b { 1 } else { 0 }, false),
+                        _ => continue,
+                    };
+                    switch_cases.push((case_val, arm_blocks[i]));
+                }
+                AnnotatedPattern::Wildcard | AnnotatedPattern::Identifier(_, _) => {
+                    default_arm_index = Some(i);
+                }
+                _ => continue,
+            }
+        }
+
+        let switch_val = matched_val.into_int_value();
+        let default_bb = if let Some(idx) = default_arm_index {
+            arm_blocks[idx]
+        } else {
+            otherwise_bb
+        };
+
+        self.builder.build_switch(switch_val, default_bb, &switch_cases)?;
+
+        // Generate code for each arm and store result
+        for (i, arm) in arms.iter().enumerate() {
+            self.builder.position_at_end(arm_blocks[i]);
+
+            // Generate arm body and get result
+            let arm_result = self.generate_block_expression(&arm.body)?;
+            self.builder.build_store(result_alloca, arm_result)?;
+
+            if !self.is_terminated() {
+                self.builder.build_unconditional_branch(merge_bb)?;
+            }
+        }
+
+        // Generate otherwise block
+        self.builder.position_at_end(otherwise_bb);
+        self.builder.build_unconditional_branch(merge_bb)?;
+
+        Ok(())
+    }
+
+    /// Generate match expression with if/else (Expert recommendation: If/else for complex types)
+    fn generate_match_expr_with_if_else(
+        &mut self,
+        matched_val: BasicValueEnum<'ctx>,
+        arms: &[AnnotatedMatchArm],
+        arm_blocks: &[BasicBlock<'ctx>],
+        otherwise_bb: BasicBlock<'ctx>,
+        merge_bb: BasicBlock<'ctx>,
+        result_alloca: PointerValue<'ctx>
+    ) -> Result<()> {
+        let mut current_bb = self.builder.get_insert_block().unwrap();
+
+        for (i, arm) in arms.iter().enumerate() {
+            let next_check_bb = if i < arms.len() - 1 {
+                self.context.append_basic_block(self.current_function.unwrap(), &format!("match_expr_check_{}", i + 1))
+            } else {
+                otherwise_bb
+            };
+
+            self.builder.position_at_end(current_bb);
+            let matches = self.generate_pattern_match(&matched_val, &arm.pattern)?;
+            self.builder.build_conditional_branch(matches, arm_blocks[i], next_check_bb)?;
+
+            self.builder.position_at_end(arm_blocks[i]);
+            let arm_result = self.generate_block_expression(&arm.body)?;
+            self.builder.build_store(result_alloca, arm_result)?;
+
+            if !self.is_terminated() {
+                self.builder.build_unconditional_branch(merge_bb)?;
+            }
+
+            current_bb = next_check_bb;
+        }
+
+        self.builder.position_at_end(otherwise_bb);
+        self.builder.build_unconditional_branch(merge_bb)?;
+
+        Ok(())
+    }
+
+    /// Generate block as expression (returns the last expression value)
+    fn generate_block_expression(&mut self, block: &AnnotatedBlock) -> Result<BasicValueEnum<'ctx>> {
+        self.enter_scope();
+
+        let mut last_value = None;
+        for stmt in &block.statements {
+            match stmt {
+                AnnotatedStatement::Expression(expr) => {
+                    last_value = Some(self.generate_expression(expr)?);
+                }
+                _ => {
+                    self.generate_statement(stmt)?;
+                }
+            }
+
+            if self.is_terminated() {
+                break;
+            }
+        }
+
+        self.leave_scope();
+
+        // Return the last expression value or unit
+        if let Some(value) = last_value {
+            Ok(value)
+        } else {
+            // Return unit value (empty struct)
+            Ok(self.context.struct_type(&[], false).const_zero().into())
+        }
     }
 
     /// Generate struct literal (as recommended by expert)

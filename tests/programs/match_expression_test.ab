@@ -1,0 +1,63 @@
+// اختبار Match Expression مع الأنواع المختلفة كما أوصى الخبير
+// يختبر: match as expression، type compatibility، common super type
+
+fn test_match_expression() -> int {
+    let flag = true;
+    
+    // Match expression مع bool
+    let result1 = match flag {
+        true => 10,
+        false => 20
+    };
+    
+    let number = 5;
+    
+    // Match expression مع int
+    let result2 = match number {
+        1 => 100,
+        2 => 200,
+        5 => 500,
+        _ => 999
+    };
+    
+    // Match expression مع type promotion (int -> float)
+    let result3 = match number {
+        1 => 1.5,
+        2 => 2.5,
+        _ => 3
+    };
+    
+    // النتيجة النهائية: result1 (10) + result2 (500) = 510
+    // result3 يحتوي على float لكن نحن نعيد int
+    return result1 + result2;
+}
+
+fn test_nested_match() -> int {
+    let x = 2;
+    let y = 3;
+    
+    let result = match x {
+        1 => match y {
+            1 => 11,
+            2 => 12,
+            _ => 13
+        },
+        2 => match y {
+            1 => 21,
+            2 => 22,
+            3 => 23,
+            _ => 24
+        },
+        _ => 99
+    };
+    
+    return result; // يجب أن يكون 23
+}
+
+fn main() -> int {
+    let result1 = test_match_expression();
+    let result2 = test_nested_match();
+    
+    // النتيجة النهائية: result1 (510) + result2 (23) = 533
+    return result1 + result2;
+}

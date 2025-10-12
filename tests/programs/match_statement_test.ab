@@ -1,0 +1,55 @@
+// اختبار Match Statement مع الأنماط البسيطة كما أوصى الخبير
+// يختبر: switch instruction للأنواع البسيطة، pattern matching، exhaustiveness
+
+fn test_bool_match(flag: bool) -> int {
+    match flag {
+        true => {
+            return 1;
+        }
+        false => {
+            return 0;
+        }
+    }
+}
+
+fn test_int_match(num: int) -> string {
+    match num {
+        1 => {
+            return "واحد";
+        }
+        2 => {
+            return "اثنان";
+        }
+        3 => {
+            return "ثلاثة";
+        }
+        _ => {
+            return "رقم آخر";
+        }
+    }
+}
+
+fn test_wildcard_match(value: int) -> int {
+    match value {
+        _ => {
+            return 42;
+        }
+    }
+}
+
+fn main() -> int {
+    // اختبار bool match
+    let result1 = test_bool_match(true);
+    let result2 = test_bool_match(false);
+    
+    // اختبار int match
+    let msg1 = test_int_match(1);
+    let msg2 = test_int_match(2);
+    let msg3 = test_int_match(99);
+    
+    // اختبار wildcard
+    let result3 = test_wildcard_match(123);
+    
+    // النتيجة النهائية: result1 (1) + result2 (0) + result3 (42) = 43
+    return result1 + result2 + result3;
+}
