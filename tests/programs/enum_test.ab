@@ -1,0 +1,41 @@
+// اختبار دعم Enum الأساسي - الأولوية الثالثة للخبير
+// Basic Enum support test - Expert's third priority
+
+enum Color {
+    Red,
+    Green,
+    Blue
+}
+
+enum Shape {
+    Circle(int),
+    Rectangle(int, int),
+    Triangle(int, int, int)
+}
+
+fn test_simple_enum() -> int {
+    let color = Color::Red;
+
+    match color {
+        Color::Red => return 1,
+        Color::Green => return 2,
+        Color::Blue => return 3,
+    }
+}
+
+fn test_enum_with_data() -> int {
+    let shape = Shape::Circle(5);
+
+    match shape {
+        Shape::Circle(radius) => return radius,
+        Shape::Rectangle(width, height) => return width + height,
+        Shape::Triangle(a, b, c) => return a + b + c,
+    }
+}
+
+fn main() -> int {
+    let test1 = test_simple_enum();
+    let test2 = test_enum_with_data();
+
+    return test1 + test2;
+}

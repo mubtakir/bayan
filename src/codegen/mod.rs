@@ -1,5 +1,5 @@
 //! # Code Generation Module
-//! 
+//!
 //! This module implements code generation for the AlBayan programming language.
 //! Currently provides a simple text-based code generator as a placeholder.
 
@@ -76,14 +76,14 @@ impl SimpleCodeGenerator {
             main_code: Vec::new(),
         }
     }
-    
+
     /// Generate code for the entire program (simplified)
     pub fn generate(&mut self, program: AnnotatedProgram) -> Result<Vec<u8>, CodeGenError> {
         let mut output = String::new();
-        
+
         output.push_str("// Generated AlBayan code\n");
         output.push_str(&format!("// {} items in program\n\n", program.items.len()));
-        
+
         // Process all items
         for item in &program.items {
             match item {
@@ -99,18 +99,21 @@ impl SimpleCodeGenerator {
                 AnnotatedItem::Rule(_) => {
                     output.push_str("// Rule definition\n");
                 }
+                AnnotatedItem::Enum(_) => {
+                    output.push_str("// Enum definition\n");
+                }
             }
         }
-        
+
         Ok(output.into_bytes())
     }
-    
+
     /// Generate code for a function (simplified)
     fn generate_function_code(&mut self, func: &AnnotatedFunction) -> Result<String, CodeGenError> {
         let mut output = String::new();
-        
+
         output.push_str(&format!("function {}(", func.name));
-        
+
         // Parameters
         for (i, param) in func.parameters.iter().enumerate() {
             if i > 0 {
@@ -118,18 +121,18 @@ impl SimpleCodeGenerator {
             }
             output.push_str(&format!("{}: {:?}", param.name, param.param_type));
         }
-        
+
         output.push_str(")");
-        
+
         // Return type
         if let Some(ret_type) = &func.return_type {
             output.push_str(&format!(" -> {:?}", ret_type));
         }
-        
+
         output.push_str(" {\n");
         output.push_str("    // Function body\n");
         output.push_str("}\n\n");
-        
+
         Ok(output)
     }
 
@@ -229,10 +232,10 @@ impl CodeGenerator for SimpleCodeGenerator {
 pub enum CodeGenError {
     #[error("Code generation error: {0}")]
     GenerationError(String),
-    
+
     #[error("Unsupported feature: {0}")]
     UnsupportedFeature(String),
-    
+
     #[error("Type error: {0}")]
     TypeError(String),
 }
@@ -240,12 +243,12 @@ pub enum CodeGenError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_codegen_creation() {
         let options = crate::CompilerOptions::default();
         let codegen = SimpleCodeGenerator::new(&options);
-        
+
         // Basic test to ensure the generator can be created
         assert_eq!(codegen.variables.len(), 0);
     }

@@ -1,0 +1,67 @@
+// اختبار Borrow Checker - المرحلة الأولى كما أوصى الخبير
+// Expert recommendation: Test basic borrow checking with List<T> destruction
+
+fn test_list_destruction() -> int {
+    // إنشاء قائمة - يجب تسجيلها للتدمير
+    let numbers = list_new();
+
+    // استخدام القائمة
+    let size = list_size(numbers);
+
+    // عند انتهاء النطاق، يجب استدعاء destroy تلقائياً
+    return size;
+}
+
+fn test_variable_move() -> int {
+    let list1 = list_new();
+
+    // محاولة نقل القائمة (move)
+    let list2 = list1; // هذا يجب أن ينقل list1
+
+    // محاولة استخدام list1 بعد النقل - يجب أن يفشل
+    // let size = list_size(list1); // هذا يجب أن يعطي خطأ UseAfterMove
+
+    return list_size(list2);
+}
+
+fn test_nested_scopes() -> int {
+    let outer_list = list_new();
+
+    // محاكاة nested scope بدالة منفصلة
+    let inner_result = test_inner_scope();
+
+    // outer_list لا يزال متاحاً هنا
+    return list_size(outer_list) + inner_result;
+}
+
+fn test_inner_scope() -> int {
+    let inner_list = list_new();
+    // inner_list يجب تدميره عند انتهاء هذا النطاق
+    return list_size(inner_list);
+}
+
+fn test_function_parameters(param_list: int) -> int {
+    // param_list يجب تسجيله للتدمير عند انتهاء الدالة
+    return param_list;
+}
+
+fn test_multiple_lists() -> int {
+    let list1 = list_new();
+    let list2 = list_new();
+    let list3 = list_new();
+
+    // جميع القوائم يجب تدميرها عند انتهاء النطاق
+    return list_size(list1) + list_size(list2) + list_size(list3);
+}
+
+fn main() -> int {
+    let test1 = test_list_destruction();
+    let test2 = test_variable_move();
+    let test3 = test_nested_scopes();
+
+    let test4 = test_function_parameters(42); // تمرير رقم بسيط
+
+    let test5 = test_multiple_lists();
+
+    return test1 + test2 + test3 + test4 + test5;
+}

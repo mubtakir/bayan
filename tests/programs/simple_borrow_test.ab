@@ -1,0 +1,37 @@
+// اختبار بسيط للـ Borrow Checker - المرحلة الأولى
+// Simple test for Borrow Checker - Phase 1
+
+fn test_simple_variables() -> int {
+    let x = 42;
+    let y = x; // نسخ القيمة
+    
+    // يجب أن يعمل هذا لأن int هو Copy type
+    return x + y;
+}
+
+fn test_variable_scopes() -> int {
+    let outer = 10;
+    
+    // محاكاة scope داخلي بدالة
+    let inner_result = test_inner_function();
+    
+    return outer + inner_result;
+}
+
+fn test_inner_function() -> int {
+    let inner = 20;
+    return inner;
+}
+
+fn test_function_parameters(param: int) -> int {
+    // المعامل يجب تسجيله في ownership analyzer
+    return param * 2;
+}
+
+fn main() -> int {
+    let test1 = test_simple_variables();
+    let test2 = test_variable_scopes();
+    let test3 = test_function_parameters(15);
+    
+    return test1 + test2 + test3;
+}

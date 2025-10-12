@@ -14,11 +14,13 @@ use std::collections::HashMap;
 
 pub use symbol_table::SymbolTable;
 pub use type_checker::TypeChecker;
+pub use ownership::{OwnershipAnalyzer, DestroyInfo};
 
 /// Main semantic analyzer
 pub struct SemanticAnalyzer {
     symbol_table: SymbolTable,
     type_checker: TypeChecker,
+    ownership_analyzer: OwnershipAnalyzer,
     options: CompilerOptions,
     errors: Vec<SemanticError>,
 }
@@ -29,6 +31,7 @@ impl SemanticAnalyzer {
         Self {
             symbol_table: SymbolTable::new(),
             type_checker: TypeChecker::new(),
+            ownership_analyzer: OwnershipAnalyzer::new(),
             options: options.clone(),
             errors: Vec::new(),
         }
@@ -111,6 +114,10 @@ impl SemanticAnalyzer {
                 let annotated_rule = self.analyze_rule(rule_decl)?;
                 Ok(AnnotatedItem::Rule(annotated_rule))
             }
+            Item::Enum(enum_decl) => {
+                let annotated_enum = self.analyze_enum(enum_decl)?;
+                Ok(AnnotatedItem::Enum(annotated_enum))
+            }
             _ => todo!("Analysis for other item types not yet implemented"),
         }
     }
@@ -119,12 +126,18 @@ impl SemanticAnalyzer {
     fn analyze_function(&mut self, func: &FunctionDecl) -> Result<AnnotatedFunction, SemanticError> {
         // Enter function scope
         self.symbol_table.enter_scope();
+        self.ownership_analyzer.enter_scope();
+
+        // Set current function for borrow checking (Expert recommendation)
+        self.ownership_analyzer.set_current_function(Some(func.name.clone()));
 
         // Add parameters to scope
         let mut annotated_params = Vec::new();
         for param in &func.parameters {
             let resolved_type = self.type_checker.resolve_type(&param.param_type)?;
             self.symbol_table.declare_variable(&param.name, &resolved_type)?;
+            // Declare in ownership analyzer too (Expert recommendation)
+            self.ownership_analyzer.declare_variable(&param.name, resolved_type.clone(), false)?;
             annotated_params.push(AnnotatedParameter {
                 name: param.name.clone(),
                 param_type: resolved_type,
@@ -148,8 +161,12 @@ impl SemanticAnalyzer {
             }
         }
 
-        // Exit function scope
+        // Exit function scope and get variables to destroy (Expert recommendation)
+        let _variables_to_destroy = self.ownership_analyzer.exit_scope();
         self.symbol_table.exit_scope();
+
+        // Clear function context (Expert recommendation)
+        self.ownership_analyzer.set_current_function(None);
 
         Ok(AnnotatedFunction {
             name: func.name.clone(),
@@ -174,6 +191,34 @@ impl SemanticAnalyzer {
         Ok(AnnotatedStruct {
             name: struct_decl.name.clone(),
             fields: annotated_fields,
+        })
+    }
+
+    /// Analyze an enum declaration (Expert recommendation: Enum support)
+    fn analyze_enum(&mut self, enum_decl: &EnumDecl) -> Result<AnnotatedEnum, SemanticError> {
+        let mut annotated_variants = Vec::new();
+
+        for variant in &enum_decl.variants {
+            let variant_fields = if let Some(field_types) = &variant.fields {
+                let mut resolved_fields = Vec::new();
+                for field_type in field_types {
+                    let resolved_type = self.type_checker.resolve_type(field_type)?;
+                    resolved_fields.push(resolved_type);
+                }
+                Some(resolved_fields)
+            } else {
+                None
+            };
+
+            annotated_variants.push(AnnotatedEnumVariant {
+                name: variant.name.clone(),
+                fields: variant_fields,
+            });
+        }
+
+        Ok(AnnotatedEnum {
+            name: enum_decl.name.clone(),
+            variants: annotated_variants,
         })
     }
 
@@ -324,6 +369,7 @@ impl SemanticAnalyzer {
     /// Analyze a block of statements
     fn analyze_block(&mut self, block: &Block) -> Result<AnnotatedBlock, SemanticError> {
         self.symbol_table.enter_scope();
+        self.ownership_analyzer.enter_scope();
 
         let mut annotated_statements = Vec::new();
         for stmt in &block.statements {
@@ -331,6 +377,8 @@ impl SemanticAnalyzer {
             annotated_statements.push(annotated_stmt);
         }
 
+        // Exit scope and get variables that need destruction (Expert recommendation)
+        let _variables_to_destroy = self.ownership_analyzer.exit_scope();
         self.symbol_table.exit_scope();
 
         Ok(AnnotatedBlock {
@@ -375,6 +423,10 @@ impl SemanticAnalyzer {
         // Declare variable in current scope
         self.symbol_table.declare_variable(&let_stmt.name, &var_type)?;
 
+        // Declare in ownership analyzer too (Expert recommendation)
+        // For now, assume variables are immutable by default
+        self.ownership_analyzer.declare_variable(&let_stmt.name, var_type.clone(), false)?;
+
         let annotated_initializer = if let Some(initializer) = &let_stmt.initializer {
             Some(self.analyze_expression(initializer)?)
         } else {
@@ -412,6 +464,9 @@ impl SemanticAnalyzer {
             Expression::Identifier(name) => {
                 let var_info = self.symbol_table.lookup_variable(name)
                     .ok_or_else(|| SemanticError::UndefinedVariable(name.clone()))?;
+
+                // Check read access (Expert recommendation)
+                self.ownership_analyzer.check_read_access(name)?;
 
                 Ok(AnnotatedExpression {
                     expr: AnnotatedExpressionKind::Identifier(name.clone()),
@@ -952,6 +1007,7 @@ pub struct AnnotatedProgram {
 pub enum AnnotatedItem {
     Function(AnnotatedFunction),
     Struct(AnnotatedStruct),
+    Enum(AnnotatedEnum),
     Relation(AnnotatedRelation),
     Rule(AnnotatedRule),
 }
@@ -980,6 +1036,18 @@ pub struct AnnotatedStruct {
 pub struct AnnotatedStructField {
     pub name: String,
     pub field_type: ResolvedType,
+}
+
+#[derive(Debug, Clone)]
+pub struct AnnotatedEnum {
+    pub name: String,
+    pub variants: Vec<AnnotatedEnumVariant>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AnnotatedEnumVariant {
+    pub name: String,
+    pub fields: Option<Vec<ResolvedType>>,
 }
 
 #[derive(Debug, Clone)]
@@ -1408,5 +1476,20 @@ impl SemanticAnalyzer {
         }
 
         Ok(())
+    }
+
+    /// Get variables that need destruction at current scope (Expert recommendation)
+    pub fn get_variables_to_destroy(&self) -> Vec<&DestroyInfo> {
+        self.ownership_analyzer.get_variables_to_destroy()
+    }
+
+    /// Mark a variable as moved (Expert recommendation)
+    pub fn mark_variable_as_moved(&mut self, name: &str) -> Result<(), SemanticError> {
+        self.ownership_analyzer.mark_as_moved(name)
+    }
+
+    /// Check read access to a variable (Expert recommendation)
+    pub fn check_variable_read_access(&self, name: &str) -> Result<(), SemanticError> {
+        self.ownership_analyzer.check_read_access(name)
     }
 }
