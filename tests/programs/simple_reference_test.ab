@@ -1,0 +1,20 @@
+// Simple test for reference syntax (Expert recommendation: Priority 1)
+
+fn test_basic_reference() -> int {
+    let x = 42;
+    let y = &x;  // Create immutable reference
+    return x;    // Should work - x is still accessible
+}
+
+fn test_multiple_references() -> int {
+    let x = 100;
+    let y = &x;  // First immutable reference
+    let z = &x;  // Second immutable reference - should work
+    return x + 1;
+}
+
+fn main() -> int {
+    let result1 = test_basic_reference();
+    let result2 = test_multiple_references();
+    return result1 + result2;
+}

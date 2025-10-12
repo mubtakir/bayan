@@ -27,8 +27,26 @@ pub struct BorrowCheckState {
     variables_to_destroy: HashMap<String, DestroyInfo>,
     /// Variables that have been moved
     moved_variables: HashSet<String>,
+    /// Active borrows (Expert recommendation: &/&mut tracking)
+    active_borrows: HashMap<String, Vec<BorrowInfo>>,
     /// Current function being analyzed
     current_function: Option<String>,
+}
+
+/// Information about an active borrow (Expert recommendation)
+#[derive(Debug, Clone)]
+pub struct BorrowInfo {
+    /// Type of borrow
+    pub borrow_kind: BorrowKind,
+    /// Scope depth where borrow was created
+    pub scope_depth: usize,
+}
+
+/// Kind of borrow (Expert recommendation)
+#[derive(Debug, Clone, PartialEq)]
+pub enum BorrowKind {
+    Immutable, // &
+    Mutable,   // &mut
 }
 
 /// Information about variables that need destruction (Expert recommendation)
@@ -44,38 +62,20 @@ pub struct DestroyInfo {
 
 /// Information about a variable's ownership
 #[derive(Debug, Clone)]
-struct OwnershipInfo {
+pub struct OwnershipInfo {
     /// Variable name
-    name: String,
+    pub name: String,
     /// Variable type
-    var_type: ResolvedType,
+    pub var_type: ResolvedType,
     /// Whether the variable is moved
-    is_moved: bool,
+    pub is_moved: bool,
     /// Whether the variable is mutable
-    is_mutable: bool,
+    pub is_mutable: bool,
     /// Scope where the variable was declared
-    scope_depth: usize,
+    pub scope_depth: usize,
 }
 
-/// Information about an active borrow
-#[derive(Debug, Clone)]
-struct BorrowInfo {
-    /// Borrowed variable name
-    variable: String,
-    /// Type of borrow
-    borrow_type: BorrowType,
-    /// Scope where the borrow was created
-    scope_depth: usize,
-}
 
-/// Type of borrow
-#[derive(Debug, Clone, PartialEq)]
-enum BorrowType {
-    /// Immutable borrow (&T)
-    Immutable,
-    /// Mutable borrow (&mut T)
-    Mutable,
-}
 
 impl BorrowCheckState {
     /// Create a new borrow check state (Expert recommendation)
@@ -83,6 +83,7 @@ impl BorrowCheckState {
         Self {
             variables_to_destroy: HashMap::new(),
             moved_variables: HashSet::new(),
+            active_borrows: HashMap::new(),
             current_function: None,
         }
     }
@@ -97,6 +98,48 @@ impl BorrowCheckState {
     /// Check if a variable has been moved (Expert recommendation)
     pub fn is_moved(&self, name: &str) -> bool {
         self.moved_variables.contains(name)
+    }
+
+    /// Add a borrow (Expert recommendation: &/&mut tracking)
+    pub fn add_borrow(&mut self, name: &str, borrow_kind: BorrowKind, scope_depth: usize) -> Result<(), SemanticError> {
+        // Check for conflicting borrows
+        if let Some(existing_borrows) = self.active_borrows.get(name) {
+            for existing_borrow in existing_borrows {
+                match (&existing_borrow.borrow_kind, &borrow_kind) {
+                    // &mut conflicts with any other borrow
+                    (BorrowKind::Mutable, _) | (_, BorrowKind::Mutable) => {
+                        return Err(SemanticError::ConflictingBorrow(name.to_string()));
+                    }
+                    // & with & is allowed
+                    (BorrowKind::Immutable, BorrowKind::Immutable) => {}
+                }
+            }
+        }
+
+        // Add the new borrow
+        let borrow_info = BorrowInfo {
+            borrow_kind,
+            scope_depth,
+        };
+
+        self.active_borrows
+            .entry(name.to_string())
+            .or_insert_with(Vec::new)
+            .push(borrow_info);
+
+        Ok(())
+    }
+
+    /// Check if a variable has any active borrows (Expert recommendation)
+    pub fn has_active_borrows(&self, name: &str) -> bool {
+        self.active_borrows.get(name).map_or(false, |borrows| !borrows.is_empty())
+    }
+
+    /// Check if a variable has mutable borrows (Expert recommendation)
+    pub fn has_mutable_borrow(&self, name: &str) -> bool {
+        self.active_borrows.get(name).map_or(false, |borrows| {
+            borrows.iter().any(|b| b.borrow_kind == BorrowKind::Mutable)
+        })
     }
 
     /// Register a variable for destruction at end of scope (Expert recommendation)
@@ -122,6 +165,12 @@ impl BorrowCheckState {
     /// Clear variables at scope exit (Expert recommendation)
     pub fn clear_scope(&mut self, scope_depth: usize) {
         self.variables_to_destroy.retain(|_, info| info.scope_depth < scope_depth);
+        // Clear borrows created in this scope (Expert recommendation)
+        for borrows in self.active_borrows.values_mut() {
+            borrows.retain(|borrow| borrow.scope_depth < scope_depth);
+        }
+        // Remove empty borrow entries
+        self.active_borrows.retain(|_, borrows| !borrows.is_empty());
         // Note: moved_variables persist across scopes until function exit
     }
 
@@ -133,7 +182,26 @@ impl BorrowCheckState {
             // Clear all state when exiting function
             self.moved_variables.clear();
             self.variables_to_destroy.clear();
+            self.active_borrows.clear();
         }
+    }
+
+    /// Check if write access is allowed (Expert recommendation)
+    pub fn check_write_access(&self, name: &str) -> Result<(), SemanticError> {
+        if self.is_moved(name) {
+            return Err(SemanticError::UseAfterMove(name.to_string()));
+        }
+
+        // Check if variable is borrowed immutably (Expert recommendation)
+        if let Some(borrows) = self.active_borrows.get(name) {
+            for borrow in borrows {
+                if borrow.borrow_kind == BorrowKind::Immutable {
+                    return Err(SemanticError::WriteWhileBorrowed(name.to_string()));
+                }
+            }
+        }
+
+        Ok(())
     }
 }
 
@@ -254,6 +322,16 @@ impl OwnershipAnalyzer {
         self.borrow_check_state.set_current_function(function_name);
     }
 
+    /// Get mutable access to borrow check state (Expert recommendation)
+    pub fn get_borrow_check_state_mut(&mut self) -> &mut BorrowCheckState {
+        &mut self.borrow_check_state
+    }
+
+    /// Get current scope depth (Expert recommendation)
+    pub fn get_scope_depth(&self) -> usize {
+        self.scope_depth
+    }
+
     /// Get variables that need destruction at current scope (Expert recommendation)
     pub fn get_variables_to_destroy(&self) -> Vec<&DestroyInfo> {
         self.borrow_check_state.get_variables_to_destroy_at_scope(self.scope_depth)
@@ -282,49 +360,7 @@ impl OwnershipAnalyzer {
         Ok(())
     }
 
-    /// Create an immutable borrow
-    pub fn borrow_immutable(&mut self, name: &str) -> Result<(), SemanticError> {
-        let var_info = self.check_variable_use(name)?;
 
-        // Check for conflicting mutable borrows
-        for borrow in &self.active_borrows {
-            if borrow.variable == name && borrow.borrow_type == BorrowType::Mutable {
-                return Err(SemanticError::ConflictingBorrow(name.to_string()));
-            }
-        }
-
-        self.active_borrows.push(BorrowInfo {
-            variable: name.to_string(),
-            borrow_type: BorrowType::Immutable,
-            scope_depth: self.scope_depth,
-        });
-
-        Ok(())
-    }
-
-    /// Create a mutable borrow
-    pub fn borrow_mutable(&mut self, name: &str) -> Result<(), SemanticError> {
-        let var_info = self.check_variable_use(name)?;
-
-        if !var_info.is_mutable {
-            return Err(SemanticError::BorrowMutableFromImmutable(name.to_string()));
-        }
-
-        // Check for any existing borrows
-        for borrow in &self.active_borrows {
-            if borrow.variable == name {
-                return Err(SemanticError::ConflictingBorrow(name.to_string()));
-            }
-        }
-
-        self.active_borrows.push(BorrowInfo {
-            variable: name.to_string(),
-            borrow_type: BorrowType::Mutable,
-            scope_depth: self.scope_depth,
-        });
-
-        Ok(())
-    }
 
     /// Check if a type implements Copy (doesn't move on assignment)
     fn is_copy_type(&self, type_: &ResolvedType) -> bool {
@@ -378,28 +414,9 @@ impl OwnershipAnalyzer {
             }
 
             Expression::Unary(unary_expr) => {
-                match unary_expr.operator {
-                    UnaryOperator::Reference => {
-                        // Taking a reference creates a borrow
-                        if let Expression::Identifier(name) = &*unary_expr.operand {
-                            self.borrow_immutable(name)?;
-                            Ok(OwnershipResult::Borrow)
-                        } else {
-                            Err(SemanticError::InvalidBorrow("Cannot borrow non-variable".to_string()))
-                        }
-                    }
-
-                    UnaryOperator::Dereference => {
-                        // Dereferencing uses the borrowed value
-                        self.analyze_expression(&unary_expr.operand)?;
-                        Ok(OwnershipResult::Copy)
-                    }
-
-                    _ => {
-                        self.analyze_expression(&unary_expr.operand)?;
-                        Ok(OwnershipResult::Copy)
-                    }
-                }
+                // For now, just analyze the operand
+                self.analyze_expression(&unary_expr.operand)?;
+                Ok(OwnershipResult::Copy)
             }
 
             Expression::Call(call_expr) => {
@@ -468,23 +485,7 @@ pub enum OwnershipResult {
 }
 
 // Add new error types to SemanticError
-impl SemanticError {
-    pub fn UseAfterMove(var: String) -> Self {
-        SemanticError::UseAfterMove(var)
-    }
 
-    pub fn ConflictingBorrow(var: String) -> Self {
-        SemanticError::ConflictingBorrow(var)
-    }
-
-    pub fn BorrowMutableFromImmutable(var: String) -> Self {
-        SemanticError::BorrowMutableFromImmutable(var)
-    }
-
-    pub fn InvalidBorrow(msg: String) -> Self {
-        SemanticError::InvalidBorrow(msg)
-    }
-}
 
 #[cfg(test)]
 mod tests {

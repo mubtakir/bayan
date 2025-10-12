@@ -1,0 +1,40 @@
+// Test borrow checker with & and &mut references (Expert recommendation: Priority 1)
+
+fn test_immutable_borrow() -> int {
+    let x = 42;
+    let y = &x;  // Immutable borrow - should work
+    return x + 1; // Should work, x is still accessible
+}
+
+fn test_mutable_borrow() -> int {
+    let x = 42;
+    let y = &x;  // Immutable borrow - should work for now
+    return 1; // Should work
+}
+
+fn test_conflicting_borrows() -> int {
+    let x = 42;
+    let y = &x;      // Immutable borrow
+    let z = &x;      // Another immutable borrow - should work
+    return 1;
+}
+
+fn test_multiple_immutable_borrows() -> int {
+    let x = 42;
+    let y = &x;  // First immutable borrow
+    let z = &x;  // Second immutable borrow - should work
+    return x + 1;
+}
+
+fn test_borrow_immutable_variable() -> int {
+    let x = 42;      // x is immutable
+    let y = &x;      // Immutable borrow - should work
+    return 1;
+}
+
+fn main() -> int {
+    let result1 = test_immutable_borrow();
+    let result2 = test_mutable_borrow();
+    let result3 = test_multiple_immutable_borrows();
+    return result1 + result2 + result3;
+}

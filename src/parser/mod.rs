@@ -701,15 +701,27 @@ impl Parser {
         Ok(expr)
     }
 
-    /// Parse unary expressions (!, -)
+    /// Parse unary expressions (!, -, &, &mut)
     fn parse_unary(&mut self) -> Result<Expression, ParseError> {
-        if self.match_tokens(&[TokenType::Not, TokenType::Minus]) {
+        if self.match_tokens(&[TokenType::Not, TokenType::Minus, TokenType::Ampersand]) {
             let operator = self.previous().token_type.clone();
+
+            // Handle &mut case
+            if operator == TokenType::Ampersand && self.check(&TokenType::Mut) {
+                self.advance(); // consume 'mut'
+                let right = self.parse_unary()?;
+                return Ok(Expression::Unary(UnaryExpression {
+                    operator: UnaryOperator::MutableReference,
+                    operand: Box::new(right),
+                }));
+            }
+
             let right = self.parse_unary()?;
             return Ok(Expression::Unary(UnaryExpression {
                 operator: match operator {
                     TokenType::Not => UnaryOperator::Not,
                     TokenType::Minus => UnaryOperator::Negate,
+                    TokenType::Ampersand => UnaryOperator::Reference,
                     _ => unreachable!(),
                 },
                 operand: Box::new(right),

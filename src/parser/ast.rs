@@ -428,6 +428,7 @@ pub enum UnaryOperator {
     Not,
     Negate,
     Reference,
+    MutableReference,
     Dereference,
 }
 

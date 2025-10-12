@@ -281,14 +281,29 @@ impl TypeChecker {
             }
 
             UnaryOperator::Reference => {
-                // TODO: Implement reference types
-                todo!("Reference types not yet implemented")
+                // &T -> &T (handled in semantic analysis)
+                Ok(ResolvedType::Reference(Box::new(operand_type.clone())))
+            }
+
+            UnaryOperator::MutableReference => {
+                // &mut T -> &mut T (handled in semantic analysis)
+                Ok(ResolvedType::MutableReference(Box::new(operand_type.clone())))
             }
 
             UnaryOperator::Dereference => {
-                // TODO: Implement reference types
-                todo!("Reference types not yet implemented")
+                // *&T -> T or *&mut T -> T
+                match operand_type {
+                    ResolvedType::Reference(inner) | ResolvedType::MutableReference(inner) => {
+                        Ok((**inner).clone())
+                    }
+                    _ => Err(SemanticError::TypeMismatch {
+                        expected: ResolvedType::Reference(Box::new(ResolvedType::Unit)), // placeholder
+                        found: operand_type.clone(),
+                    }),
+                }
             }
+
+
         }
     }
 

@@ -496,6 +496,9 @@ impl SemanticAnalyzer {
             Expression::Call(call_expr) => {
                 self.analyze_call_expression(call_expr)
             }
+            Expression::Unary(unary_expr) => {
+                self.analyze_unary_expression(unary_expr)
+            }
             _ => todo!("Analysis for other expression types not yet implemented"),
         }
     }
@@ -851,6 +854,93 @@ impl SemanticAnalyzer {
             },
             result_type: return_type,
         })
+    }
+
+    /// Analyze a unary expression (Expert recommendation: &/&mut support)
+    fn analyze_unary_expression(&mut self, unary_expr: &UnaryExpression) -> Result<AnnotatedExpression, SemanticError> {
+        match &unary_expr.operator {
+            UnaryOperator::Reference => {
+                // For &var, we need to check that var exists and create an immutable borrow
+                if let Expression::Identifier(var_name) = &*unary_expr.operand {
+                    // Check that variable exists
+                    let var_info = self.symbol_table.lookup_variable(var_name)
+                        .ok_or_else(|| SemanticError::UndefinedVariable(var_name.clone()))?;
+
+                    // Add immutable borrow (Expert recommendation)
+                    let scope_depth = self.ownership_analyzer.get_scope_depth();
+                    self.ownership_analyzer.get_borrow_check_state_mut().add_borrow(
+                        var_name,
+                        crate::semantic::ownership::BorrowKind::Immutable,
+                        scope_depth
+                    )?;
+
+                    // Return reference type
+                    let ref_type = ResolvedType::Reference(Box::new(var_info.var_type.clone()));
+                    Ok(AnnotatedExpression {
+                        expr: AnnotatedExpressionKind::Unary(AnnotatedUnaryExpression {
+                            operator: unary_expr.operator.clone(),
+                            operand: Box::new(AnnotatedExpression {
+                                expr: AnnotatedExpressionKind::Identifier(var_name.clone()),
+                                result_type: var_info.var_type.clone(),
+                            }),
+                        }),
+                        result_type: ref_type,
+                    })
+                } else {
+                    return Err(SemanticError::Other("Reference operator can only be applied to variables".to_string()));
+                }
+            }
+            UnaryOperator::MutableReference => {
+                // For &mut var, we need to check that var is mutable and create a mutable borrow
+                if let Expression::Identifier(var_name) = &*unary_expr.operand {
+                    // Check that variable exists
+                    let var_info = self.symbol_table.lookup_variable(var_name)
+                        .ok_or_else(|| SemanticError::UndefinedVariable(var_name.clone()))?;
+
+                    // Check that variable is mutable (Expert recommendation)
+                    let ownership_info = self.ownership_analyzer.check_variable_use(var_name)?;
+                    if !ownership_info.is_mutable {
+                        return Err(SemanticError::BorrowMutableFromImmutable(var_name.clone()));
+                    }
+
+                    // Add mutable borrow (Expert recommendation)
+                    let scope_depth = self.ownership_analyzer.get_scope_depth();
+                    self.ownership_analyzer.get_borrow_check_state_mut().add_borrow(
+                        var_name,
+                        crate::semantic::ownership::BorrowKind::Mutable,
+                        scope_depth
+                    )?;
+
+                    // Return mutable reference type
+                    let ref_type = ResolvedType::MutableReference(Box::new(var_info.var_type.clone()));
+                    Ok(AnnotatedExpression {
+                        expr: AnnotatedExpressionKind::Unary(AnnotatedUnaryExpression {
+                            operator: unary_expr.operator.clone(),
+                            operand: Box::new(AnnotatedExpression {
+                                expr: AnnotatedExpressionKind::Identifier(var_name.clone()),
+                                result_type: var_info.var_type.clone(),
+                            }),
+                        }),
+                        result_type: ref_type,
+                    })
+                } else {
+                    return Err(SemanticError::Other("Mutable reference operator can only be applied to variables".to_string()));
+                }
+            }
+            _ => {
+                // Handle other unary operators (Not, Negate, etc.)
+                let annotated_operand = self.analyze_expression(&unary_expr.operand)?;
+                let result_type = self.type_checker.check_unary_operation(&unary_expr.operator, &annotated_operand.result_type)?;
+
+                Ok(AnnotatedExpression {
+                    expr: AnnotatedExpressionKind::Unary(AnnotatedUnaryExpression {
+                        operator: unary_expr.operator.clone(),
+                        operand: Box::new(annotated_operand),
+                    }),
+                    result_type,
+                })
+            }
+        }
     }
 
     /// Analyze a match statement (Expert recommendation: Priority 1 - Complete match support)
@@ -1247,6 +1337,14 @@ pub enum AnnotatedExpressionKind {
         function: String,
         arguments: Vec<AnnotatedExpression>,
     },
+    Unary(AnnotatedUnaryExpression),
+}
+
+/// Annotated unary expression (Expert recommendation: &/&mut support)
+#[derive(Debug, Clone)]
+pub struct AnnotatedUnaryExpression {
+    pub operator: UnaryOperator,
+    pub operand: Box<AnnotatedExpression>,
 }
 
 /// Resolved type information
@@ -1387,6 +1485,21 @@ pub enum SemanticError {
 
     #[error("Variable in fact: {0}")]
     VariableInFact(String),
+
+    #[error("Use after move: {0}")]
+    UseAfterMove(String),
+
+    #[error("Conflicting borrow: {0}")]
+    ConflictingBorrow(String),
+
+    #[error("Write while borrowed: {0}")]
+    WriteWhileBorrowed(String),
+
+    #[error("Borrow mutable from immutable: {0}")]
+    BorrowMutableFromImmutable(String),
+
+    #[error("Invalid borrow: {0}")]
+    InvalidBorrow(String),
 }
 
 impl SemanticAnalyzer {
