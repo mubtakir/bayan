@@ -1,0 +1,33 @@
+// Basic generic test (Expert recommendation: Priority 1 - Phase 2)
+
+// Generic function
+fn process<T>(value: T) -> T {
+    return value;
+}
+
+// Generic struct
+struct Container<T> {
+    data: T;
+}
+
+// Generic trait
+trait Display<T> {
+    fn show(item: T) -> string;
+}
+
+// Generic trait with bounds
+trait Processor<T: Display> {
+    fn handle(item: T) -> T;
+}
+
+// Impl with generics
+impl<T> Container<T> {
+    fn new(value: T) -> Container<T> {
+        return Container { data: value };
+    }
+}
+
+fn main() -> int {
+    // Simple test without generic instantiation for now
+    return 42;
+}

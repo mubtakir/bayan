@@ -228,8 +228,10 @@ pub struct UsingDecl {
 pub enum Type {
     /// Named type using qualified path (int, string, std::collections::HashMap, etc.)
     Named(Path),
-    /// Generic type with parameters
+    /// Generic type with parameters (Vec<T>, HashMap<K, V>, etc.)
     Generic(Path, Vec<Type>),
+    /// Generic type parameter (T, U, K, V, etc.)
+    GenericParam(String),
     /// Function type
     Function(Vec<Type>, Box<Type>),
     /// Tuple type

@@ -29,6 +29,8 @@ pub struct SymbolTable {
 struct Scope {
     /// Variables in this scope
     variables: HashMap<String, VariableInfo>,
+    /// Generic type parameters in this scope (Expert recommendation: Priority 1)
+    generic_params: HashMap<String, String>,  // name -> name (for now)
     /// Scope type (function, block, etc.)
     scope_type: ScopeType,
 }
@@ -120,6 +122,7 @@ impl SymbolTable {
         let mut symbol_table = Self {
             scopes: vec![Scope {
                 variables: HashMap::new(),
+                generic_params: HashMap::new(),
                 scope_type: ScopeType::Global,
             }],
             types: HashMap::new(),
@@ -157,6 +160,7 @@ impl SymbolTable {
     pub fn enter_scope(&mut self) {
         self.scopes.push(Scope {
             variables: HashMap::new(),
+            generic_params: HashMap::new(),
             scope_type: ScopeType::Block,
         });
     }
@@ -165,6 +169,7 @@ impl SymbolTable {
     pub fn enter_function_scope(&mut self) {
         self.scopes.push(Scope {
             variables: HashMap::new(),
+            generic_params: HashMap::new(),
             scope_type: ScopeType::Function,
         });
     }
@@ -204,10 +209,46 @@ impl SymbolTable {
         None
     }
 
+    /// Declare a generic type parameter in the current scope (Expert recommendation: Priority 1)
+    pub fn declare_generic_param(&mut self, name: &str) -> Result<(), SemanticError> {
+        let current_scope = self.scopes.last_mut().unwrap();
+
+        if current_scope.generic_params.contains_key(name) {
+            return Err(SemanticError::Redefinition(name.to_string()));
+        }
+
+
+        current_scope.generic_params.insert(name.to_string(), name.to_string());
+        Ok(())
+    }
+
+    /// Look up a generic type parameter in all scopes (Expert recommendation: Priority 1)
+    pub fn lookup_generic_param(&self, name: &str) -> bool {
+        for scope in self.scopes.iter().rev() {
+            if scope.generic_params.contains_key(name) {
+                return true;
+            }
+        }
+        false
+    }
+
     /// Declare a function
     pub fn declare_function(&mut self, name: &str, func: &FunctionDecl) -> Result<(), SemanticError> {
         if self.functions.contains_key(name) {
             return Err(SemanticError::Redefinition(name.to_string()));
+        }
+
+        // For generic functions, we need to defer type resolution until analysis phase
+        // because generic parameters are not in scope during symbol collection
+        if func.generic_params.is_some() {
+
+            // For now, just register the function name without type resolution
+            self.functions.insert(name.to_string(), FunctionInfo {
+                name: name.to_string(),
+                parameters: Vec::new(), // Will be resolved later
+                return_type: None,      // Will be resolved later
+            });
+            return Ok(());
         }
 
         let mut parameters = Vec::new();
@@ -240,6 +281,18 @@ impl SymbolTable {
     pub fn declare_struct(&mut self, name: &str, struct_decl: &StructDecl) -> Result<(), SemanticError> {
         if self.types.contains_key(name) {
             return Err(SemanticError::Redefinition(name.to_string()));
+        }
+
+        // For generic structs, we need to defer type resolution until analysis phase
+        // because generic parameters are not in scope during symbol collection
+        if struct_decl.generic_params.is_some() {
+
+            // For now, just register the struct name without field type resolution
+            self.types.insert(name.to_string(), TypeInfo {
+                name: name.to_string(),
+                kind: TypeKind::Struct(Vec::new()), // Will be resolved later
+            });
+            return Ok(());
         }
 
         let mut fields = Vec::new();
@@ -397,6 +450,18 @@ impl SymbolTable {
             return Err(SemanticError::Redefinition(name.to_string()));
         }
 
+        // For generic traits, we need to defer type resolution until analysis phase
+        // because generic parameters are not in scope during symbol collection
+        if trait_decl.generic_params.is_some() {
+
+            // For now, just register the trait name without method type resolution
+            self.traits.insert(name.to_string(), TraitInfo {
+                name: name.to_string(),
+                methods: Vec::new(), // Will be resolved later
+            });
+            return Ok(());
+        }
+
         let mut methods = Vec::new();
         for method in &trait_decl.methods {
             let mut parameters = Vec::new();
@@ -429,6 +494,19 @@ impl SymbolTable {
 
     /// Declare an impl block (Expert recommendation: Priority 1)
     pub fn declare_impl(&mut self, impl_decl: &ImplDecl) -> Result<(), SemanticError> {
+        // For generic impl blocks, we need to defer type resolution until analysis phase
+        // because generic parameters are not in scope during symbol collection
+        if impl_decl.generic_params.is_some() {
+
+            // For now, just register the impl without method type resolution
+            self.impls.push(ImplInfo {
+                trait_name: impl_decl.trait_name.clone(),
+                type_name: impl_decl.type_name.clone(),
+                methods: Vec::new(), // Will be resolved later
+            });
+            return Ok(());
+        }
+
         let mut methods = Vec::new();
         for method in &impl_decl.methods {
             let mut parameters = Vec::new();
@@ -476,13 +554,28 @@ impl SymbolTable {
         })
     }
 
+    /// Get all impl blocks (Expert recommendation: Priority 1 - Method Resolution)
+    pub fn get_impls(&self) -> &Vec<ImplInfo> {
+        &self.impls
+    }
+
     /// Look up a type
     pub fn lookup_type(&self, name: &str) -> Option<&TypeInfo> {
         self.types.get(name)
     }
 
+    /// Update struct info after analysis (Expert recommendation: Priority 1)
+    pub fn update_struct_info(&mut self, name: &str, fields: Vec<StructFieldInfo>) -> Result<(), SemanticError> {
+        if let Some(type_info) = self.types.get_mut(name) {
+            type_info.kind = TypeKind::Struct(fields);
+            Ok(())
+        } else {
+            Err(SemanticError::UndefinedType(name.to_string()))
+        }
+    }
+
     /// Resolve a type name to a ResolvedType
-    fn resolve_type_name(&self, type_annotation: &Type) -> Result<ResolvedType, SemanticError> {
+    pub fn resolve_type_name(&self, type_annotation: &Type) -> Result<ResolvedType, SemanticError> {
         match type_annotation {
             Type::Named(name) => {
                 match name.to_string().as_str() {
@@ -493,6 +586,15 @@ impl SymbolTable {
                     "char" => Ok(ResolvedType::Char),
                     _ => {
                         let name_str = name.to_string();
+
+                        // Check if it's a generic type parameter first (Expert recommendation: Priority 1)
+                        if self.lookup_generic_param(&name_str) {
+
+                            return Ok(ResolvedType::GenericParam(name_str));
+                        } else {
+
+                        }
+
                         if self.types.contains_key(&name_str) {
                             match &self.types[&name_str].kind {
                                 TypeKind::Struct(_) => Ok(ResolvedType::Struct(name_str)),
@@ -512,6 +614,10 @@ impl SymbolTable {
                     resolved_args.push(self.resolve_type_name(arg)?);
                 }
                 Ok(ResolvedType::Generic(name.to_string(), resolved_args))
+            }
+            Type::GenericParam(name) => {
+                // Generic type parameters are valid during semantic analysis
+                Ok(ResolvedType::GenericParam(name.clone()))
             }
             Type::Function(params, ret) => {
                 let mut resolved_params = Vec::new();

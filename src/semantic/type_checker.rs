@@ -49,6 +49,11 @@ impl TypeChecker {
                 }
                 Ok(ResolvedType::Generic(name.to_string(), resolved_args))
             }
+            Type::GenericParam(name) => {
+                // Generic type parameters are valid during parsing/semantic analysis
+                // They will be substituted with concrete types during monomorphization
+                Ok(ResolvedType::GenericParam(name.clone()))
+            }
             Type::Function(params, ret) => {
                 let mut resolved_params = Vec::new();
                 for param in params {
@@ -103,6 +108,11 @@ impl TypeChecker {
                 params1.iter().zip(params2.iter()).all(|(p1, p2)| self.types_compatible(p1, p2)) &&
                 self.types_compatible(ret1, ret2)
             }
+
+            // Generic type parameters - for now, any generic param is compatible with any type
+            // This will be refined during monomorphization
+            (ResolvedType::GenericParam(_), _) => true,
+            (_, ResolvedType::GenericParam(_)) => true,
 
             _ => false,
         }

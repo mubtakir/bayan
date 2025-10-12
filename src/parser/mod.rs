@@ -68,6 +68,13 @@ impl Parser {
 
         let name = self.consume_identifier("Expected function name")?;
 
+        // Parse optional generic parameters
+        let generic_params = if self.check(&TokenType::Less) {
+            Some(self.parse_generic_params()?)
+        } else {
+            None
+        };
+
         self.consume(&TokenType::LeftParen, "Expected '(' after function name")?;
 
         let mut parameters = Vec::new();
@@ -100,7 +107,7 @@ impl Parser {
 
         Ok(Item::Function(FunctionDecl {
             name,
-            generic_params: None,  // TODO: Parse generic parameters
+            generic_params,
             parameters,
             return_type,
             body,
@@ -111,6 +118,13 @@ impl Parser {
     fn parse_struct(&mut self) -> Result<Item, ParseError> {
         self.consume(&TokenType::Struct, "Expected 'struct'")?;
         let name = self.consume_identifier("Expected struct name")?;
+
+        // Parse optional generic parameters
+        let generic_params = if self.check(&TokenType::Less) {
+            Some(self.parse_generic_params()?)
+        } else {
+            None
+        };
 
         self.consume(&TokenType::LeftBrace, "Expected '{' after struct name")?;
 
@@ -141,7 +155,7 @@ impl Parser {
 
         Ok(Item::Struct(StructDecl {
             name,
-            generic_params: None,  // TODO: Parse generic parameters
+            generic_params,
             fields
         }))
     }
@@ -247,19 +261,80 @@ impl Parser {
         }
     }
 
-    /// Parse a type annotation
+    /// Parse a type annotation (Enhanced for generics)
     fn parse_type(&mut self) -> Result<Type, ParseError> {
         match &self.peek().token_type {
             TokenType::Identifier(name) => {
                 let name = name.clone();
                 self.advance();
-                Ok(Type::Named(Path::single(name)))
+
+                // Check if this is a generic type (e.g., Vec<T>)
+                if self.check(&TokenType::Less) {
+                    self.advance(); // consume '<'
+
+                    let mut type_params = Vec::new();
+
+                    // Parse first type parameter
+                    if !self.check(&TokenType::Greater) {
+                        type_params.push(self.parse_type()?);
+
+                        // Parse additional type parameters separated by commas
+                        while self.match_token(&TokenType::Comma) {
+                            type_params.push(self.parse_type()?);
+                        }
+                    }
+
+                    self.consume(&TokenType::Greater, "Expected '>' after generic type parameters")?;
+
+                    Ok(Type::Generic(Path::single(name), type_params))
+                } else {
+                    Ok(Type::Named(Path::single(name)))
+                }
             }
             _ => Err(ParseError::UnexpectedToken {
                 expected: "type".to_string(),
                 found: self.peek().clone(),
             }),
         }
+    }
+
+    /// Parse generic parameters like <T, U: Display, V: Clone + Send>
+    fn parse_generic_params(&mut self) -> Result<Vec<GenericParam>, ParseError> {
+        if !self.match_token(&TokenType::Less) {
+            return Ok(Vec::new());
+        }
+
+        let mut generic_params = Vec::new();
+
+        if !self.check(&TokenType::Greater) {
+            loop {
+                // Parse generic parameter name
+                let name = self.consume_identifier("Expected generic parameter name")?;
+
+                // Parse optional trait bounds (T: Display + Clone)
+                let mut bounds = Vec::new();
+                if self.match_token(&TokenType::Colon) {
+                    // Parse first trait bound
+                    let trait_name = self.consume_identifier("Expected trait name")?;
+                    bounds.push(TraitBound { trait_name });
+
+                    // Parse additional trait bounds separated by '+'
+                    while self.match_token(&TokenType::Plus) {
+                        let trait_name = self.consume_identifier("Expected trait name after '+'")?;
+                        bounds.push(TraitBound { trait_name });
+                    }
+                }
+
+                generic_params.push(GenericParam { name, bounds });
+
+                if !self.match_token(&TokenType::Comma) {
+                    break;
+                }
+            }
+        }
+
+        self.consume(&TokenType::Greater, "Expected '>' after generic parameters")?;
+        Ok(generic_params)
     }
 
     /// Parse a block statement
@@ -1195,6 +1270,13 @@ impl Parser {
         self.consume(&TokenType::Trait, "Expected 'trait'")?;
         let name = self.consume_identifier("Expected trait name")?;
 
+        // Parse optional generic parameters
+        let generic_params = if self.check(&TokenType::Less) {
+            Some(self.parse_generic_params()?)
+        } else {
+            None
+        };
+
         self.consume(&TokenType::LeftBrace, "Expected '{' after trait name")?;
 
         let mut methods = Vec::new();
@@ -1261,7 +1343,7 @@ impl Parser {
 
         Ok(Item::Trait(TraitDecl {
             name,
-            generic_params: None,  // TODO: Parse generic parameters
+            generic_params,
             methods,
         }))
     }
@@ -1270,8 +1352,24 @@ impl Parser {
     fn parse_impl(&mut self) -> Result<Item, ParseError> {
         self.consume(&TokenType::Impl, "Expected 'impl'")?;
 
+        // Parse optional generic parameters for impl
+        let generic_params = if self.check(&TokenType::Less) {
+            Some(self.parse_generic_params()?)
+        } else {
+            None
+        };
+
         // Parse either "impl Type" or "impl Trait for Type"
-        let first_name = self.consume_identifier("Expected type or trait name")?;
+        // First, parse the type/trait name (which might be generic like Container<T>)
+        let first_type = self.parse_type()?;
+        let first_name = match &first_type {
+            Type::Named(path) => path.segments.last().unwrap().clone(),
+            Type::Generic(path, _) => path.segments.last().unwrap().clone(),
+            _ => return Err(ParseError::UnexpectedToken {
+                expected: "type or trait name".to_string(),
+                found: self.peek().clone(),
+            }),
+        };
 
         let (trait_name, type_name) = if self.match_token(&TokenType::For) {
             // impl Trait for Type
@@ -1306,7 +1404,7 @@ impl Parser {
         Ok(Item::Impl(ImplDecl {
             trait_name,
             type_name,
-            generic_params: None,  // TODO: Parse generic parameters
+            generic_params,
             methods,
         }))
     }

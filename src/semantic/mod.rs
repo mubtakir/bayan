@@ -12,7 +12,7 @@ use crate::parser::ast::*;
 use crate::CompilerOptions;
 use std::collections::HashMap;
 
-pub use symbol_table::SymbolTable;
+pub use symbol_table::{SymbolTable, StructFieldInfo, FunctionInfo};
 pub use type_checker::TypeChecker;
 pub use ownership::{OwnershipAnalyzer, DestroyInfo};
 
@@ -145,10 +145,22 @@ impl SemanticAnalyzer {
         // Set current function for borrow checking (Expert recommendation)
         self.ownership_analyzer.set_current_function(Some(func.name.clone()));
 
+        // Add generic parameters to scope as type variables (Expert recommendation: Priority 1)
+        let annotated_generics = if let Some(ref generics) = func.generic_params {
+            for generic in generics {
+                // Add generic type parameter to scope
+                // This allows T, U, etc. to be recognized as valid types
+                self.symbol_table.declare_generic_param(&generic.name)?;
+            }
+            Some(self.analyze_generic_params(generics)?)
+        } else {
+            None
+        };
+
         // Add parameters to scope
         let mut annotated_params = Vec::new();
         for param in &func.parameters {
-            let resolved_type = self.type_checker.resolve_type(&param.param_type)?;
+            let resolved_type = self.symbol_table.resolve_type_name(&param.param_type)?;
             self.symbol_table.declare_variable(&param.name, &resolved_type)?;
             // Declare in ownership analyzer too (Expert recommendation)
             self.ownership_analyzer.declare_variable(&param.name, resolved_type.clone(), false)?;
@@ -163,7 +175,7 @@ impl SemanticAnalyzer {
 
         // Check return type consistency
         let return_type = if let Some(ret_type) = &func.return_type {
-            Some(self.type_checker.resolve_type(ret_type)?)
+            Some(self.symbol_table.resolve_type_name(ret_type)?)
         } else {
             None
         };
@@ -184,6 +196,7 @@ impl SemanticAnalyzer {
 
         Ok(AnnotatedFunction {
             name: func.name.clone(),
+            generic_params: annotated_generics,
             parameters: annotated_params,
             return_type,
             body: annotated_body,
@@ -192,18 +205,43 @@ impl SemanticAnalyzer {
 
     /// Analyze a struct
     fn analyze_struct(&mut self, struct_decl: &StructDecl) -> Result<AnnotatedStruct, SemanticError> {
+        // Enter struct scope for generic parameters (Expert recommendation: Priority 1)
+        self.symbol_table.enter_scope();
+
+        // Add generic parameters to scope (Expert recommendation: Priority 1)
+        let annotated_generics = if let Some(ref generics) = struct_decl.generic_params {
+            for generic in generics {
+                self.symbol_table.declare_generic_param(&generic.name)?;
+            }
+            Some(self.analyze_generic_params(generics)?)
+        } else {
+            None
+        };
+
         let mut annotated_fields = Vec::new();
+        let mut struct_field_infos = Vec::new();
 
         for field in &struct_decl.fields {
-            let resolved_type = self.type_checker.resolve_type(&field.field_type)?;
+            let resolved_type = self.symbol_table.resolve_type_name(&field.field_type)?;
             annotated_fields.push(AnnotatedStructField {
+                name: field.name.clone(),
+                field_type: resolved_type.clone(),
+            });
+            struct_field_infos.push(StructFieldInfo {
                 name: field.name.clone(),
                 field_type: resolved_type,
             });
         }
 
+        // Update struct info in symbol table (Expert recommendation: Priority 1)
+        self.symbol_table.update_struct_info(&struct_decl.name, struct_field_infos)?;
+
+        // Exit struct scope
+        self.symbol_table.exit_scope();
+
         Ok(AnnotatedStruct {
             name: struct_decl.name.clone(),
+            generic_params: annotated_generics,
             fields: annotated_fields,
         })
     }
@@ -238,12 +276,25 @@ impl SemanticAnalyzer {
 
     /// Analyze a trait declaration (Expert recommendation: Priority 1)
     fn analyze_trait(&mut self, trait_decl: &TraitDecl) -> Result<AnnotatedTrait, SemanticError> {
+        // Enter trait scope for generic parameters (Expert recommendation: Priority 1)
+        self.symbol_table.enter_scope();
+
+        // Add generic parameters to scope (Expert recommendation: Priority 1)
+        let generic_params = if let Some(generics) = &trait_decl.generic_params {
+            for generic in generics {
+                self.symbol_table.declare_generic_param(&generic.name)?;
+            }
+            Some(self.analyze_generic_params(generics)?)
+        } else {
+            None
+        };
+
         let mut annotated_methods = Vec::new();
 
         for method in &trait_decl.methods {
             let mut annotated_params = Vec::new();
             for param in &method.parameters {
-                let resolved_type = self.type_checker.resolve_type(&param.param_type)?;
+                let resolved_type = self.symbol_table.resolve_type_name(&param.param_type)?;
                 annotated_params.push(AnnotatedParameter {
                     name: param.name.clone(),
                     param_type: resolved_type,
@@ -251,7 +302,7 @@ impl SemanticAnalyzer {
             }
 
             let return_type = if let Some(ret_type) = &method.return_type {
-                Some(self.type_checker.resolve_type(ret_type)?)
+                Some(self.symbol_table.resolve_type_name(ret_type)?)
             } else {
                 None
             };
@@ -270,11 +321,8 @@ impl SemanticAnalyzer {
             });
         }
 
-        let generic_params = if let Some(generics) = &trait_decl.generic_params {
-            Some(self.analyze_generic_params(generics)?)
-        } else {
-            None
-        };
+        // Exit trait scope
+        self.symbol_table.exit_scope();
 
         Ok(AnnotatedTrait {
             name: trait_decl.name.clone(),
@@ -285,6 +333,19 @@ impl SemanticAnalyzer {
 
     /// Analyze an impl declaration (Expert recommendation: Priority 1)
     fn analyze_impl(&mut self, impl_decl: &ImplDecl) -> Result<AnnotatedImpl, SemanticError> {
+        // Enter impl scope for generic parameters (Expert recommendation: Priority 1)
+        self.symbol_table.enter_scope();
+
+        // Add generic parameters to scope (Expert recommendation: Priority 1)
+        let generic_params = if let Some(generics) = &impl_decl.generic_params {
+            for generic in generics {
+                self.symbol_table.declare_generic_param(&generic.name)?;
+            }
+            Some(self.analyze_generic_params(generics)?)
+        } else {
+            None
+        };
+
         let mut annotated_methods = Vec::new();
 
         for method in &impl_decl.methods {
@@ -292,11 +353,8 @@ impl SemanticAnalyzer {
             annotated_methods.push(annotated_method);
         }
 
-        let generic_params = if let Some(generics) = &impl_decl.generic_params {
-            Some(self.analyze_generic_params(generics)?)
-        } else {
-            None
-        };
+        // Exit impl scope
+        self.symbol_table.exit_scope();
 
         Ok(AnnotatedImpl {
             trait_name: impl_decl.trait_name.clone(),
@@ -909,24 +967,33 @@ impl SemanticAnalyzer {
         })
     }
 
-    /// Analyze a call expression
+    /// Analyze a call expression (Expert recommendation: Priority 1 - Method Resolution)
     fn analyze_call_expression(&mut self, call_expr: &CallExpression) -> Result<AnnotatedExpression, SemanticError> {
-        // For now, only support simple function calls (identifier)
-        let function_name = match call_expr.callee.as_ref() {
-            Expression::Identifier(name) => name.clone(),
-            _ => return Err(SemanticError::TypeMismatch {
+        match call_expr.callee.as_ref() {
+            // Simple function call: function_name(args)
+            Expression::Identifier(function_name) => {
+                self.analyze_function_call(function_name, &call_expr.arguments)
+            }
+            // Method call: obj.method(args)
+            Expression::FieldAccess(field_access) => {
+                self.analyze_method_call(field_access, &call_expr.arguments)
+            }
+            _ => Err(SemanticError::TypeMismatch {
                 expected: ResolvedType::Unit,
                 found: ResolvedType::Unit,
             }),
-        };
+        }
+    }
 
+    /// Analyze a simple function call (Expert recommendation: Priority 1)
+    fn analyze_function_call(&mut self, function_name: &str, arguments: &[Expression]) -> Result<AnnotatedExpression, SemanticError> {
         // Look up the function in the symbol table
-        let func_info = self.symbol_table.lookup_function(&function_name)
-            .ok_or_else(|| SemanticError::UndefinedVariable(function_name.clone()))?
+        let func_info = self.symbol_table.lookup_function(function_name)
+            .ok_or_else(|| SemanticError::UndefinedVariable(function_name.to_string()))?
             .clone(); // Clone to avoid borrowing issues
 
         // Check argument count
-        if call_expr.arguments.len() != func_info.parameters.len() {
+        if arguments.len() != func_info.parameters.len() {
             return Err(SemanticError::TypeMismatch {
                 expected: ResolvedType::Unit, // Placeholder
                 found: ResolvedType::Unit,    // Placeholder
@@ -935,7 +1002,7 @@ impl SemanticAnalyzer {
 
         // Analyze arguments and check types
         let mut annotated_args = Vec::new();
-        for (i, arg) in call_expr.arguments.iter().enumerate() {
+        for (i, arg) in arguments.iter().enumerate() {
             let annotated_arg = self.analyze_expression(arg)?;
             let expected_type = &func_info.parameters[i];
 
@@ -954,11 +1021,89 @@ impl SemanticAnalyzer {
 
         Ok(AnnotatedExpression {
             expr: AnnotatedExpressionKind::Call {
-                function: function_name,
+                function: function_name.to_string(),
                 arguments: annotated_args,
             },
             result_type: return_type,
         })
+    }
+
+    /// Analyze a method call (Expert recommendation: Priority 1 - Method Resolution)
+    fn analyze_method_call(&mut self, field_access: &FieldAccessExpression, arguments: &[Expression]) -> Result<AnnotatedExpression, SemanticError> {
+        // Analyze the object expression
+        let annotated_object = self.analyze_expression(&field_access.object)?;
+        let method_name = &field_access.field;
+
+        // Get the object type (clone to avoid borrowing issues)
+        let object_type = annotated_object.result_type.clone();
+
+        // Try to find the method in impl blocks (Expert recommendation: Priority 1)
+        if let Some(method_info) = self.find_method_in_impls(&object_type, method_name) {
+            // Check argument count (including self parameter)
+            let expected_param_count = method_info.parameters.len();
+            let actual_arg_count = arguments.len() + 1; // +1 for self
+
+            if actual_arg_count != expected_param_count {
+                return Err(SemanticError::TypeMismatch {
+                    expected: ResolvedType::Unit, // Placeholder
+                    found: ResolvedType::Unit,    // Placeholder
+                });
+            }
+
+            // Analyze arguments and check types (skip first parameter which is self)
+            let mut annotated_args = Vec::new();
+            annotated_args.push(annotated_object); // Add self as first argument
+
+            for (i, arg) in arguments.iter().enumerate() {
+                let annotated_arg = self.analyze_expression(arg)?;
+                let expected_type = &method_info.parameters[i + 1]; // +1 to skip self parameter
+
+                // Simple type compatibility check
+                if annotated_arg.result_type != *expected_type {
+                    return Err(SemanticError::TypeMismatch {
+                        expected: expected_type.clone(),
+                        found: annotated_arg.result_type.clone(),
+                    });
+                }
+
+                annotated_args.push(annotated_arg);
+            }
+
+            let return_type = method_info.return_type.clone().unwrap_or(ResolvedType::Unit);
+
+            Ok(AnnotatedExpression {
+                expr: AnnotatedExpressionKind::Call {
+                    function: format!("{:?}::{}", object_type, method_name), // Mangled method name
+                    arguments: annotated_args,
+                },
+                result_type: return_type,
+            })
+        } else {
+            Err(SemanticError::UndefinedVariable(format!("Method {} not found for type {:?}", method_name, object_type)))
+        }
+    }
+
+    /// Find method in impl blocks (Expert recommendation: Priority 1)
+    fn find_method_in_impls(&self, object_type: &ResolvedType, method_name: &str) -> Option<FunctionInfo> {
+        let type_name = match object_type {
+            ResolvedType::Struct(name) => name,
+            _ => return None,
+        };
+
+        // Look for inherent impl (impl TypeName)
+        for impl_info in self.symbol_table.get_impls() {
+            if impl_info.type_name == *type_name && impl_info.trait_name.is_none() {
+                for method in &impl_info.methods {
+                    if method.name == method_name {
+                        return Some(method.clone());
+                    }
+                }
+            }
+        }
+
+        // TODO: Look for trait impl (impl TraitName for TypeName) - Expert recommendation: Priority 1
+
+        None
     }
 
     /// Analyze a unary expression (Expert recommendation: &/&mut support)
@@ -1288,6 +1433,7 @@ pub enum AnnotatedItem {
 #[derive(Debug, Clone)]
 pub struct AnnotatedFunction {
     pub name: String,
+    pub generic_params: Option<Vec<AnnotatedGenericParam>>,  // Expert recommendation: Priority 1
     pub parameters: Vec<AnnotatedParameter>,
     pub return_type: Option<ResolvedType>,
     pub body: AnnotatedBlock,
@@ -1302,6 +1448,7 @@ pub struct AnnotatedParameter {
 #[derive(Debug, Clone)]
 pub struct AnnotatedStruct {
     pub name: String,
+    pub generic_params: Option<Vec<AnnotatedGenericParam>>,  // Expert recommendation: Priority 1
     pub fields: Vec<AnnotatedStructField>,
 }
 
@@ -1516,6 +1663,9 @@ pub enum ResolvedType {
     // Function types
     Function(Vec<ResolvedType>, Box<ResolvedType>),
     Generic(String, Vec<ResolvedType>),
+
+    // Generic type parameters (T, U, K, V, etc.)
+    GenericParam(String),
 
     // Collection types
     Array(Box<ResolvedType>),
