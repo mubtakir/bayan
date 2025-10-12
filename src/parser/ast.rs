@@ -238,6 +238,8 @@ pub enum Type {
     Tuple(Vec<Type>),
     /// Array type with size
     Array(Box<Type>, Option<usize>),
+    /// Trait object type (dyn Trait) - Expert recommendation: Priority 1
+    TraitObject(Vec<Path>),
     /// Multi-dimensional array
     Matrix(Box<Type>, Vec<usize>),
     /// Vector type with fixed size

@@ -39,6 +39,9 @@ pub struct LLVMCodeGenerator<'ctx> {
 
     // Struct field mappings (as recommended by expert)
     struct_field_indices: HashMap<String, HashMap<String, u32>>,
+
+    // V-Table mappings (Expert recommendation: Priority 1 - Dynamic Dispatch)
+    vtables: HashMap<String, PointerValue<'ctx>>, // trait_type_key -> vtable_global
 }
 
 impl<'ctx> LLVMCodeGenerator<'ctx> {
@@ -69,6 +72,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             target_machine: None,
             type_cache: HashMap::new(),
             struct_field_indices: HashMap::new(),
+            vtables: HashMap::new(),
         })
     }
 
@@ -1236,6 +1240,17 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                 let struct_type = self.get_llvm_struct_type(name)?;
                 Ok(Some(struct_type.ptr_type(AddressSpace::default()).into()))
             }
+            ResolvedType::TraitObject(_traits) => {
+                // Trait object as fat pointer (Expert recommendation: Priority 1)
+                let data_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+                let vtable_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+
+                let fat_pointer_type = self.context.struct_type(
+                    &[data_ptr_type.into(), vtable_ptr_type.into()],
+                    false
+                );
+                Ok(Some(fat_pointer_type.into()))
+            }
             _ => Err(anyhow!("Type not yet supported: {:?}", resolved_type))
         }
     }
@@ -1272,11 +1287,28 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                 let ptr_type = struct_type.ptr_type(AddressSpace::default());
                 Ok(ptr_type.const_null().into())
             }
-            Type::String => {
+            ResolvedType::String => {
                 let empty_str = self.context.const_string(b"", true);
                 Ok(empty_str.into())
             }
-            _ => Err(anyhow!("Cannot create default value for type: {:?}", albayan_type))
+            ResolvedType::TraitObject(_traits) => {
+                // Default trait object is null fat pointer (Expert recommendation: Priority 1)
+                let data_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+                let vtable_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+
+                let fat_pointer_type = self.context.struct_type(
+                    &[data_ptr_type.into(), vtable_ptr_type.into()],
+                    false
+                );
+
+                // Create null fat pointer
+                let null_data = data_ptr_type.const_null();
+                let null_vtable = vtable_ptr_type.const_null();
+                let null_fat_pointer = fat_pointer_type.const_named_struct(&[null_data.into(), null_vtable.into()]);
+
+                Ok(null_fat_pointer.into())
+            }
+            _ => Err(anyhow!("Cannot create default value for type: {:?}", resolved_type))
         }
     }
 
@@ -1680,6 +1712,18 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                 // Get the struct type from cache or create it
                 self.get_llvm_struct_type(name).map(|t| t.into())
             }
+            ResolvedType::TraitObject(_traits) => {
+                // Trait object as fat pointer (Expert recommendation: Priority 1)
+                // Fat pointer = { *mut u8 (data), *const VTable (vtable) }
+                let data_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+                let vtable_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+
+                let fat_pointer_type = self.context.struct_type(
+                    &[data_ptr_type.into(), vtable_ptr_type.into()],
+                    false
+                );
+                Ok(fat_pointer_type.into())
+            }
             _ => Err(anyhow!("Unsupported type for LLVM resolution: {:?}", resolved_type)),
         }
     }
@@ -1817,5 +1861,110 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         }
 
         Ok(())
+    }
+
+    /// Generate V-Table for trait implementation (Expert recommendation: Priority 1)
+    fn generate_vtable(&mut self, trait_name: &str, type_name: &str, methods: &[String]) -> Result<PointerValue<'ctx>> {
+        let vtable_key = format!("{}_{}_vtable", trait_name, type_name);
+
+        // Check if V-Table already exists
+        if let Some(existing_vtable) = self.vtables.get(&vtable_key) {
+            return Ok(*existing_vtable);
+        }
+
+        // Create V-Table type (array of function pointers)
+        let function_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+        let vtable_type = function_ptr_type.array_type(methods.len() as u32);
+
+        // Create global V-Table
+        let vtable_global = self.module.add_global(vtable_type, Some(AddressSpace::default()), &vtable_key);
+        vtable_global.set_linkage(inkwell::module::Linkage::Internal);
+        vtable_global.set_constant(true);
+
+        // Create array of function pointers
+        let mut function_pointers = Vec::new();
+        for method_name in methods {
+            let mangled_method_name = format!("{}::{}", type_name, method_name);
+
+            // Get or create function declaration
+            let function = if let Some(func) = self.functions.get(&mangled_method_name) {
+                *func
+            } else {
+                // Create function declaration if it doesn't exist
+                let func_type = self.context.void_type().fn_type(&[], false);
+                let func = self.module.add_function(&mangled_method_name, func_type, None);
+                self.functions.insert(mangled_method_name.clone(), func);
+                func
+            };
+
+            // Cast function to generic function pointer
+            let func_ptr = function.as_global_value().as_pointer_value();
+            let generic_ptr = self.builder.build_bitcast(
+                func_ptr,
+                function_ptr_type,
+                &format!("{}_cast", method_name)
+            )?;
+            function_pointers.push(generic_ptr.into());
+        }
+
+        // Set V-Table initializer
+        let vtable_array = function_ptr_type.const_array(&function_pointers);
+        vtable_global.set_initializer(&vtable_array);
+
+        // Store V-Table reference
+        let vtable_ptr = vtable_global.as_pointer_value();
+        self.vtables.insert(vtable_key, vtable_ptr);
+
+        Ok(vtable_ptr)
+    }
+
+    /// Create fat pointer for trait object (Expert recommendation: Priority 1)
+    fn create_fat_pointer(&mut self, data_ptr: PointerValue<'ctx>, vtable_ptr: PointerValue<'ctx>) -> Result<BasicValueEnum<'ctx>> {
+        // Create fat pointer type
+        let data_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+        let vtable_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+        let fat_pointer_type = self.context.struct_type(
+            &[data_ptr_type.into(), vtable_ptr_type.into()],
+            false
+        );
+
+        // Allocate fat pointer
+        let fat_pointer_alloca = self.builder.build_alloca(fat_pointer_type, "fat_pointer")?;
+
+        // Cast data pointer to generic pointer
+        let generic_data_ptr = self.builder.build_bitcast(
+            data_ptr,
+            data_ptr_type,
+            "data_ptr_cast"
+        )?;
+
+        // Cast vtable pointer to generic pointer
+        let generic_vtable_ptr = self.builder.build_bitcast(
+            vtable_ptr,
+            vtable_ptr_type,
+            "vtable_ptr_cast"
+        )?;
+
+        // Store data pointer in fat pointer
+        let data_field_ptr = self.builder.build_struct_gep(
+            fat_pointer_type,
+            fat_pointer_alloca,
+            0,
+            "data_field_ptr"
+        )?;
+        self.builder.build_store(data_field_ptr, generic_data_ptr)?;
+
+        // Store vtable pointer in fat pointer
+        let vtable_field_ptr = self.builder.build_struct_gep(
+            fat_pointer_type,
+            fat_pointer_alloca,
+            1,
+            "vtable_field_ptr"
+        )?;
+        self.builder.build_store(vtable_field_ptr, generic_vtable_ptr)?;
+
+        // Load and return fat pointer
+        let fat_pointer = self.builder.build_load(fat_pointer_type, fat_pointer_alloca, "fat_pointer_load")?;
+        Ok(fat_pointer)
     }
 }

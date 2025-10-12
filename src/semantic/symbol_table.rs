@@ -619,6 +619,21 @@ impl SymbolTable {
                 // Generic type parameters are valid during semantic analysis
                 Ok(ResolvedType::GenericParam(name.clone()))
             }
+            Type::TraitObject(traits) => {
+                // Trait object types (dyn Trait) - Expert recommendation: Priority 1
+                let mut trait_names = Vec::new();
+                for trait_path in traits {
+                    let trait_name = trait_path.to_string();
+
+                    // Verify that the trait exists
+                    if !self.traits.contains_key(&trait_name) {
+                        return Err(SemanticError::UndefinedType(trait_name));
+                    }
+
+                    trait_names.push(trait_name);
+                }
+                Ok(ResolvedType::TraitObject(trait_names))
+            }
             Type::Function(params, ret) => {
                 let mut resolved_params = Vec::new();
                 for param in params {

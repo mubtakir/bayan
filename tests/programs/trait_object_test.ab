@@ -1,0 +1,29 @@
+// Trait object test (Expert recommendation: Priority 1 - dyn Trait)
+
+// Define a trait
+trait Display {
+    fn to_string(item: string) -> string;
+}
+
+// Define a struct
+struct Person {
+    name: string;
+    age: int;
+}
+
+// Implement the trait for the struct
+impl Display for Person {
+    fn to_string(person: string) -> string {
+        return "Person";
+    }
+}
+
+// Function that takes a trait object (simplified for now)
+fn print_display(item: dyn Display) -> string {
+    return "test";
+}
+
+fn main() -> int {
+    let person = Person { name: "Ahmed", age: 25 };
+    return 42;
+}

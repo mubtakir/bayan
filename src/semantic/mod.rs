@@ -1667,6 +1667,9 @@ pub enum ResolvedType {
     // Generic type parameters (T, U, K, V, etc.)
     GenericParam(String),
 
+    // Trait object types (dyn Trait) - Expert recommendation: Priority 1
+    TraitObject(Vec<String>),
+
     // Collection types
     Array(Box<ResolvedType>),
     Matrix(Box<ResolvedType>, Vec<usize>),

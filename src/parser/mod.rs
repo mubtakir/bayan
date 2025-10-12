@@ -261,9 +261,43 @@ impl Parser {
         }
     }
 
-    /// Parse a type annotation (Enhanced for generics)
+    /// Parse a type annotation (Enhanced for generics and trait objects)
     fn parse_type(&mut self) -> Result<Type, ParseError> {
         match &self.peek().token_type {
+            // Parse trait object: dyn Trait
+            TokenType::Dyn => {
+                self.advance(); // consume 'dyn'
+
+                let mut traits = Vec::new();
+
+                // Parse first trait
+                if let TokenType::Identifier(trait_name) = &self.peek().token_type {
+                    let trait_name = trait_name.clone();
+                    self.advance();
+                    traits.push(Path::single(trait_name));
+
+                    // Parse additional traits separated by '+'
+                    while self.match_token(&TokenType::Plus) {
+                        if let TokenType::Identifier(trait_name) = &self.peek().token_type {
+                            let trait_name = trait_name.clone();
+                            self.advance();
+                            traits.push(Path::single(trait_name));
+                        } else {
+                            return Err(ParseError::UnexpectedToken {
+                                expected: "trait name".to_string(),
+                                found: self.peek().clone(),
+                            });
+                        }
+                    }
+                } else {
+                    return Err(ParseError::UnexpectedToken {
+                        expected: "trait name after 'dyn'".to_string(),
+                        found: self.peek().clone(),
+                    });
+                }
+
+                Ok(Type::TraitObject(traits))
+            }
             TokenType::Identifier(name) => {
                 let name = name.clone();
                 self.advance();

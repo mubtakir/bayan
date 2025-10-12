@@ -114,6 +114,13 @@ impl TypeChecker {
             (ResolvedType::GenericParam(_), _) => true,
             (_, ResolvedType::GenericParam(_)) => true,
 
+            // Trait object types (dyn Trait) - Expert recommendation: Priority 1
+            (ResolvedType::TraitObject(traits1), ResolvedType::TraitObject(traits2)) => {
+                // For now, trait objects are compatible if they have the same traits
+                // TODO: Implement proper trait compatibility checking
+                traits1 == traits2
+            }
+
             _ => false,
         }
     }

@@ -22,6 +22,8 @@ pub enum TokenType {
     Impl,           // NEWLY ADDED: Expert recommendation
     #[token("for")]
     For,            // NEWLY ADDED: Expert recommendation (for impl Trait for Type)
+    #[token("dyn")]
+    Dyn,            // NEWLY ADDED: Expert recommendation (for dyn Trait)
     #[token("enum")]
     Enum,
     #[token("struct")]
