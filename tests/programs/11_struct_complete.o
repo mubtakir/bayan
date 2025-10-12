@@ -1,0 +1,25 @@
+// Generated AlBayan code
+// 7 items in program
+
+// Struct definition
+// Struct definition
+function create_point(x_val: Int, y_val: Int) -> Struct("Point") {
+    // Function body
+}
+
+function get_point_sum(p: Struct("Point")) -> Int {
+    // Function body
+}
+
+function create_rectangle(x: Int, y: Int, w: Int, h: Int) -> Struct("Rectangle") {
+    // Function body
+}
+
+function calculate_area(rect: Struct("Rectangle")) -> Int {
+    // Function body
+}
+
+function main() -> Int {
+    // Function body
+}
+

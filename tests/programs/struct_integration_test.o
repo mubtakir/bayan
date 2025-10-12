@@ -1,0 +1,25 @@
+// Generated AlBayan code
+// 7 items in program
+
+// Struct definition
+// Struct definition
+function create_person(name: String, age: Int, height: Float) -> Struct("Person") {
+    // Function body
+}
+
+function calculate_future_age(person: Struct("Person"), years: Int) -> Int {
+    // Function body
+}
+
+function create_company(company_name: String, count: Int, ceo_person: Struct("Person")) -> Struct("Company") {
+    // Function body
+}
+
+function print_company_info(company: Struct("Company")) -> Int {
+    // Function body
+}
+
+function main() -> Int {
+    // Function body
+}
+

@@ -1,0 +1,10 @@
+// Simple struct test to verify current implementation
+struct Point {
+    x: int;
+    y: int;
+}
+
+fn main() -> int {
+    let p = Point { x: 5, y: 7 };
+    return p.x + p.y;
+}

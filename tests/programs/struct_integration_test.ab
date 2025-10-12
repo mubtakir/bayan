@@ -1,0 +1,60 @@
+// اختبار تكامل كامل للـ Struct Support كما أوصى الخبير
+// يختبر: تعريف الهياكل، إنشاء المثيلات، تمرير الوسائط، الوصول للحقول
+
+struct Person {
+    name: string;
+    age: int;
+    height: float;
+}
+
+struct Company {
+    name: string;
+    employee_count: int;
+    ceo: Person;
+}
+
+// دالة لإنشاء شخص جديد
+fn create_person(name: string, age: int, height: float) -> Person {
+    return Person { name: name, age: age, height: height };
+}
+
+// دالة لحساب عمر الشخص بعد سنوات
+fn calculate_future_age(person: Person, years: int) -> int {
+    return person.age + years;
+}
+
+// دالة لإنشاء شركة جديدة
+fn create_company(company_name: string, count: int, ceo_person: Person) -> Company {
+    return Company { name: company_name, employee_count: count, ceo: ceo_person };
+}
+
+// دالة لطباعة معلومات الشركة
+fn print_company_info(company: Company) -> int {
+    // نعيد مجموع عمر الرئيس التنفيذي + عدد الموظفين كرقم للاختبار
+    return company.ceo.age + company.employee_count;
+}
+
+fn main() -> int {
+    // إنشاء شخص مباشرة
+    let person1 = Person { name: "أحمد", age: 30, height: 175.5 };
+    
+    // إنشاء شخص باستخدام دالة
+    let person2 = create_person("فاطمة", 28, 165.0);
+    
+    // حساب العمر المستقبلي
+    let future_age = calculate_future_age(person1, 10);
+    
+    // إنشاء شركة مع شخص كرئيس تنفيذي
+    let company = create_company("شركة البيان", 100, person2);
+    
+    // طباعة معلومات الشركة
+    let company_info = print_company_info(company);
+    
+    // الوصول المباشر للحقول المتداخلة
+    let ceo_age = company.ceo.age;
+    let ceo_height = company.ceo.height;
+    
+    // حساب النتيجة النهائية للاختبار
+    // future_age (40) + company_info (128) + ceo_age (28) = 196
+    return future_age + company_info + ceo_age;
+}

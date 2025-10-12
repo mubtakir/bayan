@@ -36,6 +36,9 @@ pub struct LLVMCodeGenerator<'ctx> {
 
     // Type mappings
     type_cache: HashMap<String, BasicTypeEnum<'ctx>>,
+
+    // Struct field mappings (as recommended by expert)
+    struct_field_indices: HashMap<String, HashMap<String, u32>>,
 }
 
 impl<'ctx> LLVMCodeGenerator<'ctx> {
@@ -65,6 +68,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             optimization_level,
             target_machine: None,
             type_cache: HashMap::new(),
+            struct_field_indices: HashMap::new(),
         })
     }
 
@@ -217,7 +221,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         Ok(())
     }
 
-    /// Declare a struct type
+    /// Declare a struct type (enhanced as recommended by expert)
     fn declare_struct(&mut self, struct_def: &AnnotatedStruct) -> Result<()> {
         let field_types: Vec<BasicTypeEnum> = struct_def.fields
             .iter()
@@ -232,6 +236,13 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             struct_def.name.clone(),
             struct_type.into()
         );
+
+        // Build field index mapping (as recommended by expert)
+        let mut field_indices = HashMap::new();
+        for (i, field) in struct_def.fields.iter().enumerate() {
+            field_indices.insert(field.name.clone(), i as u32);
+        }
+        self.struct_field_indices.insert(struct_def.name.clone(), field_indices);
 
         Ok(())
     }
@@ -299,7 +310,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                     Ok(self.builder.build_load(
                         alloca.get_type().get_element_type().into(),
                         alloca,
-                        name
+                        &format!("{}_load", name)  // Enhanced naming as recommended by expert
                     )?)
                 } else {
                     Err(anyhow!("Undefined variable: {}", name))
@@ -713,7 +724,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         Ok(self.builder.build_load(
             struct_type.into(),
             struct_alloca,
-            "struct_value"
+            &format!("{}_struct_value", struct_name)  // Enhanced naming as recommended by expert
         )?)
     }
 
@@ -756,7 +767,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             Ok(self.builder.build_load(
                 field_ptr.get_type().get_element_type().into(),
                 field_ptr,
-                field_name
+                &format!("{}_field_load", field_name)  // Enhanced naming as recommended by expert
             )?)
         } else {
             // If we have a struct value, we need to extract the field differently
@@ -774,7 +785,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             Ok(self.builder.build_load(
                 field_ptr.get_type().get_element_type().into(),
                 field_ptr,
-                field_name
+                &format!("{}_temp_field_load", field_name)  // Enhanced naming as recommended by expert
             )?)
         }
     }
@@ -911,33 +922,33 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         self.module.to_string()
     }
 
-    /// Get LLVM struct type by name
+    /// Get LLVM struct type by name (as recommended by expert)
     fn get_llvm_struct_type(&self, struct_name: &str) -> Result<inkwell::types::StructType<'ctx>> {
-        // For now, create a simple struct type
-        // This should be improved to use actual struct definitions
-        match struct_name {
-            "Point" => {
-                // Example: Point { x: int, y: int }
-                let i64_type = self.context.i64_type();
-                Ok(self.context.struct_type(&[i64_type.into(), i64_type.into()], false))
-            }
-            _ => {
-                // Generic struct with i64 fields for now
-                let i64_type = self.context.i64_type();
-                Ok(self.context.struct_type(&[i64_type.into()], false))
+        // Use the type cache that was populated during declare_struct
+        if let Some(cached_type) = self.type_cache.get(struct_name) {
+            if let BasicTypeEnum::StructType(struct_type) = cached_type {
+                return Ok(*struct_type);
             }
         }
+
+        // Fallback: create a generic struct type if not found in cache
+        // This should not happen in normal operation
+        eprintln!("Warning: Struct type '{}' not found in cache, creating fallback", struct_name);
+        let i64_type = self.context.i64_type();
+        Ok(self.context.struct_type(&[i64_type.into()], false))
     }
 
-    /// Get field index in struct
+    /// Get field index in struct (enhanced as recommended by expert)
     fn get_field_index(&self, struct_name: &str, field_name: &str) -> Result<u32> {
-        // For now, hardcode some common field mappings
-        // This should be improved to use actual struct definitions
-        match (struct_name, field_name) {
-            ("Point", "x") => Ok(0),
-            ("Point", "y") => Ok(1),
-            _ => Ok(0), // Default to first field
+        // Use the field index mapping built during declare_struct
+        if let Some(field_indices) = self.struct_field_indices.get(struct_name) {
+            if let Some(&index) = field_indices.get(field_name) {
+                return Ok(index);
+            }
         }
+
+        // Error if field not found
+        Err(format!("Field '{}' not found in struct '{}'", field_name, struct_name).into())
     }
 
     /// Verify the generated module
