@@ -386,6 +386,41 @@ pub extern "C" fn albayan_rt_list_destroy(list_ptr: *mut AlbayanList) {
     albayan_rt_list_free(list_ptr);
 }
 
+/// Destroy a string and all its resources (Expert recommendation: Priority 1)
+#[no_mangle]
+pub extern "C" fn albayan_rt_string_destroy(string_ptr: *mut AlbayanString) {
+    if !string_ptr.is_null() {
+        unsafe {
+            let _string = Box::from_raw(string_ptr);
+            // Drop will be called automatically, freeing the data
+        }
+    }
+}
+
+/// Destroy a dict and all its resources (Expert recommendation: Priority 1)
+#[no_mangle]
+pub extern "C" fn albayan_rt_dict_destroy(dict_ptr: *mut u8) {
+    // For now, treat as generic pointer since we don't have AlbayanDict defined yet
+    if !dict_ptr.is_null() {
+        // In a full implementation, this would properly destroy a dictionary
+        // For now, we'll use the generic dealloc
+        unsafe {
+            std::alloc::dealloc(dict_ptr, std::alloc::Layout::from_size_align(64, 8).unwrap());
+        }
+    }
+}
+
+/// Destroy a struct and all its resources (Expert recommendation: Priority 1)
+#[no_mangle]
+pub extern "C" fn albayan_rt_struct_destroy(struct_ptr: *mut AlbayanStruct) {
+    if !struct_ptr.is_null() {
+        unsafe {
+            let _struct_obj = Box::from_raw(struct_ptr);
+            // Drop will be called automatically, freeing the fields
+        }
+    }
+}
+
 // =============================================================================
 // AlbayanValue Helper Functions
 // =============================================================================

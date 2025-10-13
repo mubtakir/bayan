@@ -1,0 +1,49 @@
+// Simple Automatic Memory Management Test (Expert recommendation: Priority 1)
+// Testing automatic destroy calls for variables going out of scope
+
+fn test_simple_memory_management() -> int {
+    // Test List<T> automatic destruction (Expert recommendation)
+    if true {
+        let my_list = [1, 2, 3, 4, 5];
+        
+        // my_list should be automatically destroyed when leaving this scope
+        // IRGenerator should call albayan_rt_list_destroy() for this variable
+    } // <- Automatic destroy calls should be generated here
+    
+    // Test String automatic destruction (Expert recommendation)
+    if true {
+        let my_string = "This is a test string";
+        
+        // my_string should be automatically destroyed when leaving this scope
+        // IRGenerator should call albayan_rt_string_destroy() for this variable
+    } // <- Automatic destroy calls should be generated here
+    
+    // Test Copy types (should NOT generate destroy calls)
+    if true {
+        let my_int = 42;
+        let my_float = 3.14;
+        let my_bool = true;
+        
+        // Copy types should NOT generate destroy calls
+        // Only List, String, Struct, Dict need destruction
+    } // <- No destroy calls should be generated for Copy types
+    
+    return 0;
+}
+
+// Helper function for testing
+fn create_test_list() -> List<int> {
+    let temp_list = [10, 20, 30];
+    return temp_list; // temp_list ownership is moved, no destruction needed here
+}
+
+// Test with function calls
+fn test_function_calls() -> int {
+    if true {
+        let result_list = create_test_list();
+        
+        // result_list should be automatically destroyed
+    } // <- Automatic destroy calls should be generated here
+    
+    return 0;
+}

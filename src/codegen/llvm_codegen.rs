@@ -221,8 +221,10 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             }
         }
 
-        // Generate automatic destroy calls before leaving scope (Expert recommendation)
-        self.generate_automatic_destroy_calls()?;
+        // Generate automatic destroy calls using semantic analysis results (Expert recommendation: Priority 1)
+        if let Some(ref variables_to_destroy) = block.variables_to_destroy {
+            self.generate_destroy_calls_for_variables(variables_to_destroy)?;
+        }
 
         self.leave_scope();
         Ok(())
@@ -1096,8 +1098,10 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             }
         }
 
-        // Generate automatic destroy calls before leaving scope (Expert recommendation)
-        self.generate_automatic_destroy_calls()?;
+        // Generate automatic destroy calls using semantic analysis results (Expert recommendation: Priority 1)
+        if let Some(ref variables_to_destroy) = block.variables_to_destroy {
+            self.generate_destroy_calls_for_variables(variables_to_destroy)?;
+        }
 
         self.leave_scope();
 
@@ -1697,12 +1701,35 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         ], false);
         let panic_fn = self.module.add_function("albayan_rt_panic", panic_fn_type, None);
 
+        // Additional destroy functions for different types (Expert recommendation: Priority 1)
+
+        // albayan_rt_string_destroy(string_ptr: *mut AlbayanString) -> void
+        let string_destroy_fn_type = self.context.void_type().fn_type(&[
+            i8_ptr_type.into(), // string_ptr
+        ], false);
+        let string_destroy_fn = self.module.add_function("albayan_rt_string_destroy", string_destroy_fn_type, None);
+
+        // albayan_rt_dict_destroy(dict_ptr: *mut AlbayanDict) -> void
+        let dict_destroy_fn_type = self.context.void_type().fn_type(&[
+            i8_ptr_type.into(), // dict_ptr
+        ], false);
+        let dict_destroy_fn = self.module.add_function("albayan_rt_dict_destroy", dict_destroy_fn_type, None);
+
+        // albayan_rt_struct_destroy(struct_ptr: *mut AlbayanStruct) -> void
+        let struct_destroy_fn_type = self.context.void_type().fn_type(&[
+            i8_ptr_type.into(), // struct_ptr
+        ], false);
+        let struct_destroy_fn = self.module.add_function("albayan_rt_struct_destroy", struct_destroy_fn_type, None);
+
         // Store function references for later use
         self.functions.insert("albayan_rt_list_create".to_string(), list_create_fn);
         self.functions.insert("albayan_rt_list_push".to_string(), list_push_fn);
         self.functions.insert("albayan_rt_list_get".to_string(), list_get_fn);
         self.functions.insert("albayan_rt_list_len".to_string(), list_len_fn);
         self.functions.insert("albayan_rt_list_destroy".to_string(), list_destroy_fn);
+        self.functions.insert("albayan_rt_string_destroy".to_string(), string_destroy_fn);
+        self.functions.insert("albayan_rt_dict_destroy".to_string(), dict_destroy_fn);
+        self.functions.insert("albayan_rt_struct_destroy".to_string(), struct_destroy_fn);
         self.functions.insert("albayan_rt_panic".to_string(), panic_fn);
 
         Ok(())
@@ -1881,6 +1908,104 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                             &[list_handle.into()],
                             &format!("{}_destroy", var_name)
                         )?;
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Generate destroy calls for specific variables using semantic analysis results (Expert recommendation: Priority 1)
+    fn generate_destroy_calls_for_variables(&mut self, variables_to_destroy: &[DestroyInfo]) -> Result<()> {
+        // Expert recommendation: "جني ثمار التحليل - استخدام معلومات SemanticAnalyzer.get_variables_to_destroy()"
+
+        // Ensure runtime API functions are declared
+        self.declare_runtime_api_functions()?;
+
+        for destroy_info in variables_to_destroy {
+            // Look up the variable in current scopes
+            if let Some(var_alloca) = self.lookup_variable(&destroy_info.name) {
+                match &destroy_info.var_type {
+                    ResolvedType::List(_) => {
+                        // Generate destroy call for List<T> variables (Expert recommendation)
+                        if let Some(destroy_fn) = self.functions.get("albayan_rt_list_destroy") {
+                            // Load the list handle
+                            let list_handle = self.builder.build_load(
+                                var_alloca.get_type().get_element_type().into(),
+                                var_alloca,
+                                &format!("{}_destroy_load", destroy_info.name)
+                            )?;
+
+                            // Call albayan_rt_list_destroy(handle)
+                            self.builder.build_call(
+                                *destroy_fn,
+                                &[list_handle.into()],
+                                &format!("{}_destroy", destroy_info.name)
+                            )?;
+                        }
+                    }
+                    ResolvedType::String => {
+                        // Generate destroy call for String variables (Expert recommendation)
+                        if let Some(destroy_fn) = self.functions.get("albayan_rt_string_destroy") {
+                            // Load the string handle
+                            let string_handle = self.builder.build_load(
+                                var_alloca.get_type().get_element_type().into(),
+                                var_alloca,
+                                &format!("{}_destroy_load", destroy_info.name)
+                            )?;
+
+                            // Call albayan_rt_string_destroy(handle)
+                            self.builder.build_call(
+                                *destroy_fn,
+                                &[string_handle.into()],
+                                &format!("{}_destroy", destroy_info.name)
+                            )?;
+                        }
+                    }
+                    ResolvedType::Dict(_, _) => {
+                        // Generate destroy call for Dict variables (Expert recommendation)
+                        if let Some(destroy_fn) = self.functions.get("albayan_rt_dict_destroy") {
+                            // Load the dict handle
+                            let dict_handle = self.builder.build_load(
+                                var_alloca.get_type().get_element_type().into(),
+                                var_alloca,
+                                &format!("{}_destroy_load", destroy_info.name)
+                            )?;
+
+                            // Call albayan_rt_dict_destroy(handle)
+                            self.builder.build_call(
+                                *destroy_fn,
+                                &[dict_handle.into()],
+                                &format!("{}_destroy", destroy_info.name)
+                            )?;
+                        }
+                    }
+                    ResolvedType::Struct(_) => {
+                        // Generate destroy call for Struct variables (Expert recommendation)
+                        if let Some(destroy_fn) = self.functions.get("albayan_rt_struct_destroy") {
+                            // Load the struct handle
+                            let struct_handle = self.builder.build_load(
+                                var_alloca.get_type().get_element_type().into(),
+                                var_alloca,
+                                &format!("{}_destroy_load", destroy_info.name)
+                            )?;
+
+                            // Call albayan_rt_struct_destroy(handle)
+                            self.builder.build_call(
+                                *destroy_fn,
+                                &[struct_handle.into()],
+                                &format!("{}_destroy", destroy_info.name)
+                            )?;
+                        }
+                    }
+                    // Copy types (Int, Float, Bool) don't need destruction
+                    ResolvedType::Int | ResolvedType::Float | ResolvedType::Bool => {
+                        // No destruction needed for Copy types
+                    }
+                    _ => {
+                        // For other types, we might need custom destruction logic
+                        // For now, skip unknown types
                     }
                 }
             }

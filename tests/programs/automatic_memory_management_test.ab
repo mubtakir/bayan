@@ -1,0 +1,126 @@
+// Automatic Memory Management Test (Expert recommendation: Priority 1)
+// Testing automatic destroy calls for variables going out of scope
+
+fn test_automatic_memory_management() -> int {
+    // Test List<T> automatic destruction (Expert recommendation)
+    if true {
+        let my_list = [1, 2, 3, 4, 5];
+        let another_list = ["hello", "world", "test"];
+
+        // These lists should be automatically destroyed when leaving this scope
+        // IRGenerator should call albayan_rt_list_destroy() for both variables
+    } // <- Automatic destroy calls should be generated here
+
+    // Test String automatic destruction (Expert recommendation)
+    if true {
+        let my_string = "This is a test string";
+        let another_string = "Another test string";
+
+        // These strings should be automatically destroyed when leaving this scope
+        // IRGenerator should call albayan_rt_string_destroy() for both variables
+    } // <- Automatic destroy calls should be generated here
+
+    // Test Struct automatic destruction (Expert recommendation)
+    if true {
+        let person = Person { name: "Ahmed", age: 25 };
+        let another_person = Person { name: "Sara", age: 30 };
+
+        // These structs should be automatically destroyed when leaving this scope
+        // IRGenerator should call albayan_rt_struct_destroy() for both variables
+    } // <- Automatic destroy calls should be generated here
+
+    // Test nested scopes with automatic destruction
+    if true {
+        let outer_list = [1, 2, 3];
+
+        if true {
+            let inner_list = [4, 5, 6];
+            let inner_string = "Inner scope string";
+
+            // inner_list and inner_string should be destroyed here
+        } // <- Automatic destroy calls for inner scope
+
+        // outer_list should be destroyed here
+    } // <- Automatic destroy calls for outer scope
+
+    // Test function call with automatic destruction
+    if true {
+        let result_list = create_test_list();
+        let processed_list = process_list(result_list);
+
+        // Both lists should be automatically destroyed
+    } // <- Automatic destroy calls should be generated here
+
+    return 0;
+}
+
+// Helper function for testing
+fn create_test_list() -> List<int> {
+    let temp_list = [10, 20, 30];
+    return temp_list; // temp_list ownership is moved, no destruction needed here
+}
+
+// Helper function for testing
+fn process_list(input: List<int>) -> List<int> {
+    let processed = [input[0] * 2, input[1] * 2, input[2] * 2];
+    return processed; // input and processed ownership handling
+}
+
+// Test struct for automatic destruction
+struct Person {
+    name: String;
+    age: int;
+}
+
+// Test with conditional scopes
+fn test_conditional_destruction() -> int {
+    let base_list = [1, 2, 3];
+
+    if true {
+        let if_list = [4, 5, 6];
+        let if_string = "If scope string";
+
+        // if_list and if_string should be destroyed here
+    } else {
+        let else_list = [7, 8, 9];
+        let else_string = "Else scope string";
+
+        // else_list and else_string should be destroyed here
+    } // <- Automatic destroy calls for else scope
+
+    // base_list should be destroyed here
+    return 0;
+} // <- Automatic destroy calls for function scope
+
+// Test with loop scopes
+fn test_loop_destruction() -> int {
+    let outer_list = [1, 2, 3];
+
+    while true {
+        let loop_list = [4, 5, 6];
+        let loop_string = "Loop iteration string";
+
+        if loop_list[0] > 10 {
+            break;
+        }
+
+        // loop_list and loop_string should be destroyed at end of each iteration
+    } // <- Automatic destroy calls for loop scope
+
+    // outer_list should be destroyed here
+    return 0;
+} // <- Automatic destroy calls for function scope
+
+// Test Copy types (should NOT generate destroy calls)
+fn test_copy_types() -> int {
+    if true {
+        let my_int = 42;
+        let my_float = 3.14;
+        let my_bool = true;
+
+        // Copy types should NOT generate destroy calls
+        // Only List, String, Struct, Dict need destruction
+    } // <- No destroy calls should be generated for Copy types
+
+    return 0;
+}
