@@ -240,6 +240,8 @@ pub enum Type {
     Array(Box<Type>, Option<usize>),
     /// Trait object type (dyn Trait) - Expert recommendation: Priority 1
     TraitObject(Vec<Path>),
+    /// Reference type (&T, &mut T) - Expert recommendation: Priority 1
+    Reference(Box<Type>, bool), // bool: true for mutable (&mut), false for immutable (&)
     /// Multi-dimensional array
     Matrix(Box<Type>, Vec<usize>),
     /// Vector type with fixed size
@@ -266,10 +268,7 @@ pub enum Type {
     Mutex(Box<Type>),
     /// Atomic type for lock-free operations
     Atomic(Box<Type>),
-    /// Reference type
-    Reference(Box<Type>),
-    /// Mutable reference type
-    MutableReference(Box<Type>),
+
     /// Optional type
     Optional(Box<Type>),
     /// Tensor type for AI operations

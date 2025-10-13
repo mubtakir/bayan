@@ -1,0 +1,34 @@
+// Dynamic dispatch test (Expert recommendation: Priority 1 - Dynamic Method Dispatch)
+
+// Define a trait
+trait Display {
+    fn to_string() -> string;
+}
+
+// Define a struct
+struct Person {
+    name: string;
+    age: int;
+}
+
+// Implement the trait for the struct
+impl Display for Person {
+    fn to_string() -> string {
+        return "Person Display";
+    }
+}
+
+// Function that takes a trait object and calls method on it
+fn print_display(item: dyn Display) -> string {
+    // This should trigger dynamic dispatch
+    return item.to_string();
+}
+
+fn main() -> int {
+    let person = Person { name: "Ahmed", age: 25 };
+
+    // For now, we'll test the parsing and semantic analysis
+    // Dynamic dispatch will be tested when we have proper trait object creation
+
+    return 42;
+}

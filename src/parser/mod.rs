@@ -261,9 +261,25 @@ impl Parser {
         }
     }
 
-    /// Parse a type annotation (Enhanced for generics and trait objects)
+    /// Parse a type annotation (Enhanced for generics, trait objects, and references)
     fn parse_type(&mut self) -> Result<Type, ParseError> {
         match &self.peek().token_type {
+            // Parse reference type: &T or &mut T (Expert recommendation: Priority 1)
+            TokenType::Ampersand => {
+                self.advance(); // consume '&'
+
+                // Check for 'mut' keyword
+                let is_mutable = if self.match_token(&TokenType::Mut) {
+                    true
+                } else {
+                    false
+                };
+
+                // Parse the referenced type
+                let referenced_type = self.parse_type()?;
+
+                Ok(Type::Reference(Box::new(referenced_type), is_mutable))
+            }
             // Parse trait object: dyn Trait
             TokenType::Dyn => {
                 self.advance(); // consume 'dyn'

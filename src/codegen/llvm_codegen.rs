@@ -539,6 +539,11 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             return self.generate_print_call(arguments);
         }
 
+        // Handle dynamic dispatch calls (Expert recommendation: Priority 1)
+        if name.starts_with("dyn_") {
+            return self.generate_dynamic_dispatch_call(name, arguments);
+        }
+
         // Look up user-defined function
         if let Some(&function) = self.functions.get(name) {
             let mut args: Vec<BasicValueEnum> = Vec::new();
@@ -1251,6 +1256,15 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                 );
                 Ok(Some(fat_pointer_type.into()))
             }
+            ResolvedType::Reference(referenced_type, _is_mutable) => {
+                // Reference types (&T, &mut T) - Expert recommendation: Priority 1
+                // References are represented as pointers in LLVM
+                if let Some(referenced_llvm_type) = self.get_llvm_type(referenced_type)? {
+                    Ok(Some(referenced_llvm_type.ptr_type(AddressSpace::default()).into()))
+                } else {
+                    Ok(None)
+                }
+            }
             _ => Err(anyhow!("Type not yet supported: {:?}", resolved_type))
         }
     }
@@ -1307,6 +1321,12 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                 let null_fat_pointer = fat_pointer_type.const_named_struct(&[null_data.into(), null_vtable.into()]);
 
                 Ok(null_fat_pointer.into())
+            }
+            ResolvedType::Reference(referenced_type, _is_mutable) => {
+                // Default reference is null pointer (Expert recommendation: Priority 1)
+                let referenced_llvm_type = self.resolve_llvm_type(referenced_type)?;
+                let ptr_type = referenced_llvm_type.ptr_type(AddressSpace::default());
+                Ok(ptr_type.const_null().into())
             }
             _ => Err(anyhow!("Cannot create default value for type: {:?}", resolved_type))
         }
@@ -1724,6 +1744,12 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                 );
                 Ok(fat_pointer_type.into())
             }
+            ResolvedType::Reference(referenced_type, _is_mutable) => {
+                // Reference types (&T, &mut T) - Expert recommendation: Priority 1
+                // References are represented as pointers in LLVM
+                let referenced_llvm_type = self.resolve_llvm_type(referenced_type)?;
+                Ok(referenced_llvm_type.ptr_type(AddressSpace::default()).into())
+            }
             _ => Err(anyhow!("Unsupported type for LLVM resolution: {:?}", resolved_type)),
         }
     }
@@ -1966,5 +1992,147 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         // Load and return fat pointer
         let fat_pointer = self.builder.build_load(fat_pointer_type, fat_pointer_alloca, "fat_pointer_load")?;
         Ok(fat_pointer)
+    }
+
+    /// Generate dynamic dispatch call for trait objects (Expert recommendation: Priority 1)
+    fn generate_dynamic_dispatch_call(
+        &mut self,
+        name: &str,
+        arguments: &[AnnotatedExpression]
+    ) -> Result<BasicValueEnum<'ctx>> {
+        // Parse dynamic call name: "dyn_TraitName::method_name"
+        let parts: Vec<&str> = name.strip_prefix("dyn_").unwrap().split("::").collect();
+        if parts.len() != 2 {
+            return Err(anyhow!("Invalid dynamic dispatch call format: {}", name));
+        }
+
+        let trait_name = parts[0];
+        let method_name = parts[1];
+
+        // First argument should be the trait object (fat pointer)
+        if arguments.is_empty() {
+            return Err(anyhow!("Dynamic dispatch requires at least one argument (self)"));
+        }
+
+        let trait_object_expr = &arguments[0];
+        let trait_object_value = self.generate_expression(trait_object_expr)?;
+
+        // Extract fat pointer components (Expert recommendation: Priority 1)
+        let fat_pointer_type = trait_object_value.get_type();
+
+        // Create temporary alloca for fat pointer if it's not already a pointer
+        let fat_pointer_ptr = if trait_object_value.is_pointer_value() {
+            trait_object_value.into_pointer_value()
+        } else {
+            let temp_alloca = self.builder.build_alloca(fat_pointer_type, "temp_fat_pointer")?;
+            self.builder.build_store(temp_alloca, trait_object_value)?;
+            temp_alloca
+        };
+
+        // Extract data pointer (field 0)
+        let data_field_ptr = self.builder.build_struct_gep(
+            fat_pointer_type,
+            fat_pointer_ptr,
+            0,
+            "data_field_ptr"
+        )?;
+        let data_ptr = self.builder.build_load(
+            self.context.i8_type().ptr_type(AddressSpace::default()),
+            data_field_ptr,
+            "data_ptr"
+        )?;
+
+        // Extract vtable pointer (field 1)
+        let vtable_field_ptr = self.builder.build_struct_gep(
+            fat_pointer_type,
+            fat_pointer_ptr,
+            1,
+            "vtable_field_ptr"
+        )?;
+        let vtable_ptr = self.builder.build_load(
+            self.context.i8_type().ptr_type(AddressSpace::default()),
+            vtable_field_ptr,
+            "vtable_ptr"
+        )?;
+
+        // Calculate method offset in vtable (Expert recommendation: Priority 1)
+        // For now, we'll use a simple mapping: method index based on trait definition
+        let method_index = self.get_trait_method_index(trait_name, method_name)?;
+
+        // Load function pointer from vtable
+        let function_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+        let vtable_array_ptr = self.builder.build_bitcast(
+            vtable_ptr.into_pointer_value(),
+            function_ptr_type.ptr_type(AddressSpace::default()),
+            "vtable_array_ptr"
+        )?;
+
+        let method_ptr_ptr = unsafe {
+            self.builder.build_gep(
+                function_ptr_type,
+                vtable_array_ptr.into_pointer_value(),
+                &[self.context.i32_type().const_int(method_index as u64, false)],
+                "method_ptr_ptr"
+            )?
+        };
+
+        let method_ptr = self.builder.build_load(
+            function_ptr_type,
+            method_ptr_ptr,
+            "method_ptr"
+        )?;
+
+        // Prepare arguments for dynamic call
+        let mut call_args = Vec::new();
+        call_args.push(data_ptr); // First argument is always the data pointer (self)
+
+        // Add remaining arguments (skip first argument which is the trait object)
+        for arg in &arguments[1..] {
+            let arg_value = self.generate_expression(arg)?;
+            call_args.push(arg_value);
+        }
+
+        // Create function type for indirect call
+        let arg_types: Vec<BasicMetadataTypeEnum> = call_args.iter()
+            .map(|arg| arg.get_type().into())
+            .collect();
+
+        let return_type = self.context.i64_type(); // Simplified return type for now
+        let function_type = return_type.fn_type(&arg_types, false);
+
+        // Cast method pointer to correct function type
+        let typed_method_ptr = self.builder.build_bitcast(
+            method_ptr.into_pointer_value(),
+            function_type.ptr_type(AddressSpace::default()),
+            "typed_method_ptr"
+        )?;
+
+        // Perform indirect call (Expert recommendation: Priority 1)
+        let call_result = self.builder.build_indirect_call(
+            function_type,
+            typed_method_ptr.into_pointer_value(),
+            &call_args.iter().map(|v| (*v).into()).collect::<Vec<_>>(),
+            &format!("dyn_call_{}_{}", trait_name, method_name)
+        )?;
+
+        if let Some(result) = call_result.try_as_basic_value().left() {
+            Ok(result)
+        } else {
+            // Function returns void, return a dummy value
+            Ok(self.context.i64_type().const_int(0, false).into())
+        }
+    }
+
+    /// Get method index in trait vtable (Expert recommendation: Priority 1)
+    fn get_trait_method_index(&self, trait_name: &str, method_name: &str) -> Result<usize> {
+        // For now, return a simple index based on method name
+        // In a full implementation, this would look up the trait definition
+        // and return the actual method index
+        match method_name {
+            "to_string" => Ok(0),
+            "display" => Ok(1),
+            "clone" => Ok(2),
+            _ => Ok(0), // Default to first method
+        }
     }
 }

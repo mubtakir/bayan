@@ -634,6 +634,11 @@ impl SymbolTable {
                 }
                 Ok(ResolvedType::TraitObject(trait_names))
             }
+            Type::Reference(referenced_type, is_mutable) => {
+                // Reference types (&T, &mut T) - Expert recommendation: Priority 1
+                let resolved_referenced_type = self.resolve_type_name(referenced_type)?;
+                Ok(ResolvedType::Reference(Box::new(resolved_referenced_type), *is_mutable))
+            }
             Type::Function(params, ret) => {
                 let mut resolved_params = Vec::new();
                 for param in params {

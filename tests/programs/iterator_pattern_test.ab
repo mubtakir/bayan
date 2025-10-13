@@ -1,0 +1,50 @@
+// Iterator pattern test (Expert recommendation: Priority 2 - Iterator Pattern)
+// Simplified version for parsing test
+
+// Define the Iterator trait in standard library (simplified)
+trait Iterator {
+    fn next() -> int;  // Simplified return type
+}
+
+// Define a simple List struct (non-generic for simplicity)
+struct List {
+    length: int;
+}
+
+// Define ListIterator struct (simplified)
+struct ListIterator {
+    length: int;
+    index: int;
+}
+
+// Implement Iterator trait for ListIterator (simplified)
+impl Iterator for ListIterator {
+    fn next() -> int {
+        // Simplified implementation for parsing test
+        return 0;
+    }
+}
+
+// Implement iter() method for List (simplified)
+impl List {
+    fn iter() -> int {
+        // Simplified for parsing test
+        return 0;
+    }
+
+    fn new() -> int {
+        // Simplified for parsing test
+        return 0;
+    }
+
+    fn push(item: int) {
+        // Simplified for parsing test
+    }
+}
+
+fn main() -> int {
+    // For now, we'll test the parsing and semantic analysis
+    // Iterator pattern will be fully tested when we have proper for loop integration
+
+    return 42;
+}

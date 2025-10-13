@@ -121,6 +121,14 @@ impl TypeChecker {
                 traits1 == traits2
             }
 
+            // Reference types (&T, &mut T) - Expert recommendation: Priority 1
+            (ResolvedType::Reference(type1, mut1), ResolvedType::Reference(type2, mut2)) => {
+                // References are compatible if:
+                // 1. The referenced types are compatible
+                // 2. Mutability is compatible (&mut T can be used as &T, but not vice versa)
+                self.types_compatible(type1, type2) && (*mut1 == *mut2 || (*mut1 && !*mut2))
+            }
+
             _ => false,
         }
     }
@@ -299,22 +307,22 @@ impl TypeChecker {
 
             UnaryOperator::Reference => {
                 // &T -> &T (handled in semantic analysis)
-                Ok(ResolvedType::Reference(Box::new(operand_type.clone())))
+                Ok(ResolvedType::Reference(Box::new(operand_type.clone()), false))
             }
 
             UnaryOperator::MutableReference => {
                 // &mut T -> &mut T (handled in semantic analysis)
-                Ok(ResolvedType::MutableReference(Box::new(operand_type.clone())))
+                Ok(ResolvedType::Reference(Box::new(operand_type.clone()), true))
             }
 
             UnaryOperator::Dereference => {
                 // *&T -> T or *&mut T -> T
                 match operand_type {
-                    ResolvedType::Reference(inner) | ResolvedType::MutableReference(inner) => {
+                    ResolvedType::Reference(inner, _) => {
                         Ok((**inner).clone())
                     }
                     _ => Err(SemanticError::TypeMismatch {
-                        expected: ResolvedType::Reference(Box::new(ResolvedType::Unit)), // placeholder
+                        expected: ResolvedType::Reference(Box::new(ResolvedType::Unit), false), // placeholder
                         found: operand_type.clone(),
                     }),
                 }
@@ -432,8 +440,7 @@ impl TypeChecker {
             Type::Tree(elem_type) => Some(elem_type),
             Type::Dataset(elem_type) => Some(elem_type),
             Type::Optional(elem_type) => Some(elem_type),
-            Type::Reference(elem_type) => Some(elem_type),
-            Type::MutableReference(elem_type) => Some(elem_type),
+            Type::Reference(elem_type, _) => Some(elem_type),
             Type::Channel(elem_type) => Some(elem_type),
             Type::Mutex(elem_type) => Some(elem_type),
             Type::Atomic(elem_type) => Some(elem_type),

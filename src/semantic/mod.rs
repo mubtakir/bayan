@@ -1037,6 +1037,18 @@ impl SemanticAnalyzer {
         // Get the object type (clone to avoid borrowing issues)
         let object_type = annotated_object.result_type.clone();
 
+        // Check if this is a trait object method call (Expert recommendation: Priority 1 - Dynamic Dispatch)
+        if let ResolvedType::TraitObject(trait_names) = &object_type {
+            return self.analyze_trait_object_method_call(trait_names, method_name, arguments, annotated_object);
+        }
+
+        // Check if this is a reference to trait object method call (Expert recommendation: Priority 1 - &dyn Trait)
+        if let ResolvedType::Reference(inner_type, _is_mutable) = &object_type {
+            if let ResolvedType::TraitObject(trait_names) = inner_type.as_ref() {
+                return self.analyze_trait_object_method_call(trait_names, method_name, arguments, annotated_object);
+            }
+        }
+
         // Try to find the method in impl blocks (Expert recommendation: Priority 1)
         if let Some(method_info) = self.find_method_in_impls(&object_type, method_name) {
             // Check argument count (including self parameter)
@@ -1101,9 +1113,98 @@ impl SemanticAnalyzer {
             }
         }
 
-        // TODO: Look for trait impl (impl TraitName for TypeName) - Expert recommendation: Priority 1
+        // Look for trait impl (impl TraitName for TypeName) - Expert recommendation: Priority 1
+        for impl_info in self.symbol_table.get_impls() {
+            if impl_info.type_name == *type_name && impl_info.trait_name.is_some() {
+                for method in &impl_info.methods {
+                    if method.name == method_name {
+                        return Some(method.clone());
+                    }
+                }
+            }
+        }
 
         None
+    }
+
+    /// Analyze trait object method call (Expert recommendation: Priority 1 - Dynamic Dispatch)
+    fn analyze_trait_object_method_call(
+        &mut self,
+        trait_names: &[String],
+        method_name: &str,
+        arguments: &[Expression],
+        annotated_object: AnnotatedExpression
+    ) -> Result<AnnotatedExpression, SemanticError> {
+        // Find the trait that contains this method
+        let mut found_trait = None;
+        let mut method_info = None;
+
+        for trait_name in trait_names {
+            if let Some(trait_info) = self.symbol_table.lookup_trait(trait_name) {
+                for trait_method in &trait_info.methods {
+                    if trait_method.name == method_name {
+                        found_trait = Some(trait_name.clone());
+                        method_info = Some(trait_method.clone());
+                        break;
+                    }
+                }
+                if found_trait.is_some() {
+                    break;
+                }
+            }
+        }
+
+        let (trait_name, method_info) = match (found_trait, method_info) {
+            (Some(trait_name), Some(method_info)) => (trait_name, method_info),
+            _ => return Err(SemanticError::UndefinedVariable(
+                format!("Method {} not found in trait object", method_name)
+            )),
+        };
+
+        // Check argument count (trait object method calls don't need explicit self)
+        let expected_param_count = method_info.parameters.len();
+        let actual_arg_count = arguments.len();
+
+        if actual_arg_count != expected_param_count {
+            return Err(SemanticError::TypeMismatch {
+                expected: ResolvedType::Unit, // Placeholder
+                found: ResolvedType::Unit,    // Placeholder
+            });
+        }
+
+        // Analyze arguments and check types
+        let mut annotated_args = Vec::new();
+        annotated_args.push(annotated_object); // Add trait object as first argument
+
+        for (i, arg) in arguments.iter().enumerate() {
+            let annotated_arg = self.analyze_expression(arg)?;
+
+            // Only check types if we have parameter info
+            if i < method_info.parameters.len() {
+                let expected_type = &method_info.parameters[i];
+
+                // Simple type compatibility check
+                if annotated_arg.result_type != *expected_type {
+                    return Err(SemanticError::TypeMismatch {
+                        expected: expected_type.clone(),
+                        found: annotated_arg.result_type.clone(),
+                    });
+                }
+            }
+
+            annotated_args.push(annotated_arg);
+        }
+
+        let return_type = method_info.return_type.clone().unwrap_or(ResolvedType::Unit);
+
+        // Mark this as a dynamic dispatch call (Expert recommendation: Priority 1)
+        Ok(AnnotatedExpression {
+            expr: AnnotatedExpressionKind::Call {
+                function: format!("dyn_{}::{}", trait_name, method_name), // Dynamic dispatch marker
+                arguments: annotated_args,
+            },
+            result_type: return_type,
+        })
     }
 
     /// Analyze a unary expression (Expert recommendation: &/&mut support)
@@ -1125,7 +1226,7 @@ impl SemanticAnalyzer {
                     )?;
 
                     // Return reference type
-                    let ref_type = ResolvedType::Reference(Box::new(var_info.var_type.clone()));
+                    let ref_type = ResolvedType::Reference(Box::new(var_info.var_type.clone()), false);
                     Ok(AnnotatedExpression {
                         expr: AnnotatedExpressionKind::Unary(AnnotatedUnaryExpression {
                             operator: unary_expr.operator.clone(),
@@ -1162,7 +1263,7 @@ impl SemanticAnalyzer {
                     )?;
 
                     // Return mutable reference type
-                    let ref_type = ResolvedType::MutableReference(Box::new(var_info.var_type.clone()));
+                    let ref_type = ResolvedType::Reference(Box::new(var_info.var_type.clone()), true);
                     Ok(AnnotatedExpression {
                         expr: AnnotatedExpressionKind::Unary(AnnotatedUnaryExpression {
                             operator: unary_expr.operator.clone(),
@@ -1670,6 +1771,9 @@ pub enum ResolvedType {
     // Trait object types (dyn Trait) - Expert recommendation: Priority 1
     TraitObject(Vec<String>),
 
+    // Reference types (&T, &mut T) - Expert recommendation: Priority 1
+    Reference(Box<ResolvedType>, bool), // bool: true for mutable (&mut), false for immutable (&)
+
     // Collection types
     Array(Box<ResolvedType>),
     Matrix(Box<ResolvedType>, Vec<usize>),
@@ -1686,9 +1790,7 @@ pub enum ResolvedType {
     Optional(Box<ResolvedType>),
     Result(Box<ResolvedType>, Box<ResolvedType>),
 
-    // Reference types
-    Reference(Box<ResolvedType>),
-    MutableReference(Box<ResolvedType>),
+
 
     // Concurrent types
     Channel(Box<ResolvedType>),

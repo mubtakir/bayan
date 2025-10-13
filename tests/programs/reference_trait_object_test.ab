@@ -1,0 +1,40 @@
+// Reference trait object test (Expert recommendation: Priority 1 - &dyn Trait)
+
+// Define a trait
+trait Display {
+    fn to_string() -> string;
+}
+
+// Define a struct
+struct Person {
+    name: string;
+    age: int;
+}
+
+// Implement the trait for the struct
+impl Display for Person {
+    fn to_string() -> string {
+        return "Person Display";
+    }
+}
+
+// Function that takes a reference to trait object
+fn print_display_ref(item: &dyn Display) -> string {
+    // This should trigger dynamic dispatch on reference
+    return item.to_string();
+}
+
+// Function that takes a mutable reference to trait object
+fn print_display_mut(item: &mut dyn Display) -> string {
+    // This should trigger dynamic dispatch on mutable reference
+    return item.to_string();
+}
+
+fn main() -> int {
+    let person = Person { name: "Ahmed", age: 25 };
+    
+    // For now, we'll test the parsing and semantic analysis
+    // Reference trait objects will be tested when we have proper trait object creation
+    
+    return 42;
+}
