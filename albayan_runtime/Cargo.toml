@@ -1,0 +1,16 @@
+[package]
+name = "albayan_runtime"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# For knowledge base and logic engine
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# For unification and backtracking
+indexmap = "2.0"
+
+[lib]
+name = "albayan_runtime"
+crate-type = ["cdylib", "rlib"]

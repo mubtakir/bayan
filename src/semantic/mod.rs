@@ -385,7 +385,7 @@ impl SemanticAnalyzer {
         Ok(annotated_generics)
     }
 
-    /// Analyze a relation declaration
+    /// Analyze a relation declaration (Expert recommendation: Priority 2 - Logic Core)
     fn analyze_relation(&mut self, relation: &RelationDecl) -> Result<AnnotatedRelation, SemanticError> {
         let mut resolved_arg_types = Vec::new();
 
@@ -394,13 +394,16 @@ impl SemanticAnalyzer {
             resolved_arg_types.push(resolved_type);
         }
 
+        // Register relation in symbol table for logic programming (Expert recommendation)
+        self.symbol_table.declare_relation(&relation.name, relation)?;
+
         Ok(AnnotatedRelation {
             name: relation.name.clone(),
             arg_types: resolved_arg_types,
         })
     }
 
-    /// Analyze a rule declaration
+    /// Analyze a rule declaration (Expert recommendation: Priority 2 - Logic Core)
     fn analyze_rule(&mut self, rule: &RuleDecl) -> Result<AnnotatedRule, SemanticError> {
         // Analyze head and body terms
         let annotated_head = self.analyze_logic_term(&rule.head)?;
@@ -414,10 +417,30 @@ impl SemanticAnalyzer {
         // Check that all variables in the head are bound in the body
         self.check_rule_safety(&annotated_head, &annotated_body)?;
 
+        // Validate that all relations in the rule exist (Expert recommendation)
+        self.validate_rule_relations(&annotated_head, &annotated_body)?;
+
         Ok(AnnotatedRule {
             head: annotated_head,
             body: annotated_body,
         })
+    }
+
+    /// Validate that all relations in a rule exist (Expert recommendation: Priority 2)
+    fn validate_rule_relations(&self, head: &AnnotatedLogicTerm, body: &[AnnotatedLogicTerm]) -> Result<(), SemanticError> {
+        // Check head relation
+        if self.symbol_table.lookup_relation(&head.name).is_none() {
+            return Err(SemanticError::UndefinedRelation(head.name.clone()));
+        }
+
+        // Check body relations
+        for term in body {
+            if self.symbol_table.lookup_relation(&term.name).is_none() {
+                return Err(SemanticError::UndefinedRelation(term.name.clone()));
+            }
+        }
+
+        Ok(())
     }
 
     /// Analyze a logic term
@@ -1901,6 +1924,9 @@ pub enum SemanticError {
 
     #[error("Invalid borrow: {0}")]
     InvalidBorrow(String),
+
+    #[error("Borrow conflict: {0}")]
+    BorrowConflict(String),
 }
 
 impl SemanticAnalyzer {

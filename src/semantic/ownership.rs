@@ -40,6 +40,19 @@ pub struct BorrowInfo {
     pub borrow_kind: BorrowKind,
     /// Scope depth where borrow was created
     pub scope_depth: usize,
+    /// Borrow path for field-level borrowing (Expert recommendation: Priority 1)
+    pub path: BorrowPath,
+}
+
+/// Borrow path for field-level borrowing (Expert recommendation: Priority 1)
+#[derive(Debug, Clone, PartialEq)]
+pub enum BorrowPath {
+    /// Variable borrow: &var
+    Variable(String),
+    /// Field borrow: &var.field
+    Field(String, String), // (variable_name, field_name)
+    /// Nested field borrow: &var.field1.field2 (for future expansion)
+    NestedField(String, Vec<String>), // (variable_name, field_path)
 }
 
 /// Kind of borrow (Expert recommendation)
@@ -100,18 +113,29 @@ impl BorrowCheckState {
         self.moved_variables.contains(name)
     }
 
-    /// Add a borrow (Expert recommendation: &/&mut tracking)
+    /// Add a borrow (Expert recommendation: &/&mut tracking with path analysis)
     pub fn add_borrow(&mut self, name: &str, borrow_kind: BorrowKind, scope_depth: usize) -> Result<(), SemanticError> {
-        // Check for conflicting borrows
+        self.add_borrow_with_path(name, borrow_kind, scope_depth, BorrowPath::Variable(name.to_string()))
+    }
+
+    /// Add a borrow with path (Expert recommendation: Priority 1 - Field-level borrowing)
+    pub fn add_borrow_with_path(&mut self, name: &str, borrow_kind: BorrowKind, scope_depth: usize, path: BorrowPath) -> Result<(), SemanticError> {
+        // Check for conflicting borrows with path analysis
         if let Some(existing_borrows) = self.active_borrows.get(name) {
             for existing_borrow in existing_borrows {
-                match (&existing_borrow.borrow_kind, &borrow_kind) {
-                    // &mut conflicts with any other borrow
-                    (BorrowKind::Mutable, _) | (_, BorrowKind::Mutable) => {
-                        return Err(SemanticError::ConflictingBorrow(name.to_string()));
+                // Check if paths conflict
+                if self.paths_conflict(&existing_borrow.path, &path) {
+                    match (&existing_borrow.borrow_kind, &borrow_kind) {
+                        // &mut conflicts with any other borrow on the same path
+                        (BorrowKind::Mutable, _) | (_, BorrowKind::Mutable) => {
+                            return Err(SemanticError::ConflictingBorrow(format!(
+                                "Cannot borrow '{}' as {:?} because it conflicts with existing {:?} borrow",
+                                name, borrow_kind, existing_borrow.borrow_kind
+                            )));
+                        }
+                        // & with & is allowed on the same path
+                        (BorrowKind::Immutable, BorrowKind::Immutable) => {}
                     }
-                    // & with & is allowed
-                    (BorrowKind::Immutable, BorrowKind::Immutable) => {}
                 }
             }
         }
@@ -120,6 +144,7 @@ impl BorrowCheckState {
         let borrow_info = BorrowInfo {
             borrow_kind,
             scope_depth,
+            path,
         };
 
         self.active_borrows
@@ -128,6 +153,34 @@ impl BorrowCheckState {
             .push(borrow_info);
 
         Ok(())
+    }
+
+    /// Check if two borrow paths conflict (Expert recommendation: Priority 1)
+    fn paths_conflict(&self, path1: &BorrowPath, path2: &BorrowPath) -> bool {
+        match (path1, path2) {
+            // Variable borrows conflict with any other borrow of the same variable
+            (BorrowPath::Variable(var1), BorrowPath::Variable(var2)) => var1 == var2,
+
+            // Variable borrow conflicts with field borrow of the same variable
+            (BorrowPath::Variable(var1), BorrowPath::Field(var2, _)) |
+            (BorrowPath::Field(var1, _), BorrowPath::Variable(var2)) => var1 == var2,
+
+            // Field borrows conflict if they're the same field of the same variable
+            (BorrowPath::Field(var1, field1), BorrowPath::Field(var2, field2)) => {
+                var1 == var2 && field1 == field2
+            }
+
+            // For nested fields, check if any part of the path overlaps
+            (BorrowPath::NestedField(var1, path1), BorrowPath::NestedField(var2, path2)) => {
+                if var1 != var2 { return false; }
+                // Check if one path is a prefix of the other
+                let min_len = path1.len().min(path2.len());
+                path1[..min_len] == path2[..min_len]
+            }
+
+            // Mixed nested field cases (simplified for now)
+            _ => false,
+        }
     }
 
     /// Check if a variable has any active borrows (Expert recommendation)
@@ -139,6 +192,21 @@ impl BorrowCheckState {
     pub fn has_mutable_borrow(&self, name: &str) -> bool {
         self.active_borrows.get(name).map_or(false, |borrows| {
             borrows.iter().any(|b| b.borrow_kind == BorrowKind::Mutable)
+        })
+    }
+
+    /// Add a field borrow (Expert recommendation: Priority 1 - Field-level borrowing)
+    pub fn add_field_borrow(&mut self, var_name: &str, field_name: &str, borrow_kind: BorrowKind, scope_depth: usize) -> Result<(), SemanticError> {
+        let path = BorrowPath::Field(var_name.to_string(), field_name.to_string());
+        self.add_borrow_with_path(var_name, borrow_kind, scope_depth, path)
+    }
+
+    /// Check if a field has active borrows (Expert recommendation: Priority 1)
+    pub fn has_field_borrow(&self, var_name: &str, field_name: &str) -> bool {
+        self.active_borrows.get(var_name).map_or(false, |borrows| {
+            borrows.iter().any(|b| {
+                matches!(&b.path, BorrowPath::Field(var, field) if var == var_name && field == field_name)
+            })
         })
     }
 

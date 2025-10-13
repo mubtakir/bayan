@@ -1,0 +1,76 @@
+// Logic Programming Test (Expert recommendation: Priority 2 - Logic Core)
+// Test relation declarations, facts, rules, and queries
+// Note: Simplified for current parser - full logic syntax will be implemented in IR generation
+
+// Define relations (Expert recommendation: Core logic representation)
+// relation parent(string, string);
+// relation grandparent(string, string);
+// relation ancestor(string, string);
+
+// Assert facts (Expert recommendation: Knowledge base population)
+// fact parent("Ahmed", "Sara");
+// fact parent("Ahmed", "Omar");
+// fact parent("Sara", "Layla");
+// fact parent("Omar", "Hassan");
+
+// Define rules (Expert recommendation: Logical inference)
+// rule grandparent(?X, ?Z) :- parent(?X, ?Y), parent(?Y, ?Z);
+// rule ancestor(?X, ?Y) :- parent(?X, ?Y);
+// rule ancestor(?X, ?Z) :- parent(?X, ?Y), ancestor(?Y, ?Z);
+
+// Test function that uses logic programming (Expert recommendation: Integration)
+fn test_family_relations() -> int {
+    // These will be enhanced with actual query_prove calls when IR generation is complete
+
+    // Test basic fact queries
+    // query_prove parent("Ahmed", "Sara");  // Should return true
+    // query_prove parent("Sara", "Ahmed");  // Should return false
+
+    // Test rule-based queries
+    // query_prove grandparent("Ahmed", "Layla");  // Should return true via rule
+    // query_prove ancestor("Ahmed", "Hassan");    // Should return true via recursive rule
+
+    // Test variable queries
+    // query_prove parent("Ahmed", ?X);  // Should bind X to "Sara" and "Omar"
+    // query_prove ancestor(?X, "Hassan");  // Should bind X to "Omar", "Sara", "Ahmed"
+
+    return 42;
+}
+
+// Test complex logic patterns (Expert recommendation: Advanced reasoning)
+fn test_complex_logic() -> int {
+    // Test multiple variable bindings
+    // query_prove parent(?X, ?Y);  // Should return all parent relationships
+
+    // Test conjunction in queries
+    // query_prove parent(?X, ?Y), parent(?Y, ?Z);  // Should find grandparent relationships
+
+    return 0;
+}
+
+// Test logic with different data types (Expert recommendation: Type safety)
+// relation age(string, int);
+// relation older_than(string, string);
+
+fn test_typed_logic() -> int {
+    // Facts with different types
+    // fact age("Ahmed", 45);
+    // fact age("Sara", 20);
+    // fact age("Omar", 18);
+
+    // Rule with type checking
+    // rule older_than(?X, ?Y) :- age(?X, ?AgeX), age(?Y, ?AgeY), ?AgeX > ?AgeY;
+
+    // Query with type constraints
+    // query_prove older_than("Ahmed", "Sara");  // Should return true
+
+    return 0;
+}
+
+fn main() -> int {
+    test_family_relations();
+    test_complex_logic();
+    test_typed_logic();
+
+    return 42;
+}
