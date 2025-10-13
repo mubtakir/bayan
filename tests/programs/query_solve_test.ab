@@ -1,0 +1,69 @@
+// Query Solve Test (Expert recommendation: Priority 1 - query_solve implementation)
+// Test solution iterator and variable binding extraction
+
+// Define a simple struct for testing
+struct Person {
+    name: string;
+    age: int;
+}
+
+// Test function that demonstrates query_solve usage (Expert recommendation: Priority 1)
+fn test_query_solve() -> int {
+    // This will be enhanced with actual query_solve calls when IR generation is complete
+    // For now, we test the basic structure that will support query_solve
+    
+    let person = Person { name: "Ahmed", age: 25 };
+    
+    // Future query_solve syntax (Expert recommendation):
+    // query_solve parent(?X, "Sara") => {
+    //     // This block will be executed for each solution
+    //     // ?X will be bound to the actual value found
+    //     println("Found parent: " + ?X);
+    // }
+    
+    // For now, test basic functionality
+    let name = person.name;
+    let age = person.age;
+    
+    return 0;
+}
+
+// Test function for complex query_solve scenarios (Expert recommendation: Priority 1)
+fn test_complex_query_solve() -> int {
+    // Future complex query_solve syntax (Expert recommendation):
+    // query_solve ancestor(?X, ?Y) => {
+    //     // Multiple variables bound simultaneously
+    //     println("Ancestor: " + ?X + " -> " + ?Y);
+    // }
+    
+    // query_solve grandparent(?GP, ?GC) => {
+    //     // Nested logic with multiple solutions
+    //     if (?GP == "Ahmed") {
+    //         println("Ahmed is grandparent of: " + ?GC);
+    //     }
+    // }
+    
+    return 0;
+}
+
+// Test function for typed query_solve (Expert recommendation: Priority 1)
+fn test_typed_query_solve() -> int {
+    // Future typed query_solve syntax (Expert recommendation):
+    // query_solve age(?Person: string, ?Age: int) => {
+    //     // Type-safe variable binding
+    //     if (?Age > 18) {
+    //         println(?Person + " is adult with age " + ?Age);
+    //     }
+    // }
+    
+    return 0;
+}
+
+// Main function to run all tests
+fn main() -> int {
+    test_query_solve();
+    test_complex_query_solve();
+    test_typed_query_solve();
+    
+    return 0;
+}

@@ -12,6 +12,23 @@ pub struct QueryResult {
     pub bindings: Vec<Substitution>,
 }
 
+/// Solution iterator for query_solve (Expert recommendation: Priority 1)
+#[derive(Debug)]
+pub struct SolutionIterator<'a> {
+    solver: &'a LogicSolver<'a>,
+    goal: Term,
+    solutions: Vec<Substitution>,
+    current_index: usize,
+    exhausted: bool,
+}
+
+/// Solution handle for FFI (Expert recommendation: Priority 1)
+#[derive(Debug, Clone)]
+pub struct Solution {
+    pub bindings: Substitution,
+    pub variables: Vec<String>,
+}
+
 /// Goal in the resolution process (Expert recommendation)
 #[derive(Debug, Clone)]
 struct Goal {
@@ -20,6 +37,7 @@ struct Goal {
 }
 
 /// Logic solver with SLD resolution and backtracking (Expert recommendation: Priority 2)
+#[derive(Debug)]
 pub struct LogicSolver<'a> {
     knowledge_base: &'a KnowledgeBase,
 }
@@ -57,50 +75,96 @@ impl<'a> LogicSolver<'a> {
         self.try_rules(&goal_term, &goal.substitution, solutions);
     }
 
-    /// Try to unify goal with facts (Expert recommendation)
+    /// Try to unify goal with facts (Expert recommendation - Enhanced with indexing)
     fn try_facts(&self, goal_term: &Term, substitution: &Substitution, solutions: &mut Vec<Substitution>) {
         if let Term::Compound { functor, args } = goal_term {
-            if let Some(facts) = self.knowledge_base.get_facts(functor) {
-                for fact in facts {
-                    // Convert fact to term
-                    let fact_term = self.fact_to_term(fact);
-                    
-                    // Try to unify
-                    match Unifier::unify(goal_term, &fact_term) {
-                        UnificationResult::Success(unifier) => {
-                            // Compose with existing substitution
-                            let final_substitution = Unifier::compose_substitutions(substitution, &unifier);
-                            solutions.push(final_substitution);
+            // Use indexed lookup if first argument is a constant (Expert recommendation: Priority 2)
+            let facts_to_check: Vec<&Fact> = if !args.is_empty() {
+                match &args[0] {
+                    Term::Constant(value) => {
+                        // Use indexed lookup for performance
+                        self.knowledge_base.get_facts_by_first_arg(functor, value)
+                    }
+                    _ => {
+                        // Fall back to full scan for variables or complex terms
+                        if let Some(facts) = self.knowledge_base.get_facts(functor) {
+                            facts.iter().collect()
+                        } else {
+                            Vec::new()
                         }
-                        UnificationResult::Failure => {
-                            // Continue to next fact
-                        }
+                    }
+                }
+            } else {
+                // No arguments, use full scan
+                if let Some(facts) = self.knowledge_base.get_facts(functor) {
+                    facts.iter().collect()
+                } else {
+                    Vec::new()
+                }
+            };
+
+            for fact in facts_to_check {
+                // Convert fact to term
+                let fact_term = self.fact_to_term(fact);
+
+                // Try to unify
+                match Unifier::unify(goal_term, &fact_term) {
+                    UnificationResult::Success(unifier) => {
+                        // Compose with existing substitution
+                        let final_substitution = Unifier::compose_substitutions(substitution, &unifier);
+                        solutions.push(final_substitution);
+                    }
+                    UnificationResult::Failure => {
+                        // Continue to next fact
                     }
                 }
             }
         }
     }
 
-    /// Try to unify goal with rule heads and solve rule bodies (Expert recommendation)
+    /// Try to unify goal with rule heads and solve rule bodies (Expert recommendation - Enhanced with indexing)
     fn try_rules(&self, goal_term: &Term, substitution: &Substitution, solutions: &mut Vec<Substitution>) {
-        if let Term::Compound { functor, .. } = goal_term {
-            if let Some(rules) = self.knowledge_base.get_rules(functor) {
-                for rule in rules {
-                    // Rename variables in rule to avoid conflicts
-                    let renamed_rule = self.rename_rule_variables(rule);
-                    
-                    // Try to unify goal with rule head
-                    match Unifier::unify(goal_term, &renamed_rule.head) {
-                        UnificationResult::Success(head_unifier) => {
-                            // Compose with existing substitution
-                            let new_substitution = Unifier::compose_substitutions(substitution, &head_unifier);
-                            
-                            // Solve rule body
-                            self.solve_body(&renamed_rule.body, &new_substitution, solutions);
+        if let Term::Compound { functor, args } = goal_term {
+            // Use indexed lookup if first argument is a constant (Expert recommendation: Priority 2)
+            let rules_to_check: Vec<&Rule> = if !args.is_empty() {
+                match &args[0] {
+                    Term::Constant(_) => {
+                        // Use indexed lookup for performance
+                        self.knowledge_base.get_rules_by_first_arg(functor, &args[0])
+                    }
+                    _ => {
+                        // Fall back to full scan for variables or complex terms
+                        if let Some(rules) = self.knowledge_base.get_rules(functor) {
+                            rules.iter().collect()
+                        } else {
+                            Vec::new()
                         }
-                        UnificationResult::Failure => {
-                            // Continue to next rule
-                        }
+                    }
+                }
+            } else {
+                // No arguments, use full scan
+                if let Some(rules) = self.knowledge_base.get_rules(functor) {
+                    rules.iter().collect()
+                } else {
+                    Vec::new()
+                }
+            };
+
+            for rule in rules_to_check {
+                // Rename variables in rule to avoid conflicts
+                let renamed_rule = self.rename_rule_variables(rule);
+
+                // Try to unify goal with rule head
+                match Unifier::unify(goal_term, &renamed_rule.head) {
+                    UnificationResult::Success(head_unifier) => {
+                        // Compose with existing substitution
+                        let new_substitution = Unifier::compose_substitutions(substitution, &head_unifier);
+
+                        // Solve rule body
+                        self.solve_body(&renamed_rule.body, &new_substitution, solutions);
+                    }
+                    UnificationResult::Failure => {
+                        // Continue to next rule
                     }
                 }
             }
@@ -149,7 +213,7 @@ impl<'a> LogicSolver<'a> {
     fn rename_rule_variables(&self, rule: &Rule) -> Rule {
         // Simple renaming strategy: add a unique suffix
         let suffix = format!("_{}", self.generate_unique_id());
-        
+
         Rule {
             head: self.rename_term_variables(&rule.head, &suffix),
             body: rule.body.iter()
@@ -200,6 +264,76 @@ impl<'a> LogicSolver<'a> {
     pub fn get_query_variables(&self, goal: &Term) -> Vec<String> {
         goal.get_variables().into_iter().cloned().collect()
     }
+
+    /// Create a solution iterator for query_solve (Expert recommendation: Priority 1)
+    pub fn solve_iter(&self, goal: &Term) -> SolutionIterator {
+        let result = self.prove(goal);
+        SolutionIterator {
+            solver: self,
+            goal: goal.clone(),
+            solutions: result.bindings,
+            current_index: 0,
+            exhausted: false,
+        }
+    }
+}
+
+impl<'a> SolutionIterator<'a> {
+    /// Get the next solution (Expert recommendation: Priority 1)
+    pub fn next_solution(&mut self) -> Option<Solution> {
+        if self.exhausted || self.current_index >= self.solutions.len() {
+            return None;
+        }
+
+        let substitution = &self.solutions[self.current_index];
+        self.current_index += 1;
+
+        // Extract variable names from the goal
+        let variables = self.solver.get_query_variables(&self.goal);
+
+        Some(Solution {
+            bindings: substitution.clone(),
+            variables,
+        })
+    }
+
+    /// Check if there are more solutions (Expert recommendation: Priority 1)
+    pub fn has_more(&self) -> bool {
+        !self.exhausted && self.current_index < self.solutions.len()
+    }
+
+    /// Reset the iterator (Expert recommendation: Priority 1)
+    pub fn reset(&mut self) {
+        self.current_index = 0;
+        self.exhausted = false;
+    }
+
+    /// Get total number of solutions (Expert recommendation: Priority 1)
+    pub fn solution_count(&self) -> usize {
+        self.solutions.len()
+    }
+}
+
+impl Solution {
+    /// Get the value of a variable (Expert recommendation: Priority 1)
+    pub fn get_variable_value(&self, var_name: &str) -> Option<&Term> {
+        self.bindings.get(var_name)
+    }
+
+    /// Get all variable names (Expert recommendation: Priority 1)
+    pub fn get_variable_names(&self) -> &Vec<String> {
+        &self.variables
+    }
+
+    /// Check if a variable is bound (Expert recommendation: Priority 1)
+    pub fn is_variable_bound(&self, var_name: &str) -> bool {
+        self.bindings.contains_key(var_name)
+    }
+
+    /// Get all bindings as a map (Expert recommendation: Priority 1)
+    pub fn get_all_bindings(&self) -> &Substitution {
+        &self.bindings
+    }
 }
 
 #[cfg(test)]
@@ -210,10 +344,10 @@ mod tests {
     #[test]
     fn test_simple_fact_query() {
         let mut kb = KnowledgeBase::new();
-        
+
         // Register relation
         kb.register_relation("parent".to_string(), 2, vec!["string".to_string(), "string".to_string()]);
-        
+
         // Add fact: parent("Ahmed", "Sara")
         kb.assert_fact("parent".to_string(), vec![
             Value::String("Ahmed".to_string()),
@@ -221,7 +355,7 @@ mod tests {
         ]).unwrap();
 
         let solver = LogicSolver::new(&kb);
-        
+
         // Query: parent("Ahmed", "Sara")
         let query = Term::compound("parent", vec![
             Term::string("Ahmed"),
@@ -235,10 +369,10 @@ mod tests {
     #[test]
     fn test_variable_query() {
         let mut kb = KnowledgeBase::new();
-        
+
         // Register relation
         kb.register_relation("parent".to_string(), 2, vec!["string".to_string(), "string".to_string()]);
-        
+
         // Add fact: parent("Ahmed", "Sara")
         kb.assert_fact("parent".to_string(), vec![
             Value::String("Ahmed".to_string()),
@@ -246,7 +380,7 @@ mod tests {
         ]).unwrap();
 
         let solver = LogicSolver::new(&kb);
-        
+
         // Query: parent("Ahmed", ?X)
         let query = Term::compound("parent", vec![
             Term::string("Ahmed"),
@@ -256,7 +390,7 @@ mod tests {
         let result = solver.prove(&query);
         assert!(result.success);
         assert_eq!(result.bindings.len(), 1);
-        
+
         let binding = &result.bindings[0];
         assert_eq!(binding.get("X"), Some(&Term::string("Sara")));
     }
