@@ -345,8 +345,8 @@ mod tests {
         let relation = RelationDecl {
             name: "Parent".to_string(),
             arg_types: vec![
-                Type::Named("string".to_string()),
-                Type::Named("string".to_string()),
+                Type::Named(Path::single("string".to_string())),
+                Type::Named(Path::single("string".to_string())),
             ],
         };
 
@@ -363,8 +363,8 @@ mod tests {
         let relation = RelationDecl {
             name: "Parent".to_string(),
             arg_types: vec![
-                Type::Named("string".to_string()),
-                Type::Named("string".to_string()),
+                Type::Named(Path::single("string".to_string())),
+                Type::Named(Path::single("string".to_string())),
             ],
         };
         analyzer.register_relation(&relation).unwrap();
@@ -392,8 +392,8 @@ mod tests {
         let parent_relation = RelationDecl {
             name: "Parent".to_string(),
             arg_types: vec![
-                Type::Named("string".to_string()),
-                Type::Named("string".to_string()),
+                Type::Named(Path::single("string".to_string())),
+                Type::Named(Path::single("string".to_string())),
             ],
         };
         analyzer.register_relation(&parent_relation).unwrap();
@@ -401,8 +401,8 @@ mod tests {
         let grandparent_relation = RelationDecl {
             name: "Grandparent".to_string(),
             arg_types: vec![
-                Type::Named("string".to_string()),
-                Type::Named("string".to_string()),
+                Type::Named(Path::single("string".to_string())),
+                Type::Named(Path::single("string".to_string())),
             ],
         };
         analyzer.register_relation(&grandparent_relation).unwrap();
