@@ -1,0 +1,26 @@
+// اختبار بسيط لمنع المراجع المعلقة (Dangling References Prevention)
+// Expert recommendation: Priority 1 - Lifetime Analysis
+
+// اختبار 1: مرجع معلق بسيط - يجب أن يفشل
+fn dangling_reference_simple() -> &int {
+    let x = 10;
+    return &x; // خطأ! x ستُدمَّر هنا، والمرجع سيصبح معلقًا
+}
+
+// اختبار 2: مرجع صحيح لمعامل دالة - يجب أن ينجح
+fn valid_reference_to_parameter(param: &int) -> &int {
+    return param; // صحيح! param ليس متغير محلي
+}
+
+// اختبار 3: مرجع صحيح - إرجاع قيمة وليس مرجع
+fn valid_return_value() -> int {
+    let x = 50;
+    return x; // صحيح! إرجاع قيمة وليس مرجع
+}
+
+// الدالة الرئيسية للاختبار
+fn main() -> int {
+    // هذا الاختبار يجب أن ينجح
+    let value = valid_return_value(); // صحيح
+    return 0;
+}

@@ -1,0 +1,88 @@
+// اختبار منع المراجع المعلقة (Dangling References Prevention)
+// Expert recommendation: Priority 1 - Lifetime Analysis
+
+// اختبار 1: مرجع معلق بسيط - يجب أن يفشل
+fn dangling_reference_simple() -> &int {
+    let x = 10;
+    return &x; // خطأ! x ستُدمَّر هنا، والمرجع سيصبح معلقًا
+}
+
+// اختبار 2: مرجع قابل للتغيير معلق - يجب أن يفشل
+fn dangling_mutable_reference() -> &int {
+    let y = 20;
+    return &y; // خطأ! y ستُدمَّر هنا، والمرجع سيصبح معلقًا
+}
+
+// اختبار 3: مرجع صحيح لمعامل دالة - يجب أن ينجح
+fn valid_reference_to_parameter(param: &int) -> &int {
+    return param; // صحيح! param ليس متغير محلي
+}
+
+// اختبار 4: مرجع صحيح لمتغير عام (محاكاة)
+// fn valid_reference_to_global() -> &int {
+//     return &GLOBAL_VAR; // صحيح! GLOBAL_VAR ليس متغير محلي
+// }
+
+// اختبار 5: مرجع معلق في if statement
+fn dangling_in_if_statement(condition: bool) -> &int {
+    if condition {
+        let local_var = 42;
+        return &local_var; // خطأ! local_var محلي
+    } else {
+        let another_var = 84;
+        return &another_var; // خطأ! another_var محلي
+    }
+}
+
+// اختبار 6: مرجع معلق في block
+fn dangling_in_block() -> &int {
+    {
+        let block_var = 100;
+        return &block_var; // خطأ! block_var محلي في البلوك
+    }
+}
+
+// اختبار 7: مرجع صحيح - إرجاع قيمة وليس مرجع
+fn valid_return_value() -> int {
+    let x = 50;
+    return x; // صحيح! إرجاع قيمة وليس مرجع
+}
+
+// اختبار 8: مرجع معلق مع struct field
+struct TestStruct {
+    field: int,
+}
+
+fn dangling_struct_field_reference() -> &int {
+    let s = TestStruct { field: 123 };
+    return &s.field; // خطأ! s محلي، لذا s.field أيضاً محلي
+}
+
+// اختبار 9: مرجع صحيح لـ struct field من معامل
+fn valid_struct_field_reference(s: &TestStruct) -> &int {
+    return &s.field; // صحيح! s معامل وليس متغير محلي
+}
+
+// اختبار 10: مرجع معلق مع array element
+fn dangling_array_element_reference() -> &int {
+    let arr = [1, 2, 3, 4, 5];
+    return &arr[0]; // خطأ! arr محلي، لذا arr[0] أيضاً محلي
+}
+
+// الدالة الرئيسية للاختبار
+fn main() {
+    // هذه الاختبارات يجب أن تفشل في التحليل الدلالي
+    // let ref1 = dangling_reference_simple(); // خطأ متوقع
+    // let ref2 = dangling_mutable_reference(); // خطأ متوقع
+    // let ref3 = dangling_in_if_statement(true); // خطأ متوقع
+    // let ref4 = dangling_in_block(); // خطأ متوقع
+    // let ref5 = dangling_struct_field_reference(); // خطأ متوقع
+    // let ref6 = dangling_array_element_reference(); // خطأ متوقع
+
+    // هذه الاختبارات يجب أن تنجح
+    let value = valid_return_value(); // صحيح
+
+    // اختبار مع معاملات
+    let test_struct = TestStruct { field: 999 };
+    let valid_ref = valid_struct_field_reference(&test_struct); // صحيح
+}

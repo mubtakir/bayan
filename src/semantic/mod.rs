@@ -695,10 +695,15 @@ impl SemanticAnalyzer {
         })
     }
 
-    /// Analyze a return statement
+    /// Analyze a return statement (Expert recommendation: Priority 1 - Dangling Reference Prevention)
     fn analyze_return_statement(&mut self, ret_stmt: &ReturnStatement) -> Result<AnnotatedReturnStatement, SemanticError> {
         let value = if let Some(expr) = &ret_stmt.value {
-            Some(self.analyze_expression(expr)?)
+            let annotated_expr = self.analyze_expression(expr)?;
+
+            // Expert recommendation: Check for dangling references
+            self.check_return_value_for_dangling_references(&annotated_expr)?;
+
+            Some(annotated_expr)
         } else {
             None
         };
@@ -2008,6 +2013,12 @@ pub enum SemanticError {
 
     #[error("Borrow conflict: {0}")]
     BorrowConflict(String),
+
+    #[error("Dangling reference: {message}")]
+    DanglingReference {
+        variable_name: String,
+        message: String,
+    },
 }
 
 impl SemanticAnalyzer {
@@ -2142,6 +2153,49 @@ impl SemanticAnalyzer {
                     }),
                 }
             }
+        }
+    }
+
+    /// Check return value for dangling references (Expert recommendation: Priority 1)
+    fn check_return_value_for_dangling_references(&self, return_expr: &AnnotatedExpression) -> Result<(), SemanticError> {
+        // Check if the return type is a reference
+        if let ResolvedType::Reference(referenced_type, _is_mutable) = &return_expr.result_type {
+            // Check if this is a reference to a local variable
+            if let AnnotatedExpressionKind::Unary(unary_expr) = &return_expr.expr {
+                if matches!(unary_expr.operator, UnaryOperator::Reference | UnaryOperator::MutableReference) {
+                    if let AnnotatedExpressionKind::Identifier(var_name) = &unary_expr.operand.expr {
+                        // Check if this variable is local to the current function
+                        if self.is_local_variable(var_name) {
+                            return Err(SemanticError::DanglingReference {
+                                variable_name: var_name.clone(),
+                                message: format!("Cannot return reference to local variable '{}'", var_name),
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Check if a variable is local to the current function (Expert recommendation: Priority 1)
+    fn is_local_variable(&self, var_name: &str) -> bool {
+        // A variable is local if it was declared in the current function scope
+        // We need to check if the variable was declared in a Function or Block scope
+        // (not Global scope or as a function parameter)
+
+        if let Some(_var_info) = self.symbol_table.lookup_variable(var_name) {
+            // For now, we'll use a simple heuristic:
+            // If we're currently analyzing a function and the variable exists,
+            // we'll consider it local unless it's a known global or parameter
+
+            // TODO: Improve this by tracking where variables were declared
+            // For the initial implementation, we'll be conservative and assume
+            // most variables in function context are local
+            true
+        } else {
+            false
         }
     }
 

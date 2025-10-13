@@ -1,0 +1,20 @@
+// اختبار المراجع الصحيحة (Valid References Test)
+// Expert recommendation: Priority 1 - Lifetime Analysis
+
+// اختبار 1: مرجع صحيح لمعامل دالة - يجب أن ينجح
+fn valid_reference_to_parameter(param: &int) -> &int {
+    return param; // صحيح! param ليس متغير محلي
+}
+
+// اختبار 2: مرجع صحيح - إرجاع قيمة وليس مرجع
+fn valid_return_value() -> int {
+    let x = 50;
+    return x; // صحيح! إرجاع قيمة وليس مرجع
+}
+
+// الدالة الرئيسية للاختبار
+fn main() -> int {
+    // هذا الاختبار يجب أن ينجح
+    let value = valid_return_value(); // صحيح
+    return 0;
+}
