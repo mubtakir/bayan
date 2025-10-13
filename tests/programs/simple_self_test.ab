@@ -1,0 +1,19 @@
+// اختبار بسيط لـ self parameters
+// Expert recommendation: Priority 2 - &self and &mut self support
+
+struct Counter {
+    value: int;
+}
+
+impl Counter {
+    // اختبار method بدون self parameters أولاً
+    fn new(initial_value: int) -> Counter {
+        let counter = Counter { value: initial_value };
+        return counter;
+    }
+}
+
+fn main() -> int {
+    let counter = Counter::new(42);
+    return 0;
+}

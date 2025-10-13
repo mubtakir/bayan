@@ -74,11 +74,20 @@ pub struct FunctionDecl {
     pub body: Block,
 }
 
-/// Function parameter
+/// Function parameter (Expert recommendation: Priority 2 - &self and &mut self support)
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Parameter {
-    pub name: String,
-    pub param_type: Type,
+pub enum Parameter {
+    /// Regular parameter: name: Type
+    Regular {
+        name: String,
+        param_type: Type,
+    },
+    /// Self parameter: self
+    SelfValue,
+    /// Immutable self reference: &self
+    SelfRef,
+    /// Mutable self reference: &mut self
+    SelfMutRef,
 }
 
 /// Struct declaration

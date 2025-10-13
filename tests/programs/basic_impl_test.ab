@@ -1,0 +1,18 @@
+// اختبار أساسي لـ impl blocks
+// Expert recommendation: Priority 2 - &self and &mut self support
+
+struct Counter {
+    value: int;
+}
+
+impl Counter {
+    // static method بدون self
+    fn create_zero() -> int {
+        return 0;
+    }
+}
+
+fn main() -> int {
+    let result = Counter::create_zero();
+    return result;
+}

@@ -157,17 +157,54 @@ impl SemanticAnalyzer {
             None
         };
 
-        // Add parameters to scope
+        // Add parameters to scope (Expert recommendation: Priority 2 - &self and &mut self support)
         let mut annotated_params = Vec::new();
         for param in &func.parameters {
-            let resolved_type = self.symbol_table.resolve_type_name(&param.param_type)?;
-            self.symbol_table.declare_variable(&param.name, &resolved_type)?;
-            // Declare in ownership analyzer too (Expert recommendation)
-            self.ownership_analyzer.declare_variable(&param.name, resolved_type.clone(), false)?;
-            annotated_params.push(AnnotatedParameter {
-                name: param.name.clone(),
-                param_type: resolved_type,
-            });
+            match param {
+                Parameter::Regular { name, param_type } => {
+                    let resolved_type = self.symbol_table.resolve_type_name(param_type)?;
+                    self.symbol_table.declare_variable(name, &resolved_type)?;
+                    // Declare in ownership analyzer too (Expert recommendation)
+                    self.ownership_analyzer.declare_variable(name, resolved_type.clone(), false)?;
+                    annotated_params.push(AnnotatedParameter {
+                        name: name.clone(),
+                        param_type: resolved_type,
+                    });
+                }
+                Parameter::SelfValue => {
+                    // self parameter - type will be determined by the impl context
+                    // For now, we'll use a placeholder type
+                    let self_type = ResolvedType::Unit; // TODO: Get actual self type from context
+                    self.symbol_table.declare_variable("self", &self_type)?;
+                    self.ownership_analyzer.declare_variable("self", self_type.clone(), false)?;
+                    annotated_params.push(AnnotatedParameter {
+                        name: "self".to_string(),
+                        param_type: self_type,
+                    });
+                }
+                Parameter::SelfRef => {
+                    // &self parameter
+                    let self_type = ResolvedType::Unit; // TODO: Get actual self type from context
+                    let self_ref_type = ResolvedType::Reference(Box::new(self_type), false);
+                    self.symbol_table.declare_variable("self", &self_ref_type)?;
+                    self.ownership_analyzer.declare_variable("self", self_ref_type.clone(), false)?;
+                    annotated_params.push(AnnotatedParameter {
+                        name: "self".to_string(),
+                        param_type: self_ref_type,
+                    });
+                }
+                Parameter::SelfMutRef => {
+                    // &mut self parameter
+                    let self_type = ResolvedType::Unit; // TODO: Get actual self type from context
+                    let self_mut_ref_type = ResolvedType::Reference(Box::new(self_type), true);
+                    self.symbol_table.declare_variable("self", &self_mut_ref_type)?;
+                    self.ownership_analyzer.declare_variable("self", self_mut_ref_type.clone(), false)?;
+                    annotated_params.push(AnnotatedParameter {
+                        name: "self".to_string(),
+                        param_type: self_mut_ref_type,
+                    });
+                }
+            }
         }
 
         // Analyze function body
@@ -294,11 +331,41 @@ impl SemanticAnalyzer {
         for method in &trait_decl.methods {
             let mut annotated_params = Vec::new();
             for param in &method.parameters {
-                let resolved_type = self.symbol_table.resolve_type_name(&param.param_type)?;
-                annotated_params.push(AnnotatedParameter {
-                    name: param.name.clone(),
-                    param_type: resolved_type,
-                });
+                match param {
+                    Parameter::Regular { name, param_type } => {
+                        let resolved_type = self.symbol_table.resolve_type_name(param_type)?;
+                        annotated_params.push(AnnotatedParameter {
+                            name: name.clone(),
+                            param_type: resolved_type,
+                        });
+                    }
+                    Parameter::SelfValue => {
+                        // self parameter in trait method
+                        let self_type = ResolvedType::Unit; // Will be resolved when trait is implemented
+                        annotated_params.push(AnnotatedParameter {
+                            name: "self".to_string(),
+                            param_type: self_type,
+                        });
+                    }
+                    Parameter::SelfRef => {
+                        // &self parameter in trait method
+                        let self_type = ResolvedType::Unit; // Will be resolved when trait is implemented
+                        let self_ref_type = ResolvedType::Reference(Box::new(self_type), false);
+                        annotated_params.push(AnnotatedParameter {
+                            name: "self".to_string(),
+                            param_type: self_ref_type,
+                        });
+                    }
+                    Parameter::SelfMutRef => {
+                        // &mut self parameter in trait method
+                        let self_type = ResolvedType::Unit; // Will be resolved when trait is implemented
+                        let self_mut_ref_type = ResolvedType::Reference(Box::new(self_type), true);
+                        annotated_params.push(AnnotatedParameter {
+                            name: "self".to_string(),
+                            param_type: self_mut_ref_type,
+                        });
+                    }
+                }
             }
 
             let return_type = if let Some(ret_type) = &method.return_type {
@@ -1126,7 +1193,7 @@ impl SemanticAnalyzer {
         })
     }
 
-    /// Analyze a method call (Expert recommendation: Priority 1 - Method Resolution)
+    /// Analyze a method call (Expert recommendation: Priority 2 - &self and &mut self support)
     fn analyze_method_call(&mut self, field_access: &FieldAccessExpression, arguments: &[Expression]) -> Result<AnnotatedExpression, SemanticError> {
         // Analyze the object expression
         let annotated_object = self.analyze_expression(&field_access.object)?;
@@ -1134,6 +1201,13 @@ impl SemanticAnalyzer {
 
         // Get the object type (clone to avoid borrowing issues)
         let object_type = annotated_object.result_type.clone();
+
+        // Check if we need to create a borrow for method call (Expert recommendation: Priority 2)
+        if let Expression::Identifier(var_name) = field_access.object.as_ref() {
+            // We'll determine the borrow type based on the method signature
+            // For now, we'll check the method and create appropriate borrow
+            self.check_method_call_borrowing(var_name, method_name, &object_type)?;
+        }
 
         // Check if this is a trait object method call (Expert recommendation: Priority 1 - Dynamic Dispatch)
         if let ResolvedType::TraitObject(trait_names) = &object_type {
@@ -2197,6 +2271,45 @@ impl SemanticAnalyzer {
         } else {
             false
         }
+    }
+
+    /// Check method call borrowing requirements (Expert recommendation: Priority 2)
+    fn check_method_call_borrowing(&mut self, var_name: &str, method_name: &str, object_type: &ResolvedType) -> Result<(), SemanticError> {
+        // Find the method in impl blocks to determine self parameter type
+        if let Some(method_info) = self.find_method_in_impls(object_type, method_name) {
+            // Check the first parameter to see if it's a self parameter
+            if !method_info.parameters.is_empty() {
+                let first_param = &method_info.parameters[0];
+
+                match first_param {
+                    // &self - create immutable borrow
+                    ResolvedType::Reference(_, false) => {
+                        let scope_depth = self.ownership_analyzer.get_current_scope_depth();
+                        self.ownership_analyzer.add_method_borrow(
+                            var_name,
+                            crate::semantic::ownership::BorrowKind::Immutable,
+                            scope_depth
+                        )?;
+                    }
+                    // &mut self - create mutable borrow
+                    ResolvedType::Reference(_, true) => {
+                        let scope_depth = self.ownership_analyzer.get_current_scope_depth();
+                        self.ownership_analyzer.add_method_borrow(
+                            var_name,
+                            crate::semantic::ownership::BorrowKind::Mutable,
+                            scope_depth
+                        )?;
+                    }
+                    // self (by value) - create move
+                    _ => {
+                        // For self by value, we need to move the variable
+                        self.ownership_analyzer.mark_as_moved(var_name)?;
+                    }
+                }
+            }
+        }
+
+        Ok(())
     }
 
     /// Check match exhaustiveness (Expert recommendation: Enhanced exhaustiveness checking)

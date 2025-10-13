@@ -1,0 +1,53 @@
+// اختبار دعم &self و &mut self (Self Parameter Support Test)
+// Expert recommendation: Priority 2 - &self and &mut self support
+
+// تعريف struct للاختبار
+struct Counter {
+    value: int;
+}
+
+// impl block مع &self و &mut self methods
+impl Counter {
+    // اختبار 1: &self method - يجب أن ينجح
+    fn get_value(&self) -> int {
+        return self.value;
+    }
+
+    // اختبار 2: &mut self method - يجب أن ينجح
+    fn increment(&mut self) {
+        self.value = self.value + 1;
+    }
+
+    // اختبار 3: self method (by value) - يجب أن ينجح
+    fn consume(self) -> int {
+        return self.value;
+    }
+
+    // اختبار 4: static method (no self) - يجب أن ينجح
+    fn new(initial_value: int) -> Counter {
+        return Counter { value: initial_value };
+    }
+}
+
+// الدالة الرئيسية للاختبار
+fn main() -> int {
+    // إنشاء counter
+    let mut counter = Counter::new(0);
+
+    // اختبار &self method call
+    let current_value = counter.get_value(); // يجب أن ينجح - immutable borrow
+
+    // اختبار &mut self method call
+    counter.increment(); // يجب أن ينجح - mutable borrow
+
+    // اختبار &self method call مرة أخرى
+    let new_value = counter.get_value(); // يجب أن ينجح
+
+    // اختبار self method call (by value)
+    let final_value = counter.consume(); // يجب أن ينجح - move
+
+    // محاولة استخدام counter بعد move - يجب أن تفشل
+    // let error_value = counter.get_value(); // خطأ متوقع: use after move
+
+    return final_value;
+}

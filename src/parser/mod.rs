@@ -84,7 +84,7 @@ impl Parser {
                 self.consume(&TokenType::Colon, "Expected ':' after parameter name")?;
                 let param_type = self.parse_type()?;
 
-                parameters.push(Parameter {
+                parameters.push(Parameter::Regular {
                     name: param_name,
                     param_type: param_type,
                 });
@@ -1232,7 +1232,7 @@ impl Parser {
                     self.consume(&TokenType::Colon, "Expected ':' after parameter name")?;
                     let param_type = self.parse_type()?;
 
-                    parameters.push(Parameter {
+                    parameters.push(Parameter::Regular {
                         name: param_name,
                         param_type,
                     });
@@ -1354,7 +1354,7 @@ impl Parser {
                     self.consume(&TokenType::Colon, "Expected ':' after parameter name")?;
                     let param_type = self.parse_type()?;
 
-                    parameters.push(Parameter {
+                    parameters.push(Parameter::Regular {
                         name: param_name,
                         param_type,
                     });

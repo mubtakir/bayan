@@ -439,6 +439,16 @@ impl OwnershipAnalyzer {
         self.borrow_check_state.set_current_function(function_name);
     }
 
+    /// Get current scope depth (Expert recommendation: Priority 2)
+    pub fn get_current_scope_depth(&self) -> usize {
+        self.scope_depth
+    }
+
+    /// Add a borrow for method calls (Expert recommendation: Priority 2)
+    pub fn add_method_borrow(&mut self, var_name: &str, borrow_kind: BorrowKind, scope_depth: usize) -> Result<(), SemanticError> {
+        self.borrow_check_state.add_borrow(var_name, borrow_kind, scope_depth)
+    }
+
     /// Get mutable access to borrow check state (Expert recommendation)
     pub fn get_borrow_check_state_mut(&mut self) -> &mut BorrowCheckState {
         &mut self.borrow_check_state

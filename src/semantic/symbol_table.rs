@@ -253,8 +253,26 @@ impl SymbolTable {
 
         let mut parameters = Vec::new();
         for param in &func.parameters {
-            let resolved_type = self.resolve_type_name(&param.param_type)?;
-            parameters.push(resolved_type);
+            match param {
+                Parameter::Regular { name: _, param_type } => {
+                    let resolved_type = self.resolve_type_name(param_type)?;
+                    parameters.push(resolved_type);
+                }
+                Parameter::SelfValue => {
+                    // self parameter - type will be determined by context
+                    parameters.push(ResolvedType::Unit); // Placeholder
+                }
+                Parameter::SelfRef => {
+                    // &self parameter
+                    let self_ref_type = ResolvedType::Reference(Box::new(ResolvedType::Unit), false);
+                    parameters.push(self_ref_type);
+                }
+                Parameter::SelfMutRef => {
+                    // &mut self parameter
+                    let self_mut_ref_type = ResolvedType::Reference(Box::new(ResolvedType::Unit), true);
+                    parameters.push(self_mut_ref_type);
+                }
+            }
         }
 
         let return_type = if let Some(ret_type) = &func.return_type {
@@ -364,8 +382,26 @@ impl SymbolTable {
         for method in &class_decl.methods {
             let mut parameters = Vec::new();
             for param in &method.parameters {
-                let resolved_type = self.resolve_type_name(&param.param_type)?;
-                parameters.push(resolved_type);
+                match param {
+                    Parameter::Regular { name: _, param_type } => {
+                        let resolved_type = self.resolve_type_name(param_type)?;
+                        parameters.push(resolved_type);
+                    }
+                    Parameter::SelfValue => {
+                        let self_type = ResolvedType::Struct(class_decl.name.clone());
+                        parameters.push(self_type);
+                    }
+                    Parameter::SelfRef => {
+                        let self_type = ResolvedType::Struct(class_decl.name.clone());
+                        let self_ref_type = ResolvedType::Reference(Box::new(self_type), false);
+                        parameters.push(self_ref_type);
+                    }
+                    Parameter::SelfMutRef => {
+                        let self_type = ResolvedType::Struct(class_decl.name.clone());
+                        let self_mut_ref_type = ResolvedType::Reference(Box::new(self_type), true);
+                        parameters.push(self_mut_ref_type);
+                    }
+                }
             }
 
             let return_type = if let Some(ret_type) = &method.return_type {
@@ -399,8 +435,23 @@ impl SymbolTable {
         for method in &interface_decl.methods {
             let mut parameters = Vec::new();
             for param in &method.parameters {
-                let resolved_type = self.resolve_type_name(&param.param_type)?;
-                parameters.push(resolved_type);
+                match param {
+                    Parameter::Regular { name: _, param_type } => {
+                        let resolved_type = self.resolve_type_name(param_type)?;
+                        parameters.push(resolved_type);
+                    }
+                    Parameter::SelfValue => {
+                        parameters.push(ResolvedType::Unit); // Interface self type is abstract
+                    }
+                    Parameter::SelfRef => {
+                        let self_ref_type = ResolvedType::Reference(Box::new(ResolvedType::Unit), false);
+                        parameters.push(self_ref_type);
+                    }
+                    Parameter::SelfMutRef => {
+                        let self_mut_ref_type = ResolvedType::Reference(Box::new(ResolvedType::Unit), true);
+                        parameters.push(self_mut_ref_type);
+                    }
+                }
             }
 
             let return_type = if let Some(ret_type) = &method.return_type {
@@ -466,8 +517,23 @@ impl SymbolTable {
         for method in &trait_decl.methods {
             let mut parameters = Vec::new();
             for param in &method.parameters {
-                let resolved_type = self.resolve_type_name(&param.param_type)?;
-                parameters.push(resolved_type);
+                match param {
+                    Parameter::Regular { name: _, param_type } => {
+                        let resolved_type = self.resolve_type_name(param_type)?;
+                        parameters.push(resolved_type);
+                    }
+                    Parameter::SelfValue => {
+                        parameters.push(ResolvedType::Unit); // Placeholder for self
+                    }
+                    Parameter::SelfRef => {
+                        let self_ref_type = ResolvedType::Reference(Box::new(ResolvedType::Unit), false);
+                        parameters.push(self_ref_type);
+                    }
+                    Parameter::SelfMutRef => {
+                        let self_mut_ref_type = ResolvedType::Reference(Box::new(ResolvedType::Unit), true);
+                        parameters.push(self_mut_ref_type);
+                    }
+                }
             }
 
             let return_type = if let Some(ret_type) = &method.return_type {
@@ -511,8 +577,27 @@ impl SymbolTable {
         for method in &impl_decl.methods {
             let mut parameters = Vec::new();
             for param in &method.parameters {
-                let resolved_type = self.resolve_type_name(&param.param_type)?;
-                parameters.push(resolved_type);
+                match param {
+                    Parameter::Regular { name: _, param_type } => {
+                        let resolved_type = self.resolve_type_name(param_type)?;
+                        parameters.push(resolved_type);
+                    }
+                    Parameter::SelfValue => {
+                        // For impl methods, self type should be the implementing type
+                        let self_type = ResolvedType::Struct(impl_decl.type_name.clone());
+                        parameters.push(self_type);
+                    }
+                    Parameter::SelfRef => {
+                        let self_type = ResolvedType::Struct(impl_decl.type_name.clone());
+                        let self_ref_type = ResolvedType::Reference(Box::new(self_type), false);
+                        parameters.push(self_ref_type);
+                    }
+                    Parameter::SelfMutRef => {
+                        let self_type = ResolvedType::Struct(impl_decl.type_name.clone());
+                        let self_mut_ref_type = ResolvedType::Reference(Box::new(self_type), true);
+                        parameters.push(self_mut_ref_type);
+                    }
+                }
             }
 
             let return_type = if let Some(ret_type) = &method.return_type {
