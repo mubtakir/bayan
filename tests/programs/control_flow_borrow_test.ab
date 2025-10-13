@@ -1,0 +1,162 @@
+// Control Flow Borrow Checker Test (Expert recommendation: Priority 2)
+// Testing control flow analysis with ownership state merging
+
+fn test_if_else_move_analysis() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+
+    if true {
+        // Move in then branch
+        let moved_list = my_list;  // my_list is moved here
+    } else {
+        // No move in else branch
+        let ref1 = &my_list;  // my_list is still available here
+    }
+
+    // After if-else: my_list should be considered moved
+    // because it was moved in one of the branches
+    // let ref2 = &my_list;  // Should fail - UseAfterMove
+
+    return 0;
+}
+
+fn test_if_else_borrow_analysis() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+
+    if true {
+        let ref1 = &my_list;  // Immutable borrow in then branch
+        // ref1 goes out of scope at end of then block
+    } else {
+        let mut_ref = &my_list;  // Immutable borrow in else branch too
+        // mut_ref goes out of scope at end of else block
+    }
+
+    // After if-else: no active borrows should remain
+    // because borrows were scope-limited to their respective branches
+    let new_ref = &my_list;  // Should work - no conflicting borrows
+
+    return 0;
+}
+
+fn test_if_without_else() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+
+    if true {
+        // Move only in if branch, no else branch
+        let moved_list = my_list;  // my_list is moved here
+    }
+    // No else branch means some execution paths don't move my_list
+
+    // After if (without else): my_list should be considered moved
+    // because the conservative analysis assumes worst case
+    // let ref1 = &my_list;  // Should fail - UseAfterMove
+
+    return 0;
+}
+
+fn test_nested_if_statements() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+
+    if true {
+        if true {
+            // Nested move
+            let moved_list = my_list;  // my_list is moved here
+        } else {
+            // No move in nested else
+            let ref1 = &my_list;
+        }
+    } else {
+        // No move in outer else
+        let ref2 = &my_list;
+    }
+
+    // After nested if-else: my_list should be considered moved
+    // let ref3 = &my_list;  // Should fail - UseAfterMove
+
+    return 0;
+}
+
+fn test_borrow_scope_isolation() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+
+    if true {
+        let ref1 = &my_list;  // Immutable borrow in then branch
+        // This borrow should not affect the else branch
+    } else {
+        let mut_ref = &my_list;  // Should work - different branch
+        // This borrow should not affect the then branch
+    }
+
+    // After if-else: both borrows are out of scope
+    let final_ref = &my_list;  // Should work
+
+    return 0;
+}
+
+fn test_conservative_merge_analysis() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+    let other_list = [6, 7, 8];
+
+    if true {
+        // Move my_list but not other_list
+        let moved = my_list;
+        let ref1 = &other_list;
+    } else {
+        // Move other_list but not my_list
+        let moved = other_list;
+        let ref2 = &my_list;
+    }
+
+    // After if-else: both lists should be considered moved
+    // because each was moved in at least one branch
+    // let ref3 = &my_list;     // Should fail - UseAfterMove
+    // let ref4 = &other_list;  // Should fail - UseAfterMove
+
+    return 0;
+}
+
+fn test_borrow_merge_analysis() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+
+    if true {
+        let ref1 = &my_list;  // Immutable borrow in both branches
+        // This creates a borrow that exists in then branch
+    } else {
+        let ref2 = &my_list;  // Same type of borrow in else branch
+        // This creates a borrow that exists in else branch
+    }
+
+    // After if-else: no common borrows remain because
+    // the specific borrow instances were different
+    let mut_ref = &my_list;  // Should work
+
+    return 0;
+}
+
+fn test_automatic_memory_management_with_control_flow() -> int {
+    if true {
+        let my_list = [1, 2, 3, 4, 5];
+
+        if true {
+            let nested_list = [10, 20, 30];
+            // nested_list should be destroyed here
+        } // <- Automatic destroy calls for nested scope
+
+        // my_list should be destroyed here
+    } // <- Automatic destroy calls for outer scope
+
+    return 0;
+}
+
+// Main test function
+fn main() -> int {
+    test_if_else_move_analysis();
+    test_if_else_borrow_analysis();
+    test_if_without_else();
+    test_nested_if_statements();
+    test_borrow_scope_isolation();
+    test_conservative_merge_analysis();
+    test_borrow_merge_analysis();
+    test_automatic_memory_management_with_control_flow();
+
+    return 0;
+}

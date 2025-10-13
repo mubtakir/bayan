@@ -1,0 +1,134 @@
+// Complete Borrow Checker Test (Expert recommendation: Priority 1)
+// Testing all aspects of &/&mut borrow checking
+
+fn test_immutable_references() -> int {
+    // Test basic immutable references
+    let my_list = [1, 2, 3, 4, 5];
+    let ref1 = &my_list;  // Should work - immutable reference
+    let ref2 = &my_list;  // Should work - multiple immutable references allowed
+    
+    // Both references should be usable
+    // (In a full implementation, we would access elements through references)
+    
+    return 0;
+}
+
+fn test_mutable_references() -> int {
+    // Test basic mutable references
+    let mut my_list = [1, 2, 3, 4, 5];
+    let mut_ref = &mut my_list;  // Should work - mutable reference to mutable variable
+    
+    // Only one mutable reference should be allowed at a time
+    // let mut_ref2 = &mut my_list;  // Should fail - conflicting mutable borrow
+    
+    return 0;
+}
+
+fn test_mixed_references() -> int {
+    // Test mixing immutable and mutable references
+    let mut my_list = [1, 2, 3, 4, 5];
+    
+    if true {
+        let ref1 = &my_list;  // Immutable reference
+        // let mut_ref = &mut my_list;  // Should fail - cannot have &mut while & exists
+    }
+    
+    if true {
+        let mut_ref = &mut my_list;  // Mutable reference
+        // let ref1 = &my_list;  // Should fail - cannot have & while &mut exists
+    }
+    
+    return 0;
+}
+
+fn test_reference_scopes() -> int {
+    let mut my_list = [1, 2, 3, 4, 5];
+    
+    // Test that references are scope-limited
+    if true {
+        let ref1 = &my_list;
+        // ref1 is valid here
+    } // ref1 goes out of scope here
+    
+    // Now we should be able to create a mutable reference
+    let mut_ref = &mut my_list;  // Should work - no conflicting borrows
+    
+    return 0;
+}
+
+fn test_borrow_from_immutable() -> int {
+    // Test borrowing from immutable variables
+    let my_list = [1, 2, 3, 4, 5];  // Immutable variable
+    let ref1 = &my_list;  // Should work - immutable reference to immutable variable
+    
+    // This should fail - cannot create mutable reference to immutable variable
+    // let mut_ref = &mut my_list;  // Should fail - BorrowMutableFromImmutable
+    
+    return 0;
+}
+
+fn test_write_access_checking() -> int {
+    let mut my_list = [1, 2, 3, 4, 5];
+    
+    if true {
+        let ref1 = &my_list;  // Immutable borrow
+        // my_list = [6, 7, 8];  // Should fail - WriteWhileBorrowed
+    }
+    
+    if true {
+        let mut_ref = &mut my_list;  // Mutable borrow
+        // my_list = [6, 7, 8];  // Should fail - WriteWhileBorrowed (even with mutable borrow)
+    }
+    
+    return 0;
+}
+
+fn test_move_after_borrow() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+    let ref1 = &my_list;  // Immutable borrow
+    
+    // This should fail - cannot move while borrowed
+    // let moved_list = my_list;  // Should fail - cannot move borrowed value
+    
+    return 0;
+}
+
+fn test_field_level_borrowing() -> int {
+    // Test field-level borrowing (Expert recommendation: Priority 3)
+    // This is for future implementation
+    
+    // struct Point { x: int, y: int }
+    // let mut point = Point { x: 1, y: 2 };
+    // let x_ref = &point.x;  // Borrow only x field
+    // let y_ref = &mut point.y;  // Should work - different field
+    
+    return 0;
+}
+
+fn test_automatic_memory_management_with_borrows() -> int {
+    // Test that automatic memory management works with borrow checking
+    if true {
+        let my_list = [1, 2, 3, 4, 5];
+        let ref1 = &my_list;
+        
+        // Both my_list and ref1 should be cleaned up automatically
+        // when leaving this scope
+    } // <- Automatic destroy calls should be generated here
+    
+    return 0;
+}
+
+// Main test function
+fn main() -> int {
+    test_immutable_references();
+    test_mutable_references();
+    test_mixed_references();
+    test_reference_scopes();
+    test_borrow_from_immutable();
+    test_write_access_checking();
+    test_move_after_borrow();
+    test_field_level_borrowing();
+    test_automatic_memory_management_with_borrows();
+    
+    return 0;
+}

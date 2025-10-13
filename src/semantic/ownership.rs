@@ -271,6 +271,55 @@ impl BorrowCheckState {
 
         Ok(())
     }
+
+    /// Clone the current state for control flow analysis (Expert recommendation: Priority 2)
+    pub fn clone_state(&self) -> Self {
+        Self {
+            variables_to_destroy: self.variables_to_destroy.clone(),
+            moved_variables: self.moved_variables.clone(),
+            active_borrows: self.active_borrows.clone(),
+            current_function: self.current_function.clone(),
+        }
+    }
+
+    /// Merge two borrow check states at control flow join points (Expert recommendation: Priority 2)
+    pub fn merge_states(&mut self, other: &BorrowCheckState) {
+        // For moved variables: if a variable is moved in ANY path, consider it moved
+        // This is the conservative approach - "worst case" analysis
+        for moved_var in &other.moved_variables {
+            self.moved_variables.insert(moved_var.clone());
+        }
+
+        // For active borrows: keep borrows that exist in BOTH paths
+        // This ensures we don't have false conflicts after control flow merge
+        let mut merged_borrows = HashMap::new();
+        for (var_name, self_borrows) in &self.active_borrows {
+            if let Some(other_borrows) = other.active_borrows.get(var_name) {
+                // Keep borrows that exist in both paths
+                let mut common_borrows = Vec::new();
+                for self_borrow in self_borrows {
+                    for other_borrow in other_borrows {
+                        // If the same borrow exists in both paths, keep it
+                        if self_borrow.borrow_kind == other_borrow.borrow_kind &&
+                           self_borrow.path == other_borrow.path &&
+                           self_borrow.scope_depth == other_borrow.scope_depth {
+                            common_borrows.push(self_borrow.clone());
+                            break;
+                        }
+                    }
+                }
+                if !common_borrows.is_empty() {
+                    merged_borrows.insert(var_name.clone(), common_borrows);
+                }
+            }
+        }
+        self.active_borrows = merged_borrows;
+
+        // For variables to destroy: merge both sets
+        for (var_name, destroy_info) in &other.variables_to_destroy {
+            self.variables_to_destroy.insert(var_name.clone(), destroy_info.clone());
+        }
+    }
 }
 
 impl OwnershipAnalyzer {
@@ -532,11 +581,59 @@ impl OwnershipAnalyzer {
                 }
             }
 
+            Statement::If(if_stmt) => {
+                // Control flow analysis for if statements (Expert recommendation: Priority 2)
+                self.analyze_if_statement_ownership(if_stmt)?;
+            }
+
             _ => {
                 // Other statements not yet implemented
             }
         }
 
+        Ok(())
+    }
+
+    /// Analyze if statement with control flow merging (Expert recommendation: Priority 2)
+    pub fn analyze_if_statement_ownership(&mut self, if_stmt: &IfStatement) -> Result<(), SemanticError> {
+        // Analyze condition
+        self.analyze_expression(&if_stmt.condition)?;
+
+        // Clone current state before analyzing branches
+        let initial_state = self.borrow_check_state.clone_state();
+
+        // Analyze then branch
+        self.enter_scope();
+        self.analyze_block_ownership(&if_stmt.then_block)?;
+        let then_state = self.borrow_check_state.clone_state();
+        self.exit_scope();
+
+        // Restore initial state and analyze else branch (if exists)
+        self.borrow_check_state = initial_state.clone();
+        let else_state = if let Some(else_block) = &if_stmt.else_block {
+            self.enter_scope();
+            self.analyze_block_ownership(else_block)?;
+            let state = self.borrow_check_state.clone_state();
+            self.exit_scope();
+            state
+        } else {
+            // If no else branch, the "else" state is the initial state
+            initial_state.clone()
+        };
+
+        // Merge the states from both branches (Expert recommendation: "worst case" analysis)
+        self.borrow_check_state = initial_state;
+        self.borrow_check_state.merge_states(&then_state);
+        self.borrow_check_state.merge_states(&else_state);
+
+        Ok(())
+    }
+
+    /// Analyze a block for ownership (helper method)
+    pub fn analyze_block_ownership(&mut self, block: &Block) -> Result<(), SemanticError> {
+        for stmt in &block.statements {
+            self.analyze_statement(stmt)?;
+        }
         Ok(())
     }
 }

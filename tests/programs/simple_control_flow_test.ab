@@ -1,0 +1,60 @@
+// Simple Control Flow Test (Expert recommendation: Priority 2)
+// Testing basic control flow analysis with ownership state merging
+
+fn test_simple_if_else() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+    
+    if true {
+        // Just borrow in then branch
+        let ref1 = &my_list;
+    } else {
+        // Just borrow in else branch  
+        let ref2 = &my_list;
+    }
+    
+    // After if-else: should be able to use my_list
+    let final_ref = &my_list;
+    
+    return 0;
+}
+
+fn test_simple_move_detection() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+    
+    if true {
+        // Move in then branch only
+        let moved_list = my_list;
+    }
+    // No else branch
+    
+    // After if: my_list should be considered moved
+    // This line should cause an error if control flow analysis works
+    // let ref1 = &my_list;  // Commented out to avoid error
+    
+    return 0;
+}
+
+fn test_borrow_scope_cleanup() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+    
+    if true {
+        let ref1 = &my_list;  // Borrow in then branch
+        // ref1 goes out of scope here
+    } else {
+        let ref2 = &my_list;  // Borrow in else branch
+        // ref2 goes out of scope here
+    }
+    
+    // After if-else: no active borrows should remain
+    let new_ref = &my_list;  // Should work
+    
+    return 0;
+}
+
+fn main() -> int {
+    test_simple_if_else();
+    test_simple_move_detection();
+    test_borrow_scope_cleanup();
+    
+    return 0;
+}

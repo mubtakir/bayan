@@ -593,21 +593,35 @@ impl SemanticAnalyzer {
                 Ok(AnnotatedStatement::Match(annotated_match))
             }
             Statement::If(if_stmt) => {
-                // For now, treat if statements as expressions
-                let _condition = self.analyze_expression(&if_stmt.condition)?;
-                let _then_block = self.analyze_block(&if_stmt.then_block)?;
-                let _else_block = if let Some(ref else_block) = if_stmt.else_block {
+                // Enhanced if statement analysis with control flow (Expert recommendation: Priority 2)
+                let condition = self.analyze_expression(&if_stmt.condition)?;
+
+                // Ensure condition is boolean
+                if !matches!(condition.result_type, ResolvedType::Bool) {
+                    return Err(SemanticError::TypeMismatch {
+                        expected: ResolvedType::Bool,
+                        found: condition.result_type,
+                    });
+                }
+
+                // Analyze if statement with control flow merging in ownership analyzer
+                self.ownership_analyzer.analyze_if_statement_ownership(if_stmt)?;
+
+                // Analyze blocks for semantic correctness
+                let then_block = self.analyze_block(&if_stmt.then_block)?;
+                let else_block = if let Some(ref else_block) = if_stmt.else_block {
                     Some(self.analyze_block(else_block)?)
                 } else {
                     None
                 };
 
-                // Create a dummy expression for the if statement
-                let if_expr = AnnotatedExpression {
-                    result_type: ResolvedType::Int, // Placeholder
-                    expr: AnnotatedExpressionKind::Literal(Literal::Integer(0)),
+                // Create annotated if statement
+                let annotated_if = AnnotatedIfStatement {
+                    condition,
+                    then_block,
+                    else_block,
                 };
-                Ok(AnnotatedStatement::Expression(if_expr))
+                Ok(AnnotatedStatement::If(annotated_if))
             }
             Statement::While(while_stmt) => {
                 // For now, treat while statements as expressions
@@ -1730,6 +1744,7 @@ pub enum AnnotatedStatement {
     Return(AnnotatedReturnStatement),
     Expression(AnnotatedExpression),
     Match(AnnotatedMatchStatement),
+    If(AnnotatedIfStatement), // Expert recommendation: Priority 2 - Control flow analysis
 }
 
 #[derive(Debug, Clone)]
@@ -1755,6 +1770,14 @@ pub struct AnnotatedMatchStatement {
     pub expression: AnnotatedExpression,
     pub arms: Vec<AnnotatedMatchArm>,
     pub result_type: ResolvedType, // Type of the match expression/statement
+}
+
+/// Annotated if statement with control flow analysis (Expert recommendation: Priority 2)
+#[derive(Debug, Clone)]
+pub struct AnnotatedIfStatement {
+    pub condition: AnnotatedExpression,
+    pub then_block: AnnotatedBlock,
+    pub else_block: Option<AnnotatedBlock>,
 }
 
 #[derive(Debug, Clone)]
