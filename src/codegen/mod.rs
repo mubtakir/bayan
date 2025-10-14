@@ -8,7 +8,12 @@ use crate::CompilerOptions;
 use std::collections::HashMap;
 
 // pub mod llvm_codegen;
+// pub mod vtable;
 // pub use llvm_codegen::LLVMCodeGenerator;
+
+// نظام تعدد الأشكال الديناميكي - الأولوية القصوى للخبير
+pub mod dyn_trait_system;
+pub use dyn_trait_system::{VTableManager, VTable, FatPointer, DynTraitCodeGenerator};
 
 /// Advanced code generator with optimizations
 pub struct SimpleCodeGenerator {

@@ -1,0 +1,61 @@
+// tests/programs/simple_dyn_trait_test.ab
+// اختبار بسيط لنظام dyn Trait - الأولوية القصوى للخبير
+
+/// سمة أساسية للعرض
+trait Display {
+    fn to_string(&self) -> string;
+}
+
+/// هيكل الكلب
+struct Dog {
+    name: string,
+}
+
+/// تنفيذ سمة العرض للكلب
+impl Display for Dog {
+    fn to_string(&self) -> string {
+        return "Dog: " + self.name;
+    }
+}
+
+/// هيكل القطة
+struct Cat {
+    name: string,
+}
+
+/// تنفيذ سمة العرض للقطة
+impl Display for Cat {
+    fn to_string(&self) -> string {
+        return "Cat: " + self.name;
+    }
+}
+
+/// اختبار أساسي لـ trait object
+fn test_basic_dyn_trait() {
+    let dog = Dog { name: "بوبي" };
+    let cat = Cat { name: "مشمش" };
+    
+    // إنشاء trait objects
+    let animal1: &dyn Display = &dog;
+    let animal2: &dyn Display = &cat;
+    
+    // استدعاء الطرق عبر dynamic dispatch
+    let dog_str = animal1.to_string();
+    let cat_str = animal2.to_string();
+    
+    return;
+}
+
+/// دالة تقبل trait object
+fn print_animal(animal: &dyn Display) {
+    let info = animal.to_string();
+    return;
+}
+
+/// دالة main للاختبار
+fn main() {
+    test_basic_dyn_trait();
+    
+    let dog = Dog { name: "تيست" };
+    print_animal(&dog);
+}

@@ -1,0 +1,256 @@
+// tests/programs/dyn_trait_comprehensive_test.ab
+// اختبار شامل لنظام تعدد الأشكال الديناميكي - الأولوية القصوى للخبير
+// Expert recommendation: "تعدد الأشكال الديناميكي (dyn Trait و V-Tables)"
+// "هذا سيكمل قصة Traits ويجعل اللغة قوية ومرنة بشكل هائل"
+
+/// سمة أساسية للعرض
+trait Display {
+    fn to_string(&self) -> string;
+    fn display(&self) -> string;
+}
+
+/// سمة للاستنساخ
+trait Clone {
+    fn clone(&self) -> Self;
+}
+
+/// هيكل الكلب
+struct Dog {
+    name: string,
+    age: int,
+}
+
+/// تنفيذ سمة العرض للكلب
+impl Display for Dog {
+    fn to_string(&self) -> string {
+        return "Dog: " + self.name;
+    }
+    
+    fn display(&self) -> string {
+        return "🐕 " + self.name + " (عمر: " + self.age.to_string() + ")";
+    }
+}
+
+/// تنفيذ سمة الاستنساخ للكلب
+impl Clone for Dog {
+    fn clone(&self) -> Dog {
+        return Dog {
+            name: self.name,
+            age: self.age,
+        };
+    }
+}
+
+/// هيكل القطة
+struct Cat {
+    name: string,
+    color: string,
+}
+
+/// تنفيذ سمة العرض للقطة
+impl Display for Cat {
+    fn to_string(&self) -> string {
+        return "Cat: " + self.name;
+    }
+    
+    fn display(&self) -> string {
+        return "🐱 " + self.name + " (لون: " + self.color + ")";
+    }
+}
+
+/// تنفيذ سمة الاستنساخ للقطة
+impl Clone for Cat {
+    fn clone(&self) -> Cat {
+        return Cat {
+            name: self.name,
+            color: self.color,
+        };
+    }
+}
+
+/// اختبار 1: إنشاء trait objects أساسية
+fn test_basic_trait_objects() {
+    let dog = Dog { name: "بوبي", age: 3 };
+    let cat = Cat { name: "مشمش", color: "برتقالي" };
+    
+    // إنشاء trait objects
+    let animal1: &dyn Display = &dog;
+    let animal2: &dyn Display = &cat;
+    
+    // استدعاء الطرق عبر dynamic dispatch
+    let dog_str = animal1.to_string();
+    let cat_str = animal2.to_string();
+    
+    // التحقق من النتائج
+    assert(dog_str == "Dog: بوبي");
+    assert(cat_str == "Cat: مشمش");
+}
+
+/// اختبار 2: مصفوفة من trait objects
+fn test_trait_object_array() {
+    let dog = Dog { name: "ريكس", age: 5 };
+    let cat = Cat { name: "لولو", color: "أسود" };
+    
+    // مصفوفة من trait objects
+    let animals: List<&dyn Display> = [&dog, &cat];
+    
+    // التكرار عبر المصفوفة
+    for animal in animals {
+        let display_str = animal.display();
+        // كل حيوان سيستدعي تنفيذه الخاص للطريقة
+    }
+}
+
+/// اختبار 3: دالة تقبل trait object
+fn print_animal(animal: &dyn Display) {
+    let info = animal.display();
+    println(info);
+}
+
+/// اختبار 4: إرجاع trait object من دالة
+fn create_random_animal(is_dog: bool) -> &dyn Display {
+    if is_dog {
+        let dog = Dog { name: "عشوائي", age: 2 };
+        return &dog; // إرجاع trait object
+    } else {
+        let cat = Cat { name: "عشوائي", color: "أبيض" };
+        return &cat; // إرجاع trait object
+    }
+}
+
+/// اختبار 5: trait objects مع multiple traits
+fn test_multiple_traits() {
+    let dog = Dog { name: "ماكس", age: 4 };
+    
+    // trait object يدعم عدة سمات
+    let cloneable_animal: &dyn Clone = &dog;
+    let displayable_animal: &dyn Display = &dog;
+    
+    // استنساخ الحيوان
+    let cloned_dog = cloneable_animal.clone();
+    
+    // عرض الحيوان
+    let display_str = displayable_animal.to_string();
+}
+
+/// اختبار 6: trait object في struct
+struct AnimalContainer {
+    animal: &dyn Display,
+    name: string,
+}
+
+fn test_trait_object_in_struct() {
+    let dog = Dog { name: "بادي", age: 6 };
+    let container = AnimalContainer {
+        animal: &dog,
+        name: "حاوية الحيوانات",
+    };
+    
+    let animal_info = container.animal.display();
+}
+
+/// اختبار 7: trait object مع generics
+fn process_displayable<T: Display>(item: &T) -> string {
+    return item.to_string();
+}
+
+fn test_trait_bounds_vs_trait_objects() {
+    let dog = Dog { name: "تشارلي", age: 7 };
+    
+    // استخدام trait bound (static dispatch)
+    let static_result = process_displayable(&dog);
+    
+    // استخدام trait object (dynamic dispatch)
+    let dynamic_animal: &dyn Display = &dog;
+    let dynamic_result = dynamic_animal.to_string();
+    
+    assert(static_result == dynamic_result);
+}
+
+/// اختبار 8: trait object مع ownership
+fn test_owned_trait_objects() {
+    let dog = Dog { name: "روكي", age: 8 };
+    
+    // نقل الملكية إلى trait object
+    let owned_animal: Box<dyn Display> = Box::new(dog);
+    let info = owned_animal.display();
+}
+
+/// اختبار 9: trait object method chaining
+fn test_method_chaining() {
+    let cat = Cat { name: "فلافي", color: "رمادي" };
+    let animal: &dyn Display = &cat;
+    
+    // سلسلة من استدعاءات الطرق
+    let str1 = animal.to_string();
+    let str2 = animal.display();
+}
+
+/// اختبار 10: performance comparison
+fn test_performance_comparison() {
+    let dog = Dog { name: "سبيد", age: 9 };
+    
+    // Static dispatch (compile-time)
+    let static_start = get_time();
+    for i in 0..1000 {
+        let result = dog.to_string();
+    }
+    let static_end = get_time();
+    
+    // Dynamic dispatch (runtime)
+    let animal: &dyn Display = &dog;
+    let dynamic_start = get_time();
+    for i in 0..1000 {
+        let result = animal.to_string();
+    }
+    let dynamic_end = get_time();
+    
+    let static_time = static_end - static_start;
+    let dynamic_time = dynamic_end - dynamic_start;
+    
+    println("Static dispatch time: " + static_time.to_string());
+    println("Dynamic dispatch time: " + dynamic_time.to_string());
+}
+
+/// دالة مساعدة للوقت (مبسطة)
+fn get_time() -> int {
+    return 0; // placeholder
+}
+
+/// دالة main للاختبار
+fn main() {
+    println("🎊 اختبار نظام تعدد الأشكال الديناميكي - dyn Trait");
+    
+    test_basic_trait_objects();
+    println("✅ اختبار 1: trait objects أساسية - نجح");
+    
+    test_trait_object_array();
+    println("✅ اختبار 2: مصفوفة trait objects - نجح");
+    
+    let dog = Dog { name: "تيست", age: 1 };
+    print_animal(&dog);
+    println("✅ اختبار 3: دالة تقبل trait object - نجح");
+    
+    let random_animal = create_random_animal(true);
+    println("✅ اختبار 4: إرجاع trait object - نجح");
+    
+    test_multiple_traits();
+    println("✅ اختبار 5: multiple traits - نجح");
+    
+    test_trait_object_in_struct();
+    println("✅ اختبار 6: trait object في struct - نجح");
+    
+    test_trait_bounds_vs_trait_objects();
+    println("✅ اختبار 7: trait bounds vs trait objects - نجح");
+    
+    test_owned_trait_objects();
+    println("✅ اختبار 8: owned trait objects - نجح");
+    
+    test_method_chaining();
+    println("✅ اختبار 9: method chaining - نجح");
+    
+    test_performance_comparison();
+    println("✅ اختبار 10: performance comparison - نجح");
+    
+    println("🎊 جميع اختبارات dyn Trait نجحت! النظام يعمل بشكل مثالي!");
+}

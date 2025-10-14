@@ -13,6 +13,7 @@ use anyhow::{Result, anyhow};
 use crate::parser::ast::*;
 use crate::semantic::{AnnotatedProgram, AnnotatedExpression, AnnotatedExpressionKind, AnnotatedStatement, ResolvedType};
 use crate::CompilerOptions;
+use crate::codegen::vtable::{VTableManager, VTable, TraitObjectUtils, FatPointer};
 
 /// LLVM Code Generator for AlBayan language
 pub struct LLVMCodeGenerator<'ctx> {
@@ -42,6 +43,9 @@ pub struct LLVMCodeGenerator<'ctx> {
 
     // V-Table mappings (Expert recommendation: Priority 1 - Dynamic Dispatch)
     vtables: HashMap<String, PointerValue<'ctx>>, // trait_type_key -> vtable_global
+
+    // V-Table manager for dynamic dispatch (Expert recommendation: Priority 1)
+    vtable_manager: VTableManager,
 }
 
 impl<'ctx> LLVMCodeGenerator<'ctx> {
@@ -73,6 +77,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             type_cache: HashMap::new(),
             struct_field_indices: HashMap::new(),
             vtables: HashMap::new(),
+            vtable_manager: VTableManager::new(),
         })
     }
 
@@ -86,6 +91,19 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                 }
                 AnnotatedItem::Struct(struct_def) => {
                     self.declare_struct(struct_def)?;
+                }
+                AnnotatedItem::Trait(trait_decl) => {
+                    // Register trait methods for V-Table generation (Expert recommendation: Priority 1)
+                    let method_names: Vec<String> = trait_decl.methods.iter()
+                        .map(|method| method.name.clone())
+                        .collect();
+                    self.vtable_manager.register_trait_methods(&trait_decl.name, method_names);
+                }
+                AnnotatedItem::Impl(impl_decl) => {
+                    // Generate V-Table for trait implementation (Expert recommendation: Priority 1)
+                    if let Some(trait_name) = &impl_decl.trait_name {
+                        self.generate_impl_vtable(trait_name, impl_decl)?;
+                    }
                 }
                 _ => {} // Handle other items as needed
             }
@@ -2490,14 +2508,156 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
 
     /// Get method index in trait vtable (Expert recommendation: Priority 1)
     fn get_trait_method_index(&self, trait_name: &str, method_name: &str) -> Result<usize> {
-        // For now, return a simple index based on method name
-        // In a full implementation, this would look up the trait definition
-        // and return the actual method index
-        match method_name {
-            "to_string" => Ok(0),
-            "display" => Ok(1),
-            "clone" => Ok(2),
-            _ => Ok(0), // Default to first method
+        // Use V-Table manager for consistent method ordering
+        if let Some(index) = self.vtable_manager.get_method_index(trait_name, method_name) {
+            Ok(index)
+        } else {
+            // Fallback for unknown methods
+            match method_name {
+                "to_string" => Ok(0),
+                "display" => Ok(1),
+                "clone" => Ok(2),
+                _ => Ok(0), // Default to first method
+            }
         }
+    }
+
+    /// Generate V-Table for trait implementation (Expert recommendation: Priority 1)
+    pub fn generate_vtable(
+        &mut self,
+        trait_name: &str,
+        implementing_type: &ResolvedType,
+        method_implementations: HashMap<String, FunctionValue<'ctx>>,
+    ) -> Result<PointerValue<'ctx>> {
+        // Create V-Table in the V-Table manager
+        let vtable = self.vtable_manager.create_vtable(
+            trait_name,
+            implementing_type,
+            // Convert lifetimes - this is a simplification for now
+            method_implementations.into_iter()
+                .map(|(k, v)| (k, unsafe { std::mem::transmute(v) }))
+                .collect()
+        ).map_err(|e| anyhow!("Failed to create V-Table: {}", e))?;
+
+        // Generate LLVM V-Table structure
+        let vtable_type = self.get_vtable_type(trait_name)?;
+        let vtable_global = self.module.add_global(vtable_type, None, &format!("vtable_{}_{}",
+            trait_name,
+            self.vtable_manager.type_to_string(implementing_type)
+        ));
+
+        // Create V-Table entries array
+        let mut vtable_entries = Vec::new();
+        for entry in &vtable.entries {
+            if let Some(function_ptr) = entry.function_ptr {
+                // Cast function to generic pointer
+                let generic_ptr = self.builder.build_bitcast(
+                    function_ptr,
+                    self.context.i8_type().ptr_type(AddressSpace::default()),
+                    &format!("vtable_entry_{}", entry.method_name)
+                )?;
+                vtable_entries.push(generic_ptr.into());
+            } else {
+                // Null pointer for unimplemented methods
+                vtable_entries.push(
+                    self.context.i8_type().ptr_type(AddressSpace::default()).const_null().into()
+                );
+            }
+        }
+
+        // Create V-Table constant
+        let vtable_array_type = self.context.i8_type().ptr_type(AddressSpace::default()).array_type(vtable_entries.len() as u32);
+        let vtable_constant = vtable_array_type.const_array(&vtable_entries);
+
+        vtable_global.set_initializer(&vtable_constant);
+        vtable_global.set_constant(true);
+
+        // Store V-Table reference
+        let vtable_key = format!("{}_{}", trait_name, self.vtable_manager.type_to_string(implementing_type));
+        self.vtables.insert(vtable_key, vtable_global.as_pointer_value());
+
+        Ok(vtable_global.as_pointer_value())
+    }
+
+    /// Get LLVM type for V-Table (Expert recommendation: Priority 1)
+    fn get_vtable_type(&self, trait_name: &str) -> Result<inkwell::types::ArrayType<'ctx>> {
+        // Get method count for this trait
+        let method_count = if let Some(methods) = self.vtable_manager.trait_method_order.get(trait_name) {
+            methods.len()
+        } else {
+            3 // Default method count
+        };
+
+        // V-Table is an array of function pointers
+        let function_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+        Ok(function_ptr_type.array_type(method_count as u32))
+    }
+
+    /// Create trait object from concrete value (Expert recommendation: Priority 1)
+    pub fn create_trait_object(
+        &mut self,
+        concrete_value: PointerValue<'ctx>,
+        concrete_type: &ResolvedType,
+        trait_name: &str,
+    ) -> Result<BasicValueEnum<'ctx>> {
+        // Get V-Table for this trait implementation
+        let vtable_key = format!("{}_{}", trait_name, self.vtable_manager.type_to_string(concrete_type));
+        let vtable_ptr = self.vtables.get(&vtable_key)
+            .ok_or_else(|| anyhow!("V-Table not found for {} implementing {}",
+                self.vtable_manager.type_to_string(concrete_type), trait_name))?;
+
+        // Create fat pointer structure
+        let data_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+        let vtable_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+
+        let fat_pointer_type = self.context.struct_type(
+            &[data_ptr_type.into(), vtable_ptr_type.into()],
+            false
+        );
+
+        // Cast concrete value to generic data pointer
+        let data_ptr = self.builder.build_bitcast(
+            concrete_value,
+            data_ptr_type,
+            "trait_object_data"
+        )?;
+
+        // Cast V-Table to generic pointer
+        let vtable_generic_ptr = self.builder.build_bitcast(
+            *vtable_ptr,
+            vtable_ptr_type,
+            "trait_object_vtable"
+        )?;
+
+        // Create fat pointer
+        let fat_pointer = fat_pointer_type.const_named_struct(&[
+            data_ptr.into(),
+            vtable_generic_ptr.into()
+        ]);
+
+        Ok(fat_pointer.into())
+    }
+
+    /// Generate V-Table for impl block (Expert recommendation: Priority 1)
+    fn generate_impl_vtable(
+        &mut self,
+        trait_name: &str,
+        impl_decl: &AnnotatedImpl,
+    ) -> Result<()> {
+        // Resolve implementing type
+        let implementing_type = ResolvedType::Struct(impl_decl.type_name.clone()); // Simplified
+
+        // Collect method implementations
+        let mut method_implementations = HashMap::new();
+        for method in &impl_decl.methods {
+            // Generate the method function first
+            let function_value = self.generate_function(method)?;
+            method_implementations.insert(method.name.clone(), function_value);
+        }
+
+        // Generate V-Table
+        self.generate_vtable(trait_name, &implementing_type, method_implementations)?;
+
+        Ok(())
     }
 }

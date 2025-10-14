@@ -16,11 +16,16 @@ pub use symbol_table::{SymbolTable, StructFieldInfo, FunctionInfo};
 pub use type_checker::TypeChecker;
 pub use ownership::{OwnershipAnalyzer, DestroyInfo, BorrowKind};
 
+// نظام تعدد الأشكال الديناميكي - الأولوية القصوى للخبير
+use crate::codegen::{VTableManager, DynTraitCodeGenerator};
+
 /// Main semantic analyzer
 pub struct SemanticAnalyzer {
     symbol_table: SymbolTable,
     type_checker: TypeChecker,
     ownership_analyzer: OwnershipAnalyzer,
+    // نظام تعدد الأشكال الديناميكي - الأولوية القصوى للخبير
+    dyn_trait_codegen: DynTraitCodeGenerator,
     options: CompilerOptions,
     errors: Vec<SemanticError>,
 }
@@ -32,6 +37,8 @@ impl SemanticAnalyzer {
             symbol_table: SymbolTable::new(),
             type_checker: TypeChecker::new(),
             ownership_analyzer: OwnershipAnalyzer::new(),
+            // نظام تعدد الأشكال الديناميكي - الأولوية القصوى للخبير
+            dyn_trait_codegen: DynTraitCodeGenerator::new(),
             options: options.clone(),
             errors: Vec::new(),
         }
@@ -318,6 +325,15 @@ impl SemanticAnalyzer {
         // Enter trait scope for generic parameters (Expert recommendation: Priority 1)
         self.symbol_table.enter_scope();
 
+        // تسجيل السمة في نظام dyn Trait - الأولوية القصوى للخبير
+        if let Err(e) = self.dyn_trait_codegen.process_trait_declaration(&AnnotatedTrait {
+            name: trait_decl.name.clone(),
+            generic_params: None, // سيتم تحديثه لاحقاً
+            methods: Vec::new(),  // سيتم تحديثه لاحقاً
+        }) {
+            return Err(SemanticError::UndefinedType(format!("Failed to process trait: {}", e)));
+        }
+
         // Add generic parameters to scope (Expert recommendation: Priority 1)
         let generic_params = if let Some(generics) = &trait_decl.generic_params {
             for generic in generics {
@@ -425,12 +441,21 @@ impl SemanticAnalyzer {
         // Exit impl scope
         self.symbol_table.exit_scope();
 
-        Ok(AnnotatedImpl {
+        let annotated_impl = AnnotatedImpl {
             trait_name: impl_decl.trait_name.clone(),
             type_name: impl_decl.type_name.clone(),
             generic_params,
             methods: annotated_methods,
-        })
+        };
+
+        // معالجة تنفيذ السمة في نظام dyn Trait - الأولوية القصوى للخبير
+        if let Some(ref trait_name) = impl_decl.trait_name {
+            if let Err(e) = self.dyn_trait_codegen.process_impl_declaration(&annotated_impl, trait_name) {
+                return Err(SemanticError::UndefinedType(format!("Failed to process impl: {}", e)));
+            }
+        }
+
+        Ok(annotated_impl)
     }
 
     /// Analyze generic parameters (Expert recommendation: Priority 1)

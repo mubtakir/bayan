@@ -1,0 +1,20 @@
+// tests/programs/simple_trait_test.ab
+// اختبار أساسي للسمات بدون self - الأولوية القصوى للخبير
+
+trait Display {
+    fn to_string() -> string;
+}
+
+struct Dog {
+    name: string,
+}
+
+impl Display for Dog {
+    fn to_string() -> string {
+        return "Dog";
+    }
+}
+
+fn main() {
+    let dog = Dog { name: "بوبي" };
+}

@@ -1,0 +1,10 @@
+// tests/programs/minimal_trait_test.ab
+// اختبار أساسي للسمات - الأولوية القصوى للخبير
+
+trait Display {
+    fn to_string() -> string;
+}
+
+fn main() {
+    // اختبار أساسي
+}
