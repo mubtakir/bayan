@@ -1,0 +1,23 @@
+// Minimal AI Test (Expert recommendation: Priority 1)
+// Test basic AI functionality
+
+using std::ai;
+
+fn main() {
+    println("=== Minimal AI Test ===");
+    
+    // Test tensor literals (already working)
+    println("Testing tensor literals...");
+    let tensor_a = tensor [[1.0, 2.0], [3.0, 4.0]];
+    let tensor_b = tensor [[5.0, 6.0], [7.0, 8.0]];
+    let tensor_sum = tensor_a + tensor_b;
+    println("Tensor literals working!");
+    
+    // Test tensor operations
+    println("Testing tensor operations...");
+    let tensor_product = tensor_a * tensor_b;
+    let tensor_diff = tensor_b - tensor_a;
+    println("Tensor operations working!");
+    
+    println("=== Minimal AI Test Passed! ===");
+}

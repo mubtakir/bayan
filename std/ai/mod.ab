@@ -1,8 +1,15 @@
 // std::ai - AI Module for AlBayan Language
-// Expert recommendation: Priority 1 - AI Integration
+// Expert recommendation: Priority 1 - High-level API for AI
 
 // Core AI types and functions
 module ai;
+
+// Import high-level AI modules (Expert specification)
+using std::ai::nn;
+using std::ai::optimizers;
+using std::ai::losses;
+using std::ai::training;
+using std::ai::tensors;
 
 // External FFI declarations for ONNX Runtime
 extern "C" {
@@ -66,7 +73,7 @@ impl Model {
             input_handles.as_ptr(),
             input_handles.len()
         );
-        
+
         if handle == 0 {
             Err("Prediction failed")
         } else {
@@ -91,7 +98,7 @@ impl Tensor {
             shape.len(),
             name.as_ptr()
         );
-        
+
         Tensor {
             handle,
             shape,
@@ -110,7 +117,7 @@ impl Tensor {
         let rows = data.len() as int;
         let cols = if rows > 0 { data[0].len() as int } else { 0 };
         let shape = [rows, cols];
-        
+
         let flat_data: List<float> = data.flatten();
         Tensor::new(flat_data, shape.to_list(), name)
     }
@@ -176,16 +183,16 @@ fn tensor_2d(data: List<List<float>>, name: string) -> Tensor {
 fn example_mnist(model_path: string, image_data: List<float>) -> Result<int, string> {
     // Initialize AI runtime
     init()?;
-    
+
     // Load model
     let model = load_model(model_path)?;
-    
+
     // Create input tensor (28x28 image)
     let input_tensor = tensor_1d(image_data, "input");
-    
+
     // Run prediction
     let output = model.predict([input_tensor])?;
-    
+
     // In a real implementation, we'd extract the prediction result
     // For now, return a placeholder
     Ok(0)
@@ -198,23 +205,23 @@ fn example_image_classification(
 ) -> Result<string, string> {
     // Initialize AI runtime
     init()?;
-    
+
     // Load model
     let model = load_model(model_path)?;
-    
+
     // Flatten image data for tensor creation
     let flat_data: List<float> = image_data.flatten().flatten();
     let height = image_data.len() as int;
     let width = if height > 0 { image_data[0].len() as int } else { 0 };
     let channels = if width > 0 { image_data[0][0].len() as int } else { 0 };
-    
+
     // Create input tensor (batch_size=1, channels, height, width)
     let shape = [1, channels, height, width];
     let input_tensor = tensor(flat_data, shape.to_list(), "image_input");
-    
+
     // Run prediction
     let output = model.predict([input_tensor])?;
-    
+
     // In a real implementation, we'd extract the class name
     // For now, return a placeholder
     Ok("unknown")
@@ -227,19 +234,19 @@ fn example_text_processing(
 ) -> Result<List<float>, string> {
     // Initialize AI runtime
     init()?;
-    
+
     // Load model
     let model = load_model(model_path)?;
-    
+
     // Convert tokens to float for tensor
     let token_data: List<float> = text_tokens.map(|token| token as float);
-    
+
     // Create input tensor
     let input_tensor = tensor_1d(token_data, "text_input");
-    
+
     // Run prediction
     let output = model.predict([input_tensor])?;
-    
+
     // In a real implementation, we'd extract the embeddings/predictions
     // For now, return a placeholder
     Ok([0.0])

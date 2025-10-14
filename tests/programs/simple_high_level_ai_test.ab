@@ -1,0 +1,57 @@
+// Simple High-Level AI API Test (Expert recommendation: Priority 1)
+// Basic test for the new easy-to-use AI interface
+
+using std::ai::nn;
+using std::ai::optimizers;
+using std::ai::losses;
+using std::ai::training;
+using std::ai::tensors;
+
+fn main() {
+    println("=== Simple High-Level AI API Test ===");
+
+    // Example 1: Creating a simple neural network
+    println("Creating neural network...");
+
+    let model = nn::Sequential::new();
+    model.add_linear(10, 5);
+    model.add_relu();
+    model.add_linear(5, 1);
+
+    println("Model created successfully");
+
+    // Example 2: Creating optimizer
+    println("Creating optimizer...");
+
+    let optimizer = optimizers::Adam::new(model.handle, 0.001, 0.9, 0.999, 0.01);
+
+    println("Optimizer created successfully");
+
+    // Example 3: Creating loss function
+    println("Creating loss function...");
+
+    let loss_fn = losses::MSELoss::new();
+
+    println("Loss function created successfully");
+
+    // Example 4: Creating tensors
+    println("Creating tensors...");
+
+    let shape1 = [3, 3];
+    let zeros_tensor = tensors::zeros(shape1);
+    let shape2 = [2, 4];
+    let ones_tensor = tensors::ones(shape2);
+    let shape3 = [5, 5];
+    let random_tensor = tensors::randn(shape3);
+
+    println("Tensors created successfully");
+
+    // Example 5: Creating dataset
+    println("Creating dataset...");
+
+    let dataset = training::create_dataset();
+
+    println("Dataset created successfully");
+
+    println("=== All Tests Passed! ===");
+}

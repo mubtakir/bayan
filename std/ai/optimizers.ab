@@ -1,0 +1,339 @@
+// std::ai::optimizers - Optimizers Module for AlBayan Language
+// Expert recommendation: Priority 1 - High-level API for AI
+
+module optimizers;
+
+// Import core AI types
+using std::ai::{TorchOptimizerHandle, TorchModelHandle};
+
+// External FFI declarations for PyTorch Optimizers
+extern "C" {
+    // Optimizer creation functions
+    fn albayan_rt_optimizer_sgd_create(
+        model_handle: TorchModelHandle,
+        learning_rate: f64,
+        momentum: f64,
+        weight_decay: f64
+    ) -> TorchOptimizerHandle;
+    
+    fn albayan_rt_optimizer_adam_create(
+        model_handle: TorchModelHandle,
+        learning_rate: f64,
+        beta1: f64,
+        beta2: f64,
+        weight_decay: f64
+    ) -> TorchOptimizerHandle;
+    
+    fn albayan_rt_optimizer_adamw_create(
+        model_handle: TorchModelHandle,
+        learning_rate: f64,
+        beta1: f64,
+        beta2: f64,
+        weight_decay: f64
+    ) -> TorchOptimizerHandle;
+    
+    fn albayan_rt_optimizer_rmsprop_create(
+        model_handle: TorchModelHandle,
+        learning_rate: f64,
+        alpha: f64,
+        momentum: f64,
+        weight_decay: f64
+    ) -> TorchOptimizerHandle;
+    
+    // Optimizer operations
+    fn albayan_rt_optimizer_step(optimizer_handle: TorchOptimizerHandle);
+    fn albayan_rt_optimizer_zero_grad(optimizer_handle: TorchOptimizerHandle);
+    fn albayan_rt_optimizer_set_learning_rate(
+        optimizer_handle: TorchOptimizerHandle,
+        learning_rate: f64
+    );
+    fn albayan_rt_optimizer_get_learning_rate(
+        optimizer_handle: TorchOptimizerHandle
+    ) -> f64;
+}
+
+// High-level optimizer types (Expert specification)
+
+// SGD (Stochastic Gradient Descent) optimizer
+struct SGD {
+    handle: TorchOptimizerHandle;
+    learning_rate: f64;
+    momentum: f64;
+    weight_decay: f64;
+}
+
+impl SGD {
+    // Create new SGD optimizer
+    fn new(
+        model: TorchModelHandle,
+        learning_rate: f64,
+        momentum: f64,
+        weight_decay: f64
+    ) -> SGD {
+        let handle = albayan_rt_optimizer_sgd_create(
+            model,
+            learning_rate,
+            momentum,
+            weight_decay
+        );
+        SGD {
+            handle,
+            learning_rate,
+            momentum,
+            weight_decay,
+        }
+    }
+    
+    // Perform optimization step
+    fn step(self) {
+        albayan_rt_optimizer_step(self.handle);
+    }
+    
+    // Zero gradients
+    fn zero_grad(self) {
+        albayan_rt_optimizer_zero_grad(self.handle);
+    }
+    
+    // Set learning rate
+    fn set_learning_rate(mut self, learning_rate: f64) {
+        self.learning_rate = learning_rate;
+        albayan_rt_optimizer_set_learning_rate(self.handle, learning_rate);
+    }
+    
+    // Get learning rate
+    fn learning_rate(self) -> f64 {
+        albayan_rt_optimizer_get_learning_rate(self.handle)
+    }
+}
+
+// Adam optimizer
+struct Adam {
+    handle: TorchOptimizerHandle;
+    learning_rate: f64;
+    beta1: f64;
+    beta2: f64;
+    weight_decay: f64;
+}
+
+impl Adam {
+    // Create new Adam optimizer
+    fn new(
+        model: TorchModelHandle,
+        learning_rate: f64,
+        beta1: f64,
+        beta2: f64,
+        weight_decay: f64
+    ) -> Adam {
+        let handle = albayan_rt_optimizer_adam_create(
+            model,
+            learning_rate,
+            beta1,
+            beta2,
+            weight_decay
+        );
+        Adam {
+            handle,
+            learning_rate,
+            beta1,
+            beta2,
+            weight_decay,
+        }
+    }
+    
+    // Perform optimization step
+    fn step(self) {
+        albayan_rt_optimizer_step(self.handle);
+    }
+    
+    // Zero gradients
+    fn zero_grad(self) {
+        albayan_rt_optimizer_zero_grad(self.handle);
+    }
+    
+    // Set learning rate
+    fn set_learning_rate(mut self, learning_rate: f64) {
+        self.learning_rate = learning_rate;
+        albayan_rt_optimizer_set_learning_rate(self.handle, learning_rate);
+    }
+    
+    // Get learning rate
+    fn learning_rate(self) -> f64 {
+        albayan_rt_optimizer_get_learning_rate(self.handle)
+    }
+}
+
+// AdamW optimizer
+struct AdamW {
+    handle: TorchOptimizerHandle;
+    learning_rate: f64;
+    beta1: f64;
+    beta2: f64;
+    weight_decay: f64;
+}
+
+impl AdamW {
+    // Create new AdamW optimizer
+    fn new(
+        model: TorchModelHandle,
+        learning_rate: f64,
+        beta1: f64,
+        beta2: f64,
+        weight_decay: f64
+    ) -> AdamW {
+        let handle = albayan_rt_optimizer_adamw_create(
+            model,
+            learning_rate,
+            beta1,
+            beta2,
+            weight_decay
+        );
+        AdamW {
+            handle,
+            learning_rate,
+            beta1,
+            beta2,
+            weight_decay,
+        }
+    }
+    
+    // Perform optimization step
+    fn step(self) {
+        albayan_rt_optimizer_step(self.handle);
+    }
+    
+    // Zero gradients
+    fn zero_grad(self) {
+        albayan_rt_optimizer_zero_grad(self.handle);
+    }
+    
+    // Set learning rate
+    fn set_learning_rate(mut self, learning_rate: f64) {
+        self.learning_rate = learning_rate;
+        albayan_rt_optimizer_set_learning_rate(self.handle, learning_rate);
+    }
+    
+    // Get learning rate
+    fn learning_rate(self) -> f64 {
+        albayan_rt_optimizer_get_learning_rate(self.handle)
+    }
+}
+
+// RMSprop optimizer
+struct RMSprop {
+    handle: TorchOptimizerHandle;
+    learning_rate: f64;
+    alpha: f64;
+    momentum: f64;
+    weight_decay: f64;
+}
+
+impl RMSprop {
+    // Create new RMSprop optimizer
+    fn new(
+        model: TorchModelHandle,
+        learning_rate: f64,
+        alpha: f64,
+        momentum: f64,
+        weight_decay: f64
+    ) -> RMSprop {
+        let handle = albayan_rt_optimizer_rmsprop_create(
+            model,
+            learning_rate,
+            alpha,
+            momentum,
+            weight_decay
+        );
+        RMSprop {
+            handle,
+            learning_rate,
+            alpha,
+            momentum,
+            weight_decay,
+        }
+    }
+    
+    // Perform optimization step
+    fn step(self) {
+        albayan_rt_optimizer_step(self.handle);
+    }
+    
+    // Zero gradients
+    fn zero_grad(self) {
+        albayan_rt_optimizer_zero_grad(self.handle);
+    }
+    
+    // Set learning rate
+    fn set_learning_rate(mut self, learning_rate: f64) {
+        self.learning_rate = learning_rate;
+        albayan_rt_optimizer_set_learning_rate(self.handle, learning_rate);
+    }
+    
+    // Get learning rate
+    fn learning_rate(self) -> f64 {
+        albayan_rt_optimizer_get_learning_rate(self.handle)
+    }
+}
+
+// Public API functions (Expert recommendation)
+
+// Create SGD optimizer with default parameters
+fn SGD(model: TorchModelHandle, learning_rate: f64) -> SGD {
+    SGD::new(model, learning_rate, 0.0, 0.0)
+}
+
+// Create SGD optimizer with momentum
+fn SGDWithMomentum(
+    model: TorchModelHandle,
+    learning_rate: f64,
+    momentum: f64
+) -> SGD {
+    SGD::new(model, learning_rate, momentum, 0.0)
+}
+
+// Create Adam optimizer with default parameters
+fn Adam(model: TorchModelHandle, learning_rate: f64) -> Adam {
+    Adam::new(model, learning_rate, 0.9, 0.999, 0.0)
+}
+
+// Create Adam optimizer with custom parameters
+fn AdamCustom(
+    model: TorchModelHandle,
+    learning_rate: f64,
+    beta1: f64,
+    beta2: f64,
+    weight_decay: f64
+) -> Adam {
+    Adam::new(model, learning_rate, beta1, beta2, weight_decay)
+}
+
+// Create AdamW optimizer with default parameters
+fn AdamW(model: TorchModelHandle, learning_rate: f64) -> AdamW {
+    AdamW::new(model, learning_rate, 0.9, 0.999, 0.01)
+}
+
+// Create AdamW optimizer with custom parameters
+fn AdamWCustom(
+    model: TorchModelHandle,
+    learning_rate: f64,
+    beta1: f64,
+    beta2: f64,
+    weight_decay: f64
+) -> AdamW {
+    AdamW::new(model, learning_rate, beta1, beta2, weight_decay)
+}
+
+// Create RMSprop optimizer with default parameters
+fn RMSprop(model: TorchModelHandle, learning_rate: f64) -> RMSprop {
+    RMSprop::new(model, learning_rate, 0.99, 0.0, 0.0)
+}
+
+// Create RMSprop optimizer with custom parameters
+fn RMSpropCustom(
+    model: TorchModelHandle,
+    learning_rate: f64,
+    alpha: f64,
+    momentum: f64,
+    weight_decay: f64
+) -> RMSprop {
+    RMSprop::new(model, learning_rate, alpha, momentum, weight_decay)
+}

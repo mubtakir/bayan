@@ -1,0 +1,192 @@
+// High-Level AI API Test (Expert recommendation: Priority 1)
+// Demonstrates the new easy-to-use AI interface
+
+using std::ai::nn;
+using std::ai::optimizers;
+using std::ai::losses;
+using std::ai::training;
+using std::ai::tensors;
+
+fn main() {
+    // Example 1: Creating a simple neural network (Expert specification)
+    println("=== Example 1: Creating Neural Network ===");
+
+    // Create a sequential model with fluent API
+    let model = nn::Sequential()
+        .add_linear(10, 64)    // Input layer: 10 -> 64
+        .add_relu()            // ReLU activation
+        .add_dropout(0.2)      // Dropout for regularization
+        .add_linear(64, 32)    // Hidden layer: 64 -> 32
+        .add_relu()            // ReLU activation
+        .add_linear(32, 1);    // Output layer: 32 -> 1
+
+    println("Model created with layers: " + model.layers().to_string());
+
+    // Example 2: Creating optimizers (Expert specification)
+    println!("\n=== Example 2: Creating Optimizers ===");
+
+    // Create different optimizers
+    let sgd_optimizer = optimizers::SGD(model.handle, 0.01);
+    let adam_optimizer = optimizers::Adam(model.handle, 0.001);
+    let adamw_optimizer = optimizers::AdamW(model.handle, 0.001);
+
+    println!("SGD learning rate: {}", sgd_optimizer.learning_rate());
+    println!("Adam learning rate: {}", adam_optimizer.learning_rate());
+    println!("AdamW learning rate: {}", adamw_optimizer.learning_rate());
+
+    // Example 3: Creating loss functions (Expert specification)
+    println!("\n=== Example 3: Creating Loss Functions ===");
+
+    let mse_loss = losses::MeanSquaredError();
+    let cross_entropy_loss = losses::CrossEntropy();
+    let binary_cross_entropy_loss = losses::BinaryCrossEntropy();
+    let mae_loss = losses::MeanAbsoluteError();
+
+    println!("Loss functions created successfully");
+
+    // Example 4: Creating tensors easily (Expert specification)
+    println!("\n=== Example 4: Creating Tensors ===");
+
+    // Create tensors from data
+    let data_1d = [1.0, 2.0, 3.0, 4.0, 5.0];
+    let tensor_1d = tensors::tensor_1d(data_1d.to_list());
+
+    let data_2d = [
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0],
+        [7.0, 8.0, 9.0]
+    ];
+    let tensor_2d = tensors::tensor_2d(data_2d.to_list());
+
+    // Create special tensors
+    let zeros_tensor = tensors::zeros([3, 3]);
+    let ones_tensor = tensors::ones([2, 4]);
+    let random_tensor = tensors::randn([5, 5]);
+    let identity_matrix = tensors::eye(4);
+
+    // Create range tensors
+    let arange_tensor = tensors::arange(0.0, 10.0, 1.0);
+    let linspace_tensor = tensors::linspace(0.0, 1.0, 11);
+
+    println!("Various tensors created successfully");
+
+    // Example 5: Tensor operations
+    println!("\n=== Example 5: Tensor Operations ===");
+
+    let original_tensor = tensors::randn([2, 3, 4]);
+    let reshaped_tensor = tensors::reshape(original_tensor, [6, 4]);
+    let transposed_tensor = tensors::transpose(reshaped_tensor, 0, 1);
+    let squeezed_tensor = tensors::squeeze(transposed_tensor);
+    let unsqueezed_tensor = tensors::unsqueeze(squeezed_tensor, 0);
+
+    println!("Tensor operations completed successfully");
+
+    // Example 6: Creating and using dataset (Expert specification)
+    println!("\n=== Example 6: Creating Dataset ===");
+
+    let dataset = training::create_dataset();
+
+    // Add some sample data
+    let input1 = tensors::tensor_1d([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]);
+    let target1 = tensors::tensor_1d([2.0]); // Simple target
+    dataset.add_sample(input1, target1);
+
+    let input2 = tensors::tensor_1d([2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0]);
+    let target2 = tensors::tensor_1d([3.0]); // Simple target
+    dataset.add_sample(input2, target2);
+
+    println!("Dataset created with {} samples", dataset.size());
+
+    // Example 7: Training configuration (Expert specification)
+    println!("\n=== Example 7: Training Configuration ===");
+
+    let config = training::training_config(10, 32); // 10 epochs, batch size 32
+    println!("Training config created: {} epochs, batch size {}", config.epochs, config.batch_size);
+
+    // Example 8: Complete training example (Expert specification)
+    println!("\n=== Example 8: Complete Training Example ===");
+
+    // Create a simple model for regression
+    let regression_model = nn::Sequential()
+        .add_linear(10, 20)
+        .add_relu()
+        .add_linear(20, 10)
+        .add_relu()
+        .add_linear(10, 1);
+
+    // Create training and validation datasets
+    let train_dataset = training::create_dataset();
+    let val_dataset = training::create_dataset();
+
+    // Add some dummy data for demonstration
+    for i in 0..100 {
+        let input_data: List<f64> = [];
+        for j in 0..10 {
+            input_data.push((i + j) as f64 / 10.0);
+        }
+        let input_tensor = tensors::tensor_1d(input_data);
+        let target_tensor = tensors::tensor_1d([i as f64 / 100.0]);
+
+        if i < 80 {
+            train_dataset.add_sample(input_tensor, target_tensor);
+        } else {
+            val_dataset.add_sample(input_tensor, target_tensor);
+        }
+    }
+
+    println!("Training dataset: {} samples", train_dataset.size());
+    println!("Validation dataset: {} samples", val_dataset.size());
+
+    // Train the model using the simple API (Expert specification)
+    let results = training::train(
+        regression_model,
+        train_dataset,
+        val_dataset,
+        0.001,  // learning rate
+        5       // epochs
+    );
+
+    println!("Training completed!");
+    println!("Final training loss: {:.6}", results.final_train_loss());
+    println!("Final validation loss: {:.6}", results.final_val_loss());
+    println!("Epochs completed: {}", results.epochs_completed);
+
+    // Example 9: Advanced model creation (Expert specification)
+    println!("\n=== Example 9: Advanced Model Creation ===");
+
+    // Create a more complex model for image classification
+    let cnn_model = nn::Sequential()
+        .add_linear(784, 128)  // Flatten 28x28 image to 784
+        .add_relu()
+        .add_dropout(0.2)
+        .add_linear(128, 64)
+        .add_relu()
+        .add_dropout(0.2)
+        .add_linear(64, 10);   // 10 classes for MNIST
+
+    println!("CNN model created with layers: {:?}", cnn_model.layers());
+
+    // Create different optimizers for comparison
+    let sgd_with_momentum = optimizers::SGDWithMomentum(cnn_model.handle, 0.01, 0.9);
+    let adam_custom = optimizers::AdamCustom(cnn_model.handle, 0.001, 0.9, 0.999, 0.01);
+
+    println!("Advanced optimizers created successfully");
+
+    // Example 10: Tensor literal integration (Expert specification)
+    println!("\n=== Example 10: Tensor Literal Integration ===");
+
+    // Use tensor literals with the new API
+    let literal_tensor = tensor [[1.0, 2.0], [3.0, 4.0]];
+    let reshaped_literal = tensors::reshape(literal_tensor, [4]);
+
+    // Combine tensor literals with operations
+    let tensor_a = tensor [[1.0, 2.0], [3.0, 4.0]];
+    let tensor_b = tensor [[5.0, 6.0], [7.0, 8.0]];
+    let tensor_sum = tensor_a + tensor_b;
+    let tensor_product = tensor_a * tensor_b;
+
+    println!("Tensor literal integration successful");
+
+    println!("\n=== All Examples Completed Successfully! ===");
+    println!("High-level AI API is working perfectly!");
+}

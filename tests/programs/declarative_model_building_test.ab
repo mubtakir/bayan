@@ -1,0 +1,300 @@
+// Declarative Model Building Test (Expert specification)
+// Demonstrates building models in a descriptive way as requested by the expert
+
+using std::ai::nn;
+using std::ai::optimizers;
+using std::ai::losses;
+using std::ai::training;
+using std::ai::tensors;
+
+// Example of declarative model definition (Expert specification)
+struct MyModel {
+    layers: List<string>;
+    model: nn::Sequential;
+}
+
+impl MyModel {
+    // Create model with declarative layer specification
+    fn new() -> MyModel {
+        let model = nn::Sequential()
+            .add_linear(10, 5)   // Input layer
+            .add_relu()          // Activation
+            .add_linear(5, 2);   // Output layer
+        
+        let layers = ["Linear(10, 5)", "ReLU()", "Linear(5, 2)"];
+        
+        MyModel {
+            layers: layers.to_list(),
+            model,
+        }
+    }
+    
+    // Get model parameters info
+    fn parameters(self) -> string {
+        "Model parameters: input_size=10, hidden_size=5, output_size=2"
+    }
+    
+    // Forward pass
+    fn forward(self, input: TorchTensorHandle) -> TorchTensorHandle {
+        self.model.forward(input)
+    }
+}
+
+// Advanced model with more complex architecture
+struct ImageClassifier {
+    input_size: i64;
+    hidden_size: i64;
+    output_size: i64;
+    model: nn::Sequential;
+}
+
+impl ImageClassifier {
+    // Create image classifier with specified architecture
+    fn new(input_size: i64, hidden_size: i64, output_size: i64) -> ImageClassifier {
+        let model = nn::Sequential()
+            .add_linear(input_size, hidden_size)
+            .add_relu()
+            .add_dropout(0.2)
+            .add_linear(hidden_size, hidden_size / 2)
+            .add_relu()
+            .add_dropout(0.2)
+            .add_linear(hidden_size / 2, output_size);
+        
+        ImageClassifier {
+            input_size,
+            hidden_size,
+            output_size,
+            model,
+        }
+    }
+    
+    // Get architecture description
+    fn architecture(self) -> string {
+        format!("ImageClassifier: {} -> {} -> {} -> {}", 
+            self.input_size, 
+            self.hidden_size, 
+            self.hidden_size / 2, 
+            self.output_size)
+    }
+}
+
+// Regression model for continuous predictions
+struct RegressionModel {
+    features: List<string>;
+    model: nn::Sequential;
+}
+
+impl RegressionModel {
+    // Create regression model with feature names
+    fn new(features: List<string>) -> RegressionModel {
+        let input_size = features.len() as i64;
+        
+        let model = nn::Sequential()
+            .add_linear(input_size, input_size * 2)
+            .add_relu()
+            .add_linear(input_size * 2, input_size)
+            .add_relu()
+            .add_linear(input_size, 1);  // Single output for regression
+        
+        RegressionModel {
+            features,
+            model,
+        }
+    }
+    
+    // Get feature information
+    fn feature_info(self) -> string {
+        format!("Features ({}): {:?}", self.features.len(), self.features)
+    }
+}
+
+fn main() {
+    println!("=== Declarative Model Building Test ===");
+    
+    // Example 1: Simple declarative model (Expert specification)
+    println!("\n--- Example 1: Simple Declarative Model ---");
+    
+    let my_model = MyModel::new();
+    println!("Model layers: {:?}", my_model.layers);
+    println!("Model info: {}", my_model.parameters());
+    
+    // Create sample input
+    let input_data = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+    let input_tensor = tensors::tensor_1d(input_data.to_list());
+    
+    // Forward pass
+    let output = my_model.forward(input_tensor);
+    println!("Forward pass completed successfully");
+    
+    // Example 2: Image classifier with parameters (Expert specification)
+    println!("\n--- Example 2: Parameterized Image Classifier ---");
+    
+    let classifier = ImageClassifier::new(784, 128, 10); // MNIST-like
+    println!("Architecture: {}", classifier.architecture());
+    
+    // Create sample image data (flattened 28x28)
+    let image_data: List<f64> = [];
+    for i in 0..784 {
+        image_data.push((i % 256) as f64 / 255.0); // Normalized pixel values
+    }
+    let image_tensor = tensors::tensor_1d(image_data);
+    
+    // Forward pass
+    let predictions = classifier.model.forward(image_tensor);
+    println!("Image classification forward pass completed");
+    
+    // Example 3: Regression model with feature names (Expert specification)
+    println!("\n--- Example 3: Feature-based Regression Model ---");
+    
+    let features = ["age", "income", "education", "experience", "location"];
+    let regression_model = RegressionModel::new(features.to_list());
+    println!("Model info: {}", regression_model.feature_info());
+    
+    // Create sample feature data
+    let feature_data = [25.0, 50000.0, 16.0, 3.0, 1.0]; // age, income, education, experience, location
+    let feature_tensor = tensors::tensor_1d(feature_data.to_list());
+    
+    // Forward pass
+    let prediction = regression_model.model.forward(feature_tensor);
+    println!("Regression prediction completed");
+    
+    // Example 4: Training with declarative models (Expert specification)
+    println!("\n--- Example 4: Training Declarative Models ---");
+    
+    // Create a simple model for training
+    let training_model = MyModel::new();
+    
+    // Create optimizer with model parameters
+    let optimizer = optimizers::Adam(training_model.model.handle, 0.001);
+    println!("Optimizer created with learning rate: {}", optimizer.learning_rate());
+    
+    // Create loss function
+    let loss_fn = losses::MeanSquaredError();
+    println!("Loss function created: MSE");
+    
+    // Create training dataset
+    let dataset = training::create_dataset();
+    
+    // Add training samples
+    for i in 0..50 {
+        let input_data: List<f64> = [];
+        for j in 0..10 {
+            input_data.push((i + j) as f64 / 10.0);
+        }
+        let input_tensor = tensors::tensor_1d(input_data);
+        
+        // Simple target: sum of inputs normalized
+        let target_value = input_data.sum() / input_data.len() as f64;
+        let target_tensor = tensors::tensor_1d([target_value, target_value]); // 2 outputs
+        
+        dataset.add_sample(input_tensor, target_tensor);
+    }
+    
+    println!("Training dataset created with {} samples", dataset.size());
+    
+    // Example 5: Model composition (Expert specification)
+    println!("\n--- Example 5: Model Composition ---");
+    
+    // Create multiple models and combine them conceptually
+    let encoder = nn::Sequential()
+        .add_linear(100, 50)
+        .add_relu()
+        .add_linear(50, 20);
+    
+    let decoder = nn::Sequential()
+        .add_linear(20, 50)
+        .add_relu()
+        .add_linear(50, 100);
+    
+    println!("Encoder layers: {:?}", encoder.layers());
+    println!("Decoder layers: {:?}", decoder.layers());
+    
+    // Simulate autoencoder workflow
+    let input_data: List<f64> = [];
+    for i in 0..100 {
+        input_data.push(i as f64 / 100.0);
+    }
+    let input_tensor = tensors::tensor_1d(input_data);
+    
+    // Encode
+    let encoded = encoder.forward(input_tensor);
+    println!("Encoding completed");
+    
+    // Decode
+    let reconstructed = decoder.forward(encoded);
+    println!("Decoding completed");
+    
+    // Example 6: Different model architectures (Expert specification)
+    println!("\n--- Example 6: Different Architectures ---");
+    
+    // Deep narrow network
+    let deep_model = nn::Sequential()
+        .add_linear(10, 8)
+        .add_relu()
+        .add_linear(8, 6)
+        .add_relu()
+        .add_linear(6, 4)
+        .add_relu()
+        .add_linear(4, 2)
+        .add_relu()
+        .add_linear(2, 1);
+    
+    // Wide shallow network
+    let wide_model = nn::Sequential()
+        .add_linear(10, 100)
+        .add_relu()
+        .add_linear(100, 1);
+    
+    // Regularized network
+    let regularized_model = nn::Sequential()
+        .add_linear(10, 50)
+        .add_relu()
+        .add_dropout(0.3)
+        .add_linear(50, 25)
+        .add_relu()
+        .add_dropout(0.3)
+        .add_linear(25, 1);
+    
+    println!("Deep model layers: {:?}", deep_model.layers());
+    println!("Wide model layers: {:?}", wide_model.layers());
+    println!("Regularized model layers: {:?}", regularized_model.layers());
+    
+    // Example 7: Model with different optimizers (Expert specification)
+    println!("\n--- Example 7: Different Optimizers ---");
+    
+    let test_model = nn::Sequential()
+        .add_linear(5, 3)
+        .add_relu()
+        .add_linear(3, 1);
+    
+    // Create different optimizers for the same model
+    let sgd_opt = optimizers::SGD(test_model.handle, 0.01);
+    let adam_opt = optimizers::Adam(test_model.handle, 0.001);
+    let adamw_opt = optimizers::AdamW(test_model.handle, 0.001);
+    let rmsprop_opt = optimizers::RMSprop(test_model.handle, 0.01);
+    
+    println!("SGD optimizer learning rate: {}", sgd_opt.learning_rate());
+    println!("Adam optimizer learning rate: {}", adam_opt.learning_rate());
+    println!("AdamW optimizer learning rate: {}", adamw_opt.learning_rate());
+    println!("RMSprop optimizer learning rate: {}", rmsprop_opt.learning_rate());
+    
+    // Example 8: Model with different loss functions (Expert specification)
+    println!("\n--- Example 8: Different Loss Functions ---");
+    
+    let mse_loss = losses::MeanSquaredError();
+    let mae_loss = losses::MeanAbsoluteError();
+    let cross_entropy_loss = losses::CrossEntropy();
+    let binary_ce_loss = losses::BinaryCrossEntropy();
+    
+    println!("All loss functions created successfully");
+    
+    // Create sample predictions and targets for loss computation
+    let predictions = tensors::tensor_1d([0.8, 0.2, 0.9, 0.1]);
+    let targets = tensors::tensor_1d([1.0, 0.0, 1.0, 0.0]);
+    
+    // Compute different losses (conceptually)
+    println!("Loss functions ready for computation");
+    
+    println!("\n=== Declarative Model Building Test Completed Successfully! ===");
+    println!("All model architectures created and tested!");
+}

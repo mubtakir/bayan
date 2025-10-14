@@ -1,0 +1,304 @@
+// std::ai::losses - Loss Functions Module for AlBayan Language
+// Expert recommendation: Priority 1 - High-level API for AI
+
+module losses;
+
+// Import core AI types
+using std::ai::{TorchTensorHandle};
+
+// External FFI declarations for PyTorch Loss Functions
+extern "C" {
+    // Loss function creation
+    fn albayan_rt_loss_mse_create() -> usize;
+    fn albayan_rt_loss_cross_entropy_create() -> usize;
+    fn albayan_rt_loss_binary_cross_entropy_create() -> usize;
+    fn albayan_rt_loss_l1_create() -> usize;
+    fn albayan_rt_loss_smooth_l1_create() -> usize;
+    fn albayan_rt_loss_nll_create() -> usize;
+    fn albayan_rt_loss_kl_div_create() -> usize;
+    
+    // Loss computation
+    fn albayan_rt_loss_compute(
+        loss_handle: usize,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle;
+    
+    // Backward pass
+    fn albayan_rt_loss_backward(loss_tensor: TorchTensorHandle);
+}
+
+// High-level loss function types (Expert specification)
+
+// Mean Squared Error Loss
+struct MSELoss {
+    handle: usize;
+}
+
+impl MSELoss {
+    // Create new MSE loss
+    fn new() -> MSELoss {
+        let handle = albayan_rt_loss_mse_create();
+        MSELoss { handle }
+    }
+    
+    // Compute loss
+    fn compute(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        albayan_rt_loss_compute(self.handle, predictions, targets)
+    }
+    
+    // Forward and backward pass
+    fn forward_backward(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        let loss = self.compute(predictions, targets);
+        albayan_rt_loss_backward(loss);
+        loss
+    }
+}
+
+// Cross Entropy Loss
+struct CrossEntropyLoss {
+    handle: usize;
+}
+
+impl CrossEntropyLoss {
+    // Create new Cross Entropy loss
+    fn new() -> CrossEntropyLoss {
+        let handle = albayan_rt_loss_cross_entropy_create();
+        CrossEntropyLoss { handle }
+    }
+    
+    // Compute loss
+    fn compute(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        albayan_rt_loss_compute(self.handle, predictions, targets)
+    }
+    
+    // Forward and backward pass
+    fn forward_backward(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        let loss = self.compute(predictions, targets);
+        albayan_rt_loss_backward(loss);
+        loss
+    }
+}
+
+// Binary Cross Entropy Loss
+struct BinaryCrossEntropyLoss {
+    handle: usize;
+}
+
+impl BinaryCrossEntropyLoss {
+    // Create new Binary Cross Entropy loss
+    fn new() -> BinaryCrossEntropyLoss {
+        let handle = albayan_rt_loss_binary_cross_entropy_create();
+        BinaryCrossEntropyLoss { handle }
+    }
+    
+    // Compute loss
+    fn compute(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        albayan_rt_loss_compute(self.handle, predictions, targets)
+    }
+    
+    // Forward and backward pass
+    fn forward_backward(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        let loss = self.compute(predictions, targets);
+        albayan_rt_loss_backward(loss);
+        loss
+    }
+}
+
+// L1 Loss (Mean Absolute Error)
+struct L1Loss {
+    handle: usize;
+}
+
+impl L1Loss {
+    // Create new L1 loss
+    fn new() -> L1Loss {
+        let handle = albayan_rt_loss_l1_create();
+        L1Loss { handle }
+    }
+    
+    // Compute loss
+    fn compute(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        albayan_rt_loss_compute(self.handle, predictions, targets)
+    }
+    
+    // Forward and backward pass
+    fn forward_backward(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        let loss = self.compute(predictions, targets);
+        albayan_rt_loss_backward(loss);
+        loss
+    }
+}
+
+// Smooth L1 Loss (Huber Loss)
+struct SmoothL1Loss {
+    handle: usize;
+}
+
+impl SmoothL1Loss {
+    // Create new Smooth L1 loss
+    fn new() -> SmoothL1Loss {
+        let handle = albayan_rt_loss_smooth_l1_create();
+        SmoothL1Loss { handle }
+    }
+    
+    // Compute loss
+    fn compute(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        albayan_rt_loss_compute(self.handle, predictions, targets)
+    }
+    
+    // Forward and backward pass
+    fn forward_backward(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        let loss = self.compute(predictions, targets);
+        albayan_rt_loss_backward(loss);
+        loss
+    }
+}
+
+// Negative Log Likelihood Loss
+struct NLLLoss {
+    handle: usize;
+}
+
+impl NLLLoss {
+    // Create new NLL loss
+    fn new() -> NLLLoss {
+        let handle = albayan_rt_loss_nll_create();
+        NLLLoss { handle }
+    }
+    
+    // Compute loss
+    fn compute(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        albayan_rt_loss_compute(self.handle, predictions, targets)
+    }
+    
+    // Forward and backward pass
+    fn forward_backward(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        let loss = self.compute(predictions, targets);
+        albayan_rt_loss_backward(loss);
+        loss
+    }
+}
+
+// KL Divergence Loss
+struct KLDivLoss {
+    handle: usize;
+}
+
+impl KLDivLoss {
+    // Create new KL Divergence loss
+    fn new() -> KLDivLoss {
+        let handle = albayan_rt_loss_kl_div_create();
+        KLDivLoss { handle }
+    }
+    
+    // Compute loss
+    fn compute(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        albayan_rt_loss_compute(self.handle, predictions, targets)
+    }
+    
+    // Forward and backward pass
+    fn forward_backward(
+        self,
+        predictions: TorchTensorHandle,
+        targets: TorchTensorHandle
+    ) -> TorchTensorHandle {
+        let loss = self.compute(predictions, targets);
+        albayan_rt_loss_backward(loss);
+        loss
+    }
+}
+
+// Public API functions (Expert recommendation)
+
+// Create MSE loss function
+fn MeanSquaredError() -> MSELoss {
+    MSELoss::new()
+}
+
+// Create Cross Entropy loss function
+fn CrossEntropy() -> CrossEntropyLoss {
+    CrossEntropyLoss::new()
+}
+
+// Create Binary Cross Entropy loss function
+fn BinaryCrossEntropy() -> BinaryCrossEntropyLoss {
+    BinaryCrossEntropyLoss::new()
+}
+
+// Create L1 loss function (Mean Absolute Error)
+fn MeanAbsoluteError() -> L1Loss {
+    L1Loss::new()
+}
+
+// Create Smooth L1 loss function (Huber Loss)
+fn HuberLoss() -> SmoothL1Loss {
+    SmoothL1Loss::new()
+}
+
+// Create NLL loss function
+fn NegativeLogLikelihood() -> NLLLoss {
+    NLLLoss::new()
+}
+
+// Create KL Divergence loss function
+fn KLDivergence() -> KLDivLoss {
+    KLDivLoss::new()
+}
+
+// Utility function for backward pass
+fn backward(loss_tensor: TorchTensorHandle) {
+    albayan_rt_loss_backward(loss_tensor);
+}

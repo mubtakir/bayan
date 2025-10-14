@@ -1,0 +1,328 @@
+// std::ai::nn - Neural Networks Module for AlBayan Language
+// Expert recommendation: Priority 1 - High-level API for AI
+
+module nn;
+
+// Import core AI types
+using std::ai::{TensorHandle, TorchModelHandle, TorchTensorHandle};
+
+// External FFI declarations for PyTorch Neural Networks
+extern "C" {
+    // Layer creation functions
+    fn albayan_rt_nn_linear_create(input_size: i64, output_size: i64) -> TorchModelHandle;
+    fn albayan_rt_nn_relu_create() -> TorchModelHandle;
+    fn albayan_rt_nn_sigmoid_create() -> TorchModelHandle;
+    fn albayan_rt_nn_tanh_create() -> TorchModelHandle;
+    fn albayan_rt_nn_conv2d_create(
+        in_channels: i64,
+        out_channels: i64,
+        kernel_size: i64,
+        stride: i64,
+        padding: i64
+    ) -> TorchModelHandle;
+    fn albayan_rt_nn_maxpool2d_create(kernel_size: i64, stride: i64) -> TorchModelHandle;
+    fn albayan_rt_nn_dropout_create(probability: f64) -> TorchModelHandle;
+    fn albayan_rt_nn_batchnorm1d_create(num_features: i64) -> TorchModelHandle;
+    fn albayan_rt_nn_batchnorm2d_create(num_features: i64) -> TorchModelHandle;
+    
+    // Sequential model functions
+    fn albayan_rt_nn_sequential_create() -> TorchModelHandle;
+    fn albayan_rt_nn_sequential_add_layer(
+        sequential_handle: TorchModelHandle,
+        layer_handle: TorchModelHandle
+    );
+    
+    // Forward pass
+    fn albayan_rt_nn_forward(
+        model_handle: TorchModelHandle,
+        input_handle: TorchTensorHandle
+    ) -> TorchTensorHandle;
+}
+
+// High-level layer types (Expert specification)
+
+// Linear (Dense) layer
+struct Linear {
+    handle: TorchModelHandle;
+    input_size: i64;
+    output_size: i64;
+}
+
+impl Linear {
+    // Create new linear layer
+    fn new(input_size: i64, output_size: i64) -> Linear {
+        let handle = albayan_rt_nn_linear_create(input_size, output_size);
+        Linear {
+            handle,
+            input_size,
+            output_size,
+        }
+    }
+    
+    // Get input size
+    fn input_size(self) -> i64 {
+        self.input_size
+    }
+    
+    // Get output size
+    fn output_size(self) -> i64 {
+        self.output_size
+    }
+}
+
+// ReLU activation layer
+struct ReLU {
+    handle: TorchModelHandle;
+}
+
+impl ReLU {
+    // Create new ReLU layer
+    fn new() -> ReLU {
+        let handle = albayan_rt_nn_relu_create();
+        ReLU { handle }
+    }
+}
+
+// Sigmoid activation layer
+struct Sigmoid {
+    handle: TorchModelHandle;
+}
+
+impl Sigmoid {
+    // Create new Sigmoid layer
+    fn new() -> Sigmoid {
+        let handle = albayan_rt_nn_sigmoid_create();
+        Sigmoid { handle }
+    }
+}
+
+// Tanh activation layer
+struct Tanh {
+    handle: TorchModelHandle;
+}
+
+impl Tanh {
+    // Create new Tanh layer
+    fn new() -> Tanh {
+        let handle = albayan_rt_nn_tanh_create();
+        Tanh { handle }
+    }
+}
+
+// Conv2D layer
+struct Conv2D {
+    handle: TorchModelHandle;
+    in_channels: i64;
+    out_channels: i64;
+    kernel_size: i64;
+}
+
+impl Conv2D {
+    // Create new Conv2D layer
+    fn new(
+        in_channels: i64,
+        out_channels: i64,
+        kernel_size: i64,
+        stride: i64,
+        padding: i64
+    ) -> Conv2D {
+        let handle = albayan_rt_nn_conv2d_create(
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride,
+            padding
+        );
+        Conv2D {
+            handle,
+            in_channels,
+            out_channels,
+            kernel_size,
+        }
+    }
+}
+
+// MaxPool2D layer
+struct MaxPool2D {
+    handle: TorchModelHandle;
+    kernel_size: i64;
+}
+
+impl MaxPool2D {
+    // Create new MaxPool2D layer
+    fn new(kernel_size: i64, stride: i64) -> MaxPool2D {
+        let handle = albayan_rt_nn_maxpool2d_create(kernel_size, stride);
+        MaxPool2D {
+            handle,
+            kernel_size,
+        }
+    }
+}
+
+// Dropout layer
+struct Dropout {
+    handle: TorchModelHandle;
+    probability: f64;
+}
+
+impl Dropout {
+    // Create new Dropout layer
+    fn new(probability: f64) -> Dropout {
+        let handle = albayan_rt_nn_dropout_create(probability);
+        Dropout {
+            handle,
+            probability,
+        }
+    }
+}
+
+// BatchNorm1D layer
+struct BatchNorm1D {
+    handle: TorchModelHandle;
+    num_features: i64;
+}
+
+impl BatchNorm1D {
+    // Create new BatchNorm1D layer
+    fn new(num_features: i64) -> BatchNorm1D {
+        let handle = albayan_rt_nn_batchnorm1d_create(num_features);
+        BatchNorm1D {
+            handle,
+            num_features,
+        }
+    }
+}
+
+// BatchNorm2D layer
+struct BatchNorm2D {
+    handle: TorchModelHandle;
+    num_features: i64;
+}
+
+impl BatchNorm2D {
+    // Create new BatchNorm2D layer
+    fn new(num_features: i64) -> BatchNorm2D {
+        let handle = albayan_rt_nn_batchnorm2d_create(num_features);
+        BatchNorm2D {
+            handle,
+            num_features,
+        }
+    }
+}
+
+// Sequential model (Expert specification)
+struct Sequential {
+    handle: TorchModelHandle;
+    layers: List<string>; // Layer names for debugging
+}
+
+impl Sequential {
+    // Create new sequential model
+    fn new() -> Sequential {
+        let handle = albayan_rt_nn_sequential_create();
+        Sequential {
+            handle,
+            layers: [],
+        }
+    }
+    
+    // Add Linear layer
+    fn add_linear(mut self, input_size: i64, output_size: i64) -> Sequential {
+        let layer = Linear::new(input_size, output_size);
+        albayan_rt_nn_sequential_add_layer(self.handle, layer.handle);
+        self.layers.push("Linear");
+        self
+    }
+    
+    // Add ReLU layer
+    fn add_relu(mut self) -> Sequential {
+        let layer = ReLU::new();
+        albayan_rt_nn_sequential_add_layer(self.handle, layer.handle);
+        self.layers.push("ReLU");
+        self
+    }
+    
+    // Add Sigmoid layer
+    fn add_sigmoid(mut self) -> Sequential {
+        let layer = Sigmoid::new();
+        albayan_rt_nn_sequential_add_layer(self.handle, layer.handle);
+        self.layers.push("Sigmoid");
+        self
+    }
+    
+    // Add Dropout layer
+    fn add_dropout(mut self, probability: f64) -> Sequential {
+        let layer = Dropout::new(probability);
+        albayan_rt_nn_sequential_add_layer(self.handle, layer.handle);
+        self.layers.push("Dropout");
+        self
+    }
+    
+    // Forward pass
+    fn forward(self, input: TorchTensorHandle) -> TorchTensorHandle {
+        albayan_rt_nn_forward(self.handle, input)
+    }
+    
+    // Get layer names
+    fn layers(self) -> List<string> {
+        self.layers.clone()
+    }
+}
+
+// Public API functions (Expert recommendation)
+
+// Create Linear layer
+fn Linear(input_size: i64, output_size: i64) -> Linear {
+    Linear::new(input_size, output_size)
+}
+
+// Create ReLU activation
+fn ReLU() -> ReLU {
+    ReLU::new()
+}
+
+// Create Sigmoid activation
+fn Sigmoid() -> Sigmoid {
+    Sigmoid::new()
+}
+
+// Create Tanh activation
+fn Tanh() -> Tanh {
+    Tanh::new()
+}
+
+// Create Conv2D layer
+fn Conv2D(
+    in_channels: i64,
+    out_channels: i64,
+    kernel_size: i64,
+    stride: i64,
+    padding: i64
+) -> Conv2D {
+    Conv2D::new(in_channels, out_channels, kernel_size, stride, padding)
+}
+
+// Create MaxPool2D layer
+fn MaxPool2D(kernel_size: i64, stride: i64) -> MaxPool2D {
+    MaxPool2D::new(kernel_size, stride)
+}
+
+// Create Dropout layer
+fn Dropout(probability: f64) -> Dropout {
+    Dropout::new(probability)
+}
+
+// Create BatchNorm1D layer
+fn BatchNorm1D(num_features: i64) -> BatchNorm1D {
+    BatchNorm1D::new(num_features)
+}
+
+// Create BatchNorm2D layer
+fn BatchNorm2D(num_features: i64) -> BatchNorm2D {
+    BatchNorm2D::new(num_features)
+}
+
+// Create Sequential model
+fn Sequential() -> Sequential {
+    Sequential::new()
+}

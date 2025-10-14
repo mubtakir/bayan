@@ -1,0 +1,292 @@
+// std::ai::tensors - Tensor Utilities Module for AlBayan Language
+// Expert recommendation: Priority 1 - High-level API for AI
+
+module tensors;
+
+// Import core AI types
+using std::ai::{TorchTensorHandle};
+
+// External FFI declarations for PyTorch Tensors
+extern "C" {
+    // Tensor creation functions
+    fn albayan_rt_tensor_from_list_f64(
+        data: *const f64,
+        data_len: usize,
+        shape: *const i64,
+        shape_len: usize
+    ) -> TorchTensorHandle;
+    
+    fn albayan_rt_tensor_from_list_i64(
+        data: *const i64,
+        data_len: usize,
+        shape: *const i64,
+        shape_len: usize
+    ) -> TorchTensorHandle;
+    
+    fn albayan_rt_tensor_zeros(
+        shape: *const i64,
+        shape_len: usize
+    ) -> TorchTensorHandle;
+    
+    fn albayan_rt_tensor_ones(
+        shape: *const i64,
+        shape_len: usize
+    ) -> TorchTensorHandle;
+    
+    fn albayan_rt_tensor_randn(
+        shape: *const i64,
+        shape_len: usize
+    ) -> TorchTensorHandle;
+    
+    fn albayan_rt_tensor_rand(
+        shape: *const i64,
+        shape_len: usize
+    ) -> TorchTensorHandle;
+    
+    fn albayan_rt_tensor_eye(size: i64) -> TorchTensorHandle;
+    
+    fn albayan_rt_tensor_arange(
+        start: f64,
+        end: f64,
+        step: f64
+    ) -> TorchTensorHandle;
+    
+    fn albayan_rt_tensor_linspace(
+        start: f64,
+        end: f64,
+        steps: i64
+    ) -> TorchTensorHandle;
+    
+    // Tensor operations
+    fn albayan_rt_tensor_reshape(
+        tensor: TorchTensorHandle,
+        shape: *const i64,
+        shape_len: usize
+    ) -> TorchTensorHandle;
+    
+    fn albayan_rt_tensor_transpose(
+        tensor: TorchTensorHandle,
+        dim0: i64,
+        dim1: i64
+    ) -> TorchTensorHandle;
+    
+    fn albayan_rt_tensor_squeeze(tensor: TorchTensorHandle) -> TorchTensorHandle;
+    fn albayan_rt_tensor_unsqueeze(tensor: TorchTensorHandle, dim: i64) -> TorchTensorHandle;
+    
+    // Tensor information
+    fn albayan_rt_tensor_shape(
+        tensor: TorchTensorHandle,
+        shape_out: *mut i64,
+        max_dims: usize
+    ) -> usize; // Returns actual number of dimensions
+    
+    fn albayan_rt_tensor_size(tensor: TorchTensorHandle, dim: i64) -> i64;
+    fn albayan_rt_tensor_ndim(tensor: TorchTensorHandle) -> i64;
+    fn albayan_rt_tensor_numel(tensor: TorchTensorHandle) -> i64;
+}
+
+// High-level tensor creation functions (Expert specification)
+
+// Create tensor from float list with shape
+fn tensor_from_list(data: List<f64>, shape: List<i64>) -> TorchTensorHandle {
+    albayan_rt_tensor_from_list_f64(
+        data.as_ptr(),
+        data.len(),
+        shape.as_ptr(),
+        shape.len()
+    )
+}
+
+// Create tensor from integer list with shape
+fn tensor_from_int_list(data: List<i64>, shape: List<i64>) -> TorchTensorHandle {
+    albayan_rt_tensor_from_list_i64(
+        data.as_ptr(),
+        data.len(),
+        shape.as_ptr(),
+        shape.len()
+    )
+}
+
+// Create 1D tensor from float list
+fn tensor_1d(data: List<f64>) -> TorchTensorHandle {
+    let shape = [data.len() as i64];
+    tensor_from_list(data, shape.to_list())
+}
+
+// Create 2D tensor from nested float list
+fn tensor_2d(data: List<List<f64>>) -> TorchTensorHandle {
+    let rows = data.len() as i64;
+    let cols = if rows > 0 { data[0].len() as i64 } else { 0 };
+    let shape = [rows, cols];
+    
+    // Flatten the 2D data
+    let mut flat_data: List<f64> = [];
+    for row in data {
+        for value in row {
+            flat_data.push(value);
+        }
+    }
+    
+    tensor_from_list(flat_data, shape.to_list())
+}
+
+// Create 3D tensor from nested float list
+fn tensor_3d(data: List<List<List<f64>>>) -> TorchTensorHandle {
+    let dim0 = data.len() as i64;
+    let dim1 = if dim0 > 0 { data[0].len() as i64 } else { 0 };
+    let dim2 = if dim1 > 0 { data[0][0].len() as i64 } else { 0 };
+    let shape = [dim0, dim1, dim2];
+    
+    // Flatten the 3D data
+    let mut flat_data: List<f64> = [];
+    for matrix in data {
+        for row in matrix {
+            for value in row {
+                flat_data.push(value);
+            }
+        }
+    }
+    
+    tensor_from_list(flat_data, shape.to_list())
+}
+
+// Create tensor filled with zeros
+fn zeros(shape: List<i64>) -> TorchTensorHandle {
+    albayan_rt_tensor_zeros(shape.as_ptr(), shape.len())
+}
+
+// Create tensor filled with ones
+fn ones(shape: List<i64>) -> TorchTensorHandle {
+    albayan_rt_tensor_ones(shape.as_ptr(), shape.len())
+}
+
+// Create tensor with random normal distribution
+fn randn(shape: List<i64>) -> TorchTensorHandle {
+    albayan_rt_tensor_randn(shape.as_ptr(), shape.len())
+}
+
+// Create tensor with random uniform distribution [0, 1)
+fn rand(shape: List<i64>) -> TorchTensorHandle {
+    albayan_rt_tensor_rand(shape.as_ptr(), shape.len())
+}
+
+// Create identity matrix
+fn eye(size: i64) -> TorchTensorHandle {
+    albayan_rt_tensor_eye(size)
+}
+
+// Create tensor with evenly spaced values
+fn arange(start: f64, end: f64, step: f64) -> TorchTensorHandle {
+    albayan_rt_tensor_arange(start, end, step)
+}
+
+// Create tensor with linearly spaced values
+fn linspace(start: f64, end: f64, steps: i64) -> TorchTensorHandle {
+    albayan_rt_tensor_linspace(start, end, steps)
+}
+
+// Tensor manipulation functions (Expert specification)
+
+// Reshape tensor
+fn reshape(tensor: TorchTensorHandle, shape: List<i64>) -> TorchTensorHandle {
+    albayan_rt_tensor_reshape(tensor, shape.as_ptr(), shape.len())
+}
+
+// Transpose tensor
+fn transpose(tensor: TorchTensorHandle, dim0: i64, dim1: i64) -> TorchTensorHandle {
+    albayan_rt_tensor_transpose(tensor, dim0, dim1)
+}
+
+// Remove dimensions of size 1
+fn squeeze(tensor: TorchTensorHandle) -> TorchTensorHandle {
+    albayan_rt_tensor_squeeze(tensor)
+}
+
+// Add dimension of size 1
+fn unsqueeze(tensor: TorchTensorHandle, dim: i64) -> TorchTensorHandle {
+    albayan_rt_tensor_unsqueeze(tensor, dim)
+}
+
+// Get tensor shape
+fn shape(tensor: TorchTensorHandle) -> List<i64> {
+    let max_dims = 8; // Maximum supported dimensions
+    let mut shape_array: [i64; 8] = [0; 8];
+    let actual_dims = albayan_rt_tensor_shape(
+        tensor,
+        shape_array.as_mut_ptr(),
+        max_dims
+    );
+    
+    // Convert to list with actual dimensions
+    let mut result: List<i64> = [];
+    for i in 0..actual_dims {
+        result.push(shape_array[i]);
+    }
+    result
+}
+
+// Get size of specific dimension
+fn size(tensor: TorchTensorHandle, dim: i64) -> i64 {
+    albayan_rt_tensor_size(tensor, dim)
+}
+
+// Get number of dimensions
+fn ndim(tensor: TorchTensorHandle) -> i64 {
+    albayan_rt_tensor_ndim(tensor)
+}
+
+// Get total number of elements
+fn numel(tensor: TorchTensorHandle) -> i64 {
+    albayan_rt_tensor_numel(tensor)
+}
+
+// Convenience functions for common tensor operations
+
+// Create 2D zeros matrix
+fn zeros_2d(rows: i64, cols: i64) -> TorchTensorHandle {
+    zeros([rows, cols])
+}
+
+// Create 2D ones matrix
+fn ones_2d(rows: i64, cols: i64) -> TorchTensorHandle {
+    ones([rows, cols])
+}
+
+// Create 2D random normal matrix
+fn randn_2d(rows: i64, cols: i64) -> TorchTensorHandle {
+    randn([rows, cols])
+}
+
+// Create 2D random uniform matrix
+fn rand_2d(rows: i64, cols: i64) -> TorchTensorHandle {
+    rand([rows, cols])
+}
+
+// Create 3D zeros tensor
+fn zeros_3d(dim0: i64, dim1: i64, dim2: i64) -> TorchTensorHandle {
+    zeros([dim0, dim1, dim2])
+}
+
+// Create 3D ones tensor
+fn ones_3d(dim0: i64, dim1: i64, dim2: i64) -> TorchTensorHandle {
+    ones([dim0, dim1, dim2])
+}
+
+// Create 3D random normal tensor
+fn randn_3d(dim0: i64, dim1: i64, dim2: i64) -> TorchTensorHandle {
+    randn([dim0, dim1, dim2])
+}
+
+// Create 3D random uniform tensor
+fn rand_3d(dim0: i64, dim1: i64, dim2: i64) -> TorchTensorHandle {
+    rand([dim0, dim1, dim2])
+}
+
+// Create 4D tensor (common for image batches: batch_size, channels, height, width)
+fn zeros_4d(batch_size: i64, channels: i64, height: i64, width: i64) -> TorchTensorHandle {
+    zeros([batch_size, channels, height, width])
+}
+
+fn randn_4d(batch_size: i64, channels: i64, height: i64, width: i64) -> TorchTensorHandle {
+    randn([batch_size, channels, height, width])
+}
