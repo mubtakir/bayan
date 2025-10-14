@@ -1,0 +1,32 @@
+// اختبار بسيط لتتبع المسارات (Path Tracking)
+// Expert recommendation: Priority 1 - Path Tracking
+
+struct Point {
+    x: int;
+    y: int;
+}
+
+fn test_simple_field_borrowing() {
+    let point = Point { x: 10, y: 20 };
+    
+    // يجب أن يكون هذا مسموحاً - استعارة حقول مختلفة
+    let x_ref = &point.x;
+    let y_ref = &point.y;
+    
+    // استخدام المراجع
+    print(*x_ref);
+    print(*y_ref);
+}
+
+fn test_field_access() {
+    let point = Point { x: 10, y: 20 };
+    
+    // الوصول للحقول
+    print(point.x);
+    print(point.y);
+}
+
+fn main() {
+    test_simple_field_borrowing();
+    test_field_access();
+}

@@ -1,0 +1,110 @@
+// اختبار شامل لاستعارة الحقول على مستوى الحقل (Field-level Borrowing)
+// Expert recommendation: Priority 1 - Path Tracking
+
+struct Point {
+    x: int;
+    y: int;
+}
+
+struct Rectangle {
+    top_left: Point;
+    bottom_right: Point;
+}
+
+struct Container {
+    rect: Rectangle;
+    name: string;
+}
+
+fn test_simple_field_borrowing() {
+    let mut point = Point { x: 10, y: 20 };
+
+    // يجب أن يكون هذا مسموحاً - استعارة حقول مختلفة
+    let x_ref = &point.x;
+    let y_ref = &mut point.y;
+
+    // استخدام المراجع
+    print(*x_ref);
+    *y_ref = 30;
+}
+
+fn test_nested_field_borrowing() {
+    let mut container = Container {
+        rect: Rectangle {
+            top_left: Point { x: 0, y: 0 },
+            bottom_right: Point { x: 100, y: 100 }
+        },
+        name: "test"
+    };
+
+    // يجب أن يكون هذا مسموحاً - استعارة حقول متداخلة مختلفة
+    let x_ref = &container.rect.top_left.x;
+    let y_ref = &mut container.rect.bottom_right.y;
+    let name_ref = &container.name;
+
+    // استخدام المراجع
+    print(*x_ref);
+    *y_ref = 200;
+    print(name_ref);
+}
+
+fn test_conflicting_field_borrowing() {
+    let mut point = Point { x: 10, y: 20 };
+
+    // يجب أن يفشل هذا - استعارة نفس الحقل مرتين
+    let x_ref1 = &point.x;
+    let x_ref2 = &mut point.x; // خطأ: تعارض في الاستعارة
+
+    print(*x_ref1);
+    *x_ref2 = 30;
+}
+
+fn test_whole_struct_vs_field_borrowing() {
+    let mut point = Point { x: 10, y: 20 };
+
+    // يجب أن يفشل هذا - استعارة الهيكل كاملاً ثم حقل منه
+    let point_ref = &point;
+    let x_ref = &mut point.x; // خطأ: تعارض مع استعارة الهيكل كاملاً
+
+    print(point_ref.x);
+    *x_ref = 30;
+}
+
+fn test_field_borrowing_after_move() {
+    let point = Point { x: 10, y: 20 };
+
+    // نقل الهيكل
+    let moved_point = point;
+
+    // يجب أن يفشل هذا - محاولة استعارة حقل من متغير منقول
+    let x_ref = &point.x; // خطأ: استخدام بعد النقل
+
+    print(*x_ref);
+    print(moved_point.x);
+}
+
+fn test_independent_field_borrowing() {
+    let mut rect = Rectangle {
+        top_left: Point { x: 0, y: 0 },
+        bottom_right: Point { x: 100, y: 100 }
+    };
+
+    // يجب أن يكون هذا مسموحاً - استعارة حقول مستقلة
+    let top_x = &mut rect.top_left.x;
+    let bottom_y = &mut rect.bottom_right.y;
+    let top_y = &rect.top_left.y;
+
+    // تعديل القيم
+    *top_x = 10;
+    *bottom_y = 110;
+    print(*top_y);
+}
+
+fn main() {
+    test_simple_field_borrowing();
+    test_nested_field_borrowing();
+    // test_conflicting_field_borrowing(); // يجب أن يفشل
+    // test_whole_struct_vs_field_borrowing(); // يجب أن يفشل
+    // test_field_borrowing_after_move(); // يجب أن يفشل
+    test_independent_field_borrowing();
+}

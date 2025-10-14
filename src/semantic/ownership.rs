@@ -178,8 +178,22 @@ impl BorrowCheckState {
                 path1[..min_len] == path2[..min_len]
             }
 
-            // Mixed nested field cases (simplified for now)
-            _ => false,
+            // Variable vs nested field: variable borrow conflicts with any field access
+            (BorrowPath::Variable(var1), BorrowPath::NestedField(var2, _)) |
+            (BorrowPath::NestedField(var1, _), BorrowPath::Variable(var2)) => var1 == var2,
+
+            // Field vs nested field: check if field is part of the nested path
+            (BorrowPath::Field(var1, field1), BorrowPath::NestedField(var2, path2)) => {
+                if var1 != var2 { return false; }
+                // Check if the field is the first element of the nested path
+                path2.first().map_or(false, |first| first == field1)
+            }
+
+            (BorrowPath::NestedField(var1, path1), BorrowPath::Field(var2, field2)) => {
+                if var1 != var2 { return false; }
+                // Check if the field is the first element of the nested path
+                path1.first().map_or(false, |first| first == field2)
+            }
         }
     }
 
@@ -300,6 +314,33 @@ impl BorrowCheckState {
         // This is the conservative approach - "worst case" analysis
         for moved_var in &other.moved_variables {
             self.moved_variables.insert(moved_var.clone());
+        }
+
+        // For active borrows: merge borrows from both states
+        // If a borrow exists in either state, it should be active in the merged state
+        for (var_name, other_borrows) in &other.active_borrows {
+            let existing_borrows = self.active_borrows.entry(var_name.clone()).or_insert_with(Vec::new);
+
+            for other_borrow in other_borrows {
+                // Check if this borrow already exists
+                let borrow_exists = existing_borrows.iter().any(|existing| {
+                    existing.borrow_kind == other_borrow.borrow_kind &&
+                    existing.path == other_borrow.path &&
+                    existing.scope_depth == other_borrow.scope_depth
+                });
+
+                if !borrow_exists {
+                    existing_borrows.push(other_borrow.clone());
+                }
+            }
+        }
+
+        // For variables to destroy: merge destruction info
+        // Variables that need destruction in either state should be destroyed
+        for (var_name, destroy_info) in &other.variables_to_destroy {
+            if !self.variables_to_destroy.contains_key(var_name) {
+                self.variables_to_destroy.insert(var_name.clone(), destroy_info.clone());
+            }
         }
 
         // For active borrows: keep borrows that exist in BOTH paths
@@ -519,6 +560,123 @@ impl OwnershipAnalyzer {
         &mut self.borrow_check_state
     }
 
+    /// Add a field borrow (Expert recommendation: Priority 1 - Field-level borrowing)
+    pub fn add_field_borrow(&mut self, var_name: &str, field_name: &str, borrow_kind: BorrowKind) -> Result<(), SemanticError> {
+        self.borrow_check_state.add_field_borrow(var_name, field_name, borrow_kind, self.scope_depth)
+    }
+
+    /// Check if a field has active borrows (Expert recommendation: Priority 1)
+    pub fn has_field_borrow(&self, var_name: &str, field_name: &str) -> bool {
+        self.borrow_check_state.has_field_borrow(var_name, field_name)
+    }
+
+    /// Add a borrow with path (Expert recommendation: Priority 1)
+    pub fn add_borrow_with_path(&mut self, var_name: &str, borrow_kind: BorrowKind, path: BorrowPath) -> Result<(), SemanticError> {
+        self.borrow_check_state.add_borrow_with_path(var_name, borrow_kind, self.scope_depth, path)
+    }
+
+    /// Analyze reference expressions with enhanced path tracking (Expert recommendation: Priority 1)
+    pub fn analyze_reference_expression(&mut self, expr: &Expression, borrow_kind: BorrowKind) -> Result<(), SemanticError> {
+        match expr {
+            Expression::Identifier(var_name) => {
+                // Simple variable borrow: &var or &mut var
+                self.add_borrow(var_name, borrow_kind)?;
+            }
+
+            Expression::FieldAccess(field_access) => {
+                // Field borrow: &var.field or &mut var.field
+                self.analyze_field_borrow_expression(field_access, borrow_kind)?;
+            }
+
+            Expression::Index(index_expr) => {
+                // Index borrow: &arr[i] or &mut arr[i]
+                // For now, treat as borrowing the entire array
+                if let Expression::Identifier(var_name) = &*index_expr.object {
+                    self.add_borrow(var_name, borrow_kind)?;
+                }
+                // Also analyze the index expression
+                self.analyze_expression(&index_expr.index)?;
+            }
+
+            _ => {
+                // For complex expressions, analyze the operand
+                self.analyze_expression(expr)?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Analyze field access for borrowing (Expert recommendation: Priority 1)
+    pub fn analyze_field_access_ownership(&mut self, field_access: &FieldAccessExpression) -> Result<(), SemanticError> {
+        // First analyze the object being accessed
+        self.analyze_expression(&field_access.object)?;
+
+        // Check if we're accessing a field of a moved variable
+        if let Expression::Identifier(var_name) = &*field_access.object {
+            if self.borrow_check_state.is_moved(&var_name) {
+                return Err(SemanticError::UseAfterMove(format!("{}.{}", var_name, field_access.field)));
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Analyze field borrow with path tracking (Expert recommendation: Priority 1)
+    fn analyze_field_borrow_expression(&mut self, field_access: &FieldAccessExpression, borrow_kind: BorrowKind) -> Result<(), SemanticError> {
+        match &*field_access.object {
+            Expression::Identifier(var_name) => {
+                // Simple field borrow: &var.field
+                self.add_field_borrow(&var_name, &field_access.field, borrow_kind)?;
+            }
+
+            Expression::FieldAccess(nested_field) => {
+                // Nested field borrow: &var.field1.field2
+                self.analyze_nested_field_borrow_expression(nested_field, &field_access.field, borrow_kind)?;
+            }
+
+            _ => {
+                // For complex expressions, analyze the object
+                self.analyze_expression(&field_access.object)?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Analyze nested field borrow (Expert recommendation: Priority 1)
+    fn analyze_nested_field_borrow_expression(&mut self, base_field: &FieldAccessExpression, final_field: &str, borrow_kind: BorrowKind) -> Result<(), SemanticError> {
+        // Build the path for nested field access
+        let mut field_path = Vec::new();
+        let mut current_expr = base_field;
+
+        // Traverse the field access chain to build the path
+        loop {
+            field_path.insert(0, current_expr.field.clone());
+
+            match &*current_expr.object {
+                Expression::Identifier(var_name) => {
+                    // Found the base variable
+                    field_path.push(final_field.to_string());
+                    let path = BorrowPath::NestedField(var_name.clone(), field_path);
+                    self.add_borrow_with_path(&var_name, borrow_kind, path)?;
+                    break;
+                }
+
+                Expression::FieldAccess(nested) => {
+                    // Continue traversing
+                    current_expr = nested;
+                }
+
+                _ => {
+                    // Complex expression, analyze it
+                    self.analyze_expression(&current_expr.object)?;
+                    break;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
 
 
     /// Get variables that need destruction at current scope (Expert recommendation)
@@ -603,8 +761,29 @@ impl OwnershipAnalyzer {
             }
 
             Expression::Unary(unary_expr) => {
-                // For now, just analyze the operand
-                self.analyze_expression(&unary_expr.operand)?;
+                // Enhanced unary expression analysis with path tracking (Expert recommendation: Priority 1)
+                match unary_expr.operator {
+                    UnaryOperator::Reference => {
+                        // Handle &expr - create immutable borrow with path analysis
+                        self.analyze_reference_expression(&unary_expr.operand, BorrowKind::Immutable)?;
+                        Ok(OwnershipResult::Copy)
+                    }
+                    UnaryOperator::MutableReference => {
+                        // Handle &mut expr - create mutable borrow with path analysis
+                        self.analyze_reference_expression(&unary_expr.operand, BorrowKind::Mutable)?;
+                        Ok(OwnershipResult::Copy)
+                    }
+                    _ => {
+                        // Other unary operators
+                        self.analyze_expression(&unary_expr.operand)?;
+                        Ok(OwnershipResult::Copy)
+                    }
+                }
+            }
+
+            Expression::FieldAccess(field_access) => {
+                // Enhanced field access analysis with path tracking (Expert recommendation: Priority 1)
+                self.analyze_field_access_ownership(field_access)?;
                 Ok(OwnershipResult::Copy)
             }
 
@@ -658,6 +837,16 @@ impl OwnershipAnalyzer {
                 self.analyze_if_statement_ownership(if_stmt)?;
             }
 
+            Statement::While(while_stmt) => {
+                // Control flow analysis for while loops (Expert recommendation: Priority 2)
+                self.analyze_while_statement_ownership(while_stmt)?;
+            }
+
+            Statement::For(for_stmt) => {
+                // Control flow analysis for for loops (Expert recommendation: Priority 2)
+                self.analyze_for_statement_ownership(for_stmt)?;
+            }
+
             _ => {
                 // Other statements not yet implemented
             }
@@ -706,6 +895,91 @@ impl OwnershipAnalyzer {
         for stmt in &block.statements {
             self.analyze_statement(stmt)?;
         }
+        Ok(())
+    }
+
+    /// Analyze while statement with control flow (Expert recommendation: Priority 2)
+    pub fn analyze_while_statement_ownership(&mut self, while_stmt: &WhileStatement) -> Result<(), SemanticError> {
+        // Analyze condition
+        self.analyze_expression(&while_stmt.condition)?;
+
+        // Clone current state before analyzing loop body
+        let initial_state = self.borrow_check_state.clone_state();
+
+        // Analyze loop body
+        // For loops, we need to be conservative: assume the loop may execute 0 or more times
+        self.enter_scope();
+        self.analyze_block_ownership(&while_stmt.body)?;
+        let loop_state = self.borrow_check_state.clone_state();
+        self.exit_scope();
+
+        // Merge states: the loop may not execute at all, or may execute multiple times
+        // Conservative approach: merge initial state with loop state
+        self.borrow_check_state = initial_state;
+        self.borrow_check_state.merge_states(&loop_state);
+
+        Ok(())
+    }
+
+    /// Analyze for statement with control flow (Expert recommendation: Priority 2)
+    pub fn analyze_for_statement_ownership(&mut self, for_stmt: &ForStatement) -> Result<(), SemanticError> {
+        // Analyze the iterable expression
+        self.analyze_expression(&for_stmt.iterable)?;
+
+        // Clone current state before analyzing loop
+        let initial_state = self.borrow_check_state.clone_state();
+
+        // Enter new scope for loop variable and body
+        self.enter_scope();
+
+        // Declare the loop variable (if it's a new binding)
+        // TODO: Extract type from iterable
+        let loop_var_type = ResolvedType::Int; // Placeholder
+        self.declare_variable(&for_stmt.variable, loop_var_type, false)?;
+
+        // Analyze loop body
+        self.analyze_block_ownership(&for_stmt.body)?;
+        let loop_state = self.borrow_check_state.clone_state();
+
+        self.exit_scope();
+
+        // Merge states: similar to while loop
+        self.borrow_check_state = initial_state;
+        self.borrow_check_state.merge_states(&loop_state);
+
+        Ok(())
+    }
+
+    /// Enhanced control flow analysis for match statements (Expert recommendation: Priority 2)
+    pub fn analyze_match_statement_ownership(&mut self, match_stmt: &MatchStatement) -> Result<(), SemanticError> {
+        // Analyze the matched expression
+        self.analyze_expression(&match_stmt.expression)?;
+
+        // Clone current state before analyzing arms
+        let initial_state = self.borrow_check_state.clone_state();
+        let mut arm_states = Vec::new();
+
+        // Analyze each match arm
+        for arm in &match_stmt.arms {
+            // Restore initial state for each arm
+            self.borrow_check_state = initial_state.clone();
+
+            self.enter_scope();
+
+            // TODO: Analyze pattern bindings
+            // For now, just analyze the body
+            self.analyze_block_ownership(&arm.body)?;
+
+            arm_states.push(self.borrow_check_state.clone_state());
+            self.exit_scope();
+        }
+
+        // Merge all arm states
+        self.borrow_check_state = initial_state;
+        for arm_state in &arm_states {
+            self.borrow_check_state.merge_states(arm_state);
+        }
+
         Ok(())
     }
 }

@@ -1,0 +1,19 @@
+// اختبار أساسي لتتبع المسارات (Path Tracking)
+// Expert recommendation: Priority 1 - Path Tracking
+
+struct Point {
+    x: int;
+    y: int;
+}
+
+fn test_field_access() {
+    let point = Point { x: 10, y: 20 };
+    
+    // الوصول للحقول
+    print(point.x);
+    print(point.y);
+}
+
+fn main() {
+    test_field_access();
+}

@@ -1,0 +1,143 @@
+// اختبار شامل لتحليل تدفق التحكم (Control Flow Analysis)
+// Expert recommendation: Priority 1 - Control Flow Analysis
+
+struct Data {
+    value: int;
+    flag: bool;
+}
+
+fn test_if_else_borrowing() {
+    let mut data = Data { value: 42, flag: true };
+    let condition = true;
+
+    if condition {
+        let value_ref = &mut data.value;
+        *value_ref = 100;
+    } else {
+        let flag_ref = &mut data.flag;
+        *flag_ref = false;
+    }
+
+    // يجب أن يكون هذا مسموحاً - الاستعارات انتهت
+    let final_ref = &data;
+    print(final_ref.value);
+}
+
+fn test_if_else_move() {
+    let data = Data { value: 42, flag: true };
+    let condition = true;
+
+    if condition {
+        let moved_data = data; // نقل في الفرع الأول
+        print(moved_data.value);
+    } else {
+        print("else branch");
+    }
+
+    // يجب أن يفشل هذا - المتغير قد يكون منقولاً
+    print(data.value); // خطأ: استخدام بعد النقل المحتمل
+}
+
+fn test_while_loop_borrowing() {
+    let mut data = Data { value: 0, flag: true };
+    let mut counter = 0;
+
+    while counter < 5 {
+        let value_ref = &mut data.value;
+        *value_ref += 1;
+        counter += 1;
+    }
+
+    // يجب أن يكون هذا مسموحاً - الحلقة انتهت
+    let final_ref = &data;
+    print(final_ref.value);
+}
+
+fn test_for_loop_borrowing() {
+    let mut data = Data { value: 0, flag: true };
+    let numbers = [1, 2, 3, 4, 5];
+
+    for num in numbers {
+        let value_ref = &mut data.value;
+        *value_ref += num;
+    }
+
+    // يجب أن يكون هذا مسموحاً - الحلقة انتهت
+    let final_ref = &data;
+    print(final_ref.value);
+}
+
+fn test_nested_control_flow() {
+    let mut data = Data { value: 42, flag: true };
+    let condition1 = true;
+    let condition2 = false;
+
+    if condition1 {
+        if condition2 {
+            let value_ref = &mut data.value;
+            *value_ref = 100;
+        } else {
+            let flag_ref = &mut data.flag;
+            *flag_ref = false;
+        }
+    } else {
+        print("outer else");
+    }
+
+    // يجب أن يكون هذا مسموحاً - جميع الاستعارات انتهت
+    let final_ref = &data;
+    print(final_ref.value);
+}
+
+fn test_complex_control_flow() {
+    let mut data1 = Data { value: 1, flag: true };
+    let mut data2 = Data { value: 2, flag: false };
+    let condition = true;
+
+    if condition {
+        let ref1 = &mut data1.value;
+        *ref1 = 10;
+
+        let mut counter = 0;
+        while counter < 3 {
+            let ref2 = &mut data2.value;
+            *ref2 += 1;
+            counter += 1;
+        }
+    } else {
+        let ref3 = &mut data2.flag;
+        *ref3 = true;
+    }
+
+    // يجب أن يكون هذا مسموحاً - جميع الاستعارات انتهت
+    let final_ref1 = &data1;
+    let final_ref2 = &data2;
+    print(final_ref1.value);
+    print(final_ref2.value);
+}
+
+fn test_borrow_across_branches() {
+    let mut data = Data { value: 42, flag: true };
+    let condition = true;
+
+    let value_ref = &mut data.value;
+
+    if condition {
+        *value_ref = 100; // استخدام المرجع في الفرع
+    } else {
+        *value_ref = 200; // استخدام المرجع في الفرع الآخر
+    }
+
+    // المرجع لا يزال نشطاً هنا
+    *value_ref = 300;
+}
+
+fn main() {
+    test_if_else_borrowing();
+    // test_if_else_move(); // يجب أن يفشل
+    test_while_loop_borrowing();
+    test_for_loop_borrowing();
+    test_nested_control_flow();
+    test_complex_control_flow();
+    test_borrow_across_branches();
+}
