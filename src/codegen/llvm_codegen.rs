@@ -546,6 +546,11 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             return self.generate_dynamic_dispatch_call(name, arguments);
         }
 
+        // Handle Mathematical AI Shape Inference calls (Expert recommendation: Priority 3)
+        if name.starts_with("math_ai::") {
+            return self.generate_math_ai_call(name, arguments);
+        }
+
         // Look up user-defined function
         if let Some(&function) = self.functions.get(name) {
             let mut args: Vec<BasicValueEnum> = Vec::new();
@@ -590,6 +595,149 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             }
         } else {
             Err(anyhow!("Undefined function: {}", name))
+        }
+    }
+
+    /// Generate Mathematical AI function calls (Expert recommendation: Priority 3)
+    fn generate_math_ai_call(
+        &mut self,
+        name: &str,
+        arguments: &[AnnotatedExpression]
+    ) -> Result<BasicValueEnum<'ctx>> {
+        match name {
+            "math_ai::equation_to_shape" => {
+                if arguments.len() != 1 {
+                    return Err(anyhow!("equation_to_shape() expects exactly one argument"));
+                }
+
+                // Generate equation string argument
+                let equation_arg = self.generate_expression(&arguments[0])?;
+
+                // Convert to C string if needed
+                let equation_ptr = if equation_arg.is_pointer_value() {
+                    equation_arg.into_pointer_value()
+                } else {
+                    // Create string literal and get pointer
+                    let string_global = self.builder.build_global_string_ptr(
+                        &format!("{}", equation_arg),
+                        "equation_str"
+                    )?;
+                    string_global.as_pointer_value()
+                };
+
+                // Call albayan_rt_shape_from_equation
+                let shape_from_equation_fn = self.module.get_function("albayan_rt_shape_from_equation")
+                    .ok_or_else(|| anyhow!("Shape inference function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    shape_from_equation_fn,
+                    &[equation_ptr.into()],
+                    "shape_handle"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "math_ai::shape_to_equation" => {
+                if arguments.len() != 1 {
+                    return Err(anyhow!("shape_to_equation() expects exactly one argument"));
+                }
+
+                // Generate shape handle argument
+                let shape_handle = self.generate_expression(&arguments[0])?;
+
+                // Call albayan_rt_equation_from_shape
+                let equation_from_shape_fn = self.module.get_function("albayan_rt_equation_from_shape")
+                    .ok_or_else(|| anyhow!("Shape inference function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    equation_from_shape_fn,
+                    &[shape_handle.into()],
+                    "equation_ptr"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "math_ai::get_shape_info" => {
+                if arguments.len() != 1 {
+                    return Err(anyhow!("get_shape_info() expects exactly one argument"));
+                }
+
+                // Generate shape handle argument
+                let shape_handle = self.generate_expression(&arguments[0])?;
+
+                // Call albayan_rt_get_shape_info
+                let get_shape_info_fn = self.module.get_function("albayan_rt_get_shape_info")
+                    .ok_or_else(|| anyhow!("Shape inference function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    get_shape_info_fn,
+                    &[shape_handle.into()],
+                    "shape_info_ptr"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "math_ai::remove_shape" => {
+                if arguments.len() != 1 {
+                    return Err(anyhow!("remove_shape() expects exactly one argument"));
+                }
+
+                // Generate shape handle argument
+                let shape_handle = self.generate_expression(&arguments[0])?;
+
+                // Call albayan_rt_remove_shape
+                let remove_shape_fn = self.module.get_function("albayan_rt_remove_shape")
+                    .ok_or_else(|| anyhow!("Shape inference function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    remove_shape_fn,
+                    &[shape_handle.into()],
+                    "remove_result"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "math_ai::init_engine" => {
+                if !arguments.is_empty() {
+                    return Err(anyhow!("init_engine() expects no arguments"));
+                }
+
+                // Call albayan_rt_init_shape_engine
+                let init_engine_fn = self.module.get_function("albayan_rt_init_shape_engine")
+                    .ok_or_else(|| anyhow!("Shape inference function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    init_engine_fn,
+                    &[],
+                    "init_result"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "math_ai::get_engine_stats" => {
+                if !arguments.is_empty() {
+                    return Err(anyhow!("get_engine_stats() expects no arguments"));
+                }
+
+                // Call albayan_rt_get_engine_stats
+                let get_stats_fn = self.module.get_function("albayan_rt_get_engine_stats")
+                    .ok_or_else(|| anyhow!("Shape inference function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    get_stats_fn,
+                    &[],
+                    "stats_ptr"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            _ => Err(anyhow!("Unknown Mathematical AI function: {}", name))
         }
     }
 
@@ -1708,6 +1856,46 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             i8_ptr_type.into(), // string_ptr
         ], false);
         let string_destroy_fn = self.module.add_function("albayan_rt_string_destroy", string_destroy_fn_type, None);
+
+        // Shape Inference Engine Functions (Expert recommendation: Priority 3)
+
+        // albayan_rt_init_shape_engine() -> i32
+        let init_shape_engine_fn_type = i32_type.fn_type(&[], false);
+        let init_shape_engine_fn = self.module.add_function("albayan_rt_init_shape_engine", init_shape_engine_fn_type, None);
+
+        // albayan_rt_shape_from_equation(equation_str: *const c_char) -> ShapeHandle (usize)
+        let shape_from_equation_fn_type = usize_type.fn_type(&[
+            i8_ptr_type.into(), // equation_str
+        ], false);
+        let shape_from_equation_fn = self.module.add_function("albayan_rt_shape_from_equation", shape_from_equation_fn_type, None);
+
+        // albayan_rt_equation_from_shape(shape_handle: ShapeHandle) -> *const c_char
+        let equation_from_shape_fn_type = i8_ptr_type.fn_type(&[
+            usize_type.into(), // shape_handle
+        ], false);
+        let equation_from_shape_fn = self.module.add_function("albayan_rt_equation_from_shape", equation_from_shape_fn_type, None);
+
+        // albayan_rt_get_shape_info(shape_handle: ShapeHandle) -> *const c_char
+        let get_shape_info_fn_type = i8_ptr_type.fn_type(&[
+            usize_type.into(), // shape_handle
+        ], false);
+        let get_shape_info_fn = self.module.add_function("albayan_rt_get_shape_info", get_shape_info_fn_type, None);
+
+        // albayan_rt_remove_shape(shape_handle: ShapeHandle) -> i32
+        let remove_shape_fn_type = i32_type.fn_type(&[
+            usize_type.into(), // shape_handle
+        ], false);
+        let remove_shape_fn = self.module.add_function("albayan_rt_remove_shape", remove_shape_fn_type, None);
+
+        // albayan_rt_free_string(ptr: *mut c_char) -> void
+        let free_string_fn_type = self.context.void_type().fn_type(&[
+            i8_ptr_type.into(), // ptr
+        ], false);
+        let free_string_fn = self.module.add_function("albayan_rt_free_string", free_string_fn_type, None);
+
+        // albayan_rt_get_engine_stats() -> *const c_char
+        let get_engine_stats_fn_type = i8_ptr_type.fn_type(&[], false);
+        let get_engine_stats_fn = self.module.add_function("albayan_rt_get_engine_stats", get_engine_stats_fn_type, None);
 
         // albayan_rt_dict_destroy(dict_ptr: *mut AlbayanDict) -> void
         let dict_destroy_fn_type = self.context.void_type().fn_type(&[

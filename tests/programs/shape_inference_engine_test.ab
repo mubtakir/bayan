@@ -1,0 +1,291 @@
+// tests/programs/shape_inference_engine_test.ab
+// اختبار محرك استنتاج الأشكال - أول محرك في وقت التشغيل
+// Expert recommendation: "بناء أول محرك في وقت التشغيل - ShapeInferenceEngine"
+
+/// اختبار شامل لمحرك استنتاج الأشكال
+fn main() {
+    println!("🚀 بدء اختبار محرك استنتاج الأشكال - أول محرك في وقت التشغيل!");
+    
+    // 1. تهيئة المحرك
+    test_engine_initialization();
+    
+    // 2. اختبار تحويل المعادلات إلى أشكال
+    test_equation_to_shape_conversion();
+    
+    // 3. اختبار تحويل الأشكال إلى معادلات
+    test_shape_to_equation_conversion();
+    
+    // 4. اختبار الحصول على معلومات الأشكال
+    test_shape_info_retrieval();
+    
+    // 5. اختبار إدارة الذاكرة
+    test_memory_management();
+    
+    // 6. اختبار إحصائيات المحرك
+    test_engine_statistics();
+    
+    // 7. اختبار الحالات الحدية
+    test_edge_cases();
+    
+    println!("✅ انتهى اختبار محرك استنتاج الأشكال بنجاح!");
+}
+
+/// اختبار تهيئة المحرك
+fn test_engine_initialization() {
+    println!("\n🔧 اختبار تهيئة المحرك...");
+    
+    // تهيئة المحرك
+    let init_result = math_ai::init_engine();
+    
+    if init_result == 0 {
+        println!("✅ تم تهيئة المحرك بنجاح");
+    } else {
+        println!("❌ فشل في تهيئة المحرك: {}", init_result);
+    }
+    
+    // التحقق من حالة المحرك
+    let stats = math_ai::get_engine_stats();
+    println!("📊 إحصائيات المحرك الأولية: {}", stats);
+}
+
+/// اختبار تحويل المعادلات إلى أشكال
+fn test_equation_to_shape_conversion() {
+    println!("\n🔄 اختبار تحويل المعادلات إلى أشكال...");
+    
+    // معادلات مختلفة للاختبار
+    let test_equations = [
+        "x² + y² = 16",     // دائرة نصف قطرها 4
+        "x² + y² = 25",     // دائرة نصف قطرها 5
+        "y = x²",           // قطع مكافئ بسيط
+        "y = 2x + 3",       // خط مستقيم
+        "x²/4 + y²/9 = 1",  // قطع ناقص
+        "y = sin(x)",       // دالة جيبية
+        "x² + y² = 1",      // دائرة وحدة
+    ];
+    
+    for equation in test_equations {
+        println!("🔍 تحويل المعادلة: {}", equation);
+        
+        let shape_handle = math_ai::equation_to_shape(equation);
+        
+        if shape_handle != 0 {
+            println!("✅ تم إنشاء الشكل بنجاح - المقبض: {}", shape_handle);
+            
+            // الحصول على معلومات الشكل
+            let shape_info = math_ai::get_shape_info(shape_handle);
+            println!("📋 معلومات الشكل: {}", shape_info);
+            
+            // اختبار التحويل العكسي
+            let recovered_equation = math_ai::shape_to_equation(shape_handle);
+            println!("🔄 المعادلة المستنتجة: {}", recovered_equation);
+            
+            // تنظيف الذاكرة
+            let remove_result = math_ai::remove_shape(shape_handle);
+            if remove_result == 0 {
+                println!("🗑️  تم حذف الشكل بنجاح");
+            } else {
+                println!("⚠️  تحذير: فشل في حذف الشكل");
+            }
+        } else {
+            println!("❌ فشل في تحويل المعادلة: {}", equation);
+        }
+        
+        println!(""); // سطر فارغ للوضوح
+    }
+}
+
+/// اختبار تحويل الأشكال إلى معادلات
+fn test_shape_to_equation_conversion() {
+    println!("\n🔄 اختبار تحويل الأشكال إلى معادلات...");
+    
+    // إنشاء أشكال مختلفة
+    let test_shapes = [
+        ("x² + y² = 9", "دائرة نصف قطرها 3"),
+        ("y = x²", "قطع مكافئ أساسي"),
+        ("y = x", "خط مستقيم بميل 1"),
+    ];
+    
+    for (equation, description) in test_shapes {
+        println!("🔍 اختبار {}: {}", description, equation);
+        
+        // إنشاء الشكل من المعادلة
+        let shape_handle = math_ai::equation_to_shape(equation);
+        
+        if shape_handle != 0 {
+            // تحويل الشكل إلى معادلة
+            let recovered_equation = math_ai::shape_to_equation(shape_handle);
+            
+            println!("📥 المعادلة الأصلية: {}", equation);
+            println!("📤 المعادلة المستنتجة: {}", recovered_equation);
+            
+            // مقارنة النتائج (تحليل بسيط)
+            if recovered_equation.contains("x") && recovered_equation.contains("y") {
+                println!("✅ التحويل العكسي نجح - تحتوي على المتغيرات المتوقعة");
+            } else {
+                println!("⚠️  التحويل العكسي قد يحتاج تحسين");
+            }
+            
+            // تنظيف
+            math_ai::remove_shape(shape_handle);
+        } else {
+            println!("❌ فشل في إنشاء الشكل من المعادلة");
+        }
+        
+        println!("");
+    }
+}
+
+/// اختبار الحصول على معلومات الأشكال
+fn test_shape_info_retrieval() {
+    println!("\n📋 اختبار الحصول على معلومات الأشكال...");
+    
+    // إنشاء دائرة للاختبار
+    let circle_equation = "x² + y² = 16";
+    let circle_handle = math_ai::equation_to_shape(circle_equation);
+    
+    if circle_handle != 0 {
+        println!("🔍 تحليل دائرة: {}", circle_equation);
+        
+        let shape_info = math_ai::get_shape_info(circle_handle);
+        println!("📊 معلومات الشكل الكاملة: {}", shape_info);
+        
+        // تحليل المعلومات (JSON parsing بسيط)
+        if shape_info.contains("Circle") {
+            println!("✅ تم التعرف على الشكل كدائرة");
+        }
+        
+        if shape_info.contains("area") {
+            println!("✅ تم حساب المساحة");
+        }
+        
+        if shape_info.contains("perimeter") {
+            println!("✅ تم حساب المحيط");
+        }
+        
+        // تنظيف
+        math_ai::remove_shape(circle_handle);
+    } else {
+        println!("❌ فشل في إنشاء الدائرة للاختبار");
+    }
+}
+
+/// اختبار إدارة الذاكرة
+fn test_memory_management() {
+    println!("\n🗑️  اختبار إدارة الذاكرة...");
+    
+    let mut shape_handles = [];
+    
+    // إنشاء عدة أشكال
+    println!("📦 إنشاء عدة أشكال...");
+    for i in 1..6 {
+        let equation = format!("x² + y² = {}", i * i);
+        let handle = math_ai::equation_to_shape(&equation);
+        
+        if handle != 0 {
+            shape_handles.push(handle);
+            println!("✅ تم إنشاء الشكل {} - المقبض: {}", i, handle);
+        }
+    }
+    
+    // عرض إحصائيات المحرك
+    let stats_before = math_ai::get_engine_stats();
+    println!("📊 إحصائيات قبل التنظيف: {}", stats_before);
+    
+    // حذف جميع الأشكال
+    println!("🗑️  حذف جميع الأشكال...");
+    for handle in shape_handles {
+        let remove_result = math_ai::remove_shape(handle);
+        if remove_result == 0 {
+            println!("✅ تم حذف الشكل {} بنجاح", handle);
+        } else {
+            println!("❌ فشل في حذف الشكل {}", handle);
+        }
+    }
+    
+    // عرض إحصائيات بعد التنظيف
+    let stats_after = math_ai::get_engine_stats();
+    println!("📊 إحصائيات بعد التنظيف: {}", stats_after);
+}
+
+/// اختبار إحصائيات المحرك
+fn test_engine_statistics() {
+    println!("\n📈 اختبار إحصائيات المحرك...");
+    
+    // الحصول على الإحصائيات الحالية
+    let initial_stats = math_ai::get_engine_stats();
+    println!("📊 الإحصائيات الأولية: {}", initial_stats);
+    
+    // إنشاء بعض الأشكال
+    let shapes = [
+        math_ai::equation_to_shape("x² + y² = 4"),
+        math_ai::equation_to_shape("y = x²"),
+        math_ai::equation_to_shape("y = 2x + 1"),
+    ];
+    
+    // الحصول على الإحصائيات بعد الإنشاء
+    let after_creation_stats = math_ai::get_engine_stats();
+    println!("📊 الإحصائيات بعد الإنشاء: {}", after_creation_stats);
+    
+    // تنظيف الأشكال
+    for shape in shapes {
+        if shape != 0 {
+            math_ai::remove_shape(shape);
+        }
+    }
+    
+    // الإحصائيات النهائية
+    let final_stats = math_ai::get_engine_stats();
+    println!("📊 الإحصائيات النهائية: {}", final_stats);
+}
+
+/// اختبار الحالات الحدية
+fn test_edge_cases() {
+    println!("\n⚠️  اختبار الحالات الحدية...");
+    
+    // اختبار معادلة فارغة
+    println!("🔍 اختبار معادلة فارغة...");
+    let empty_handle = math_ai::equation_to_shape("");
+    if empty_handle == 0 {
+        println!("✅ تم التعامل مع المعادلة الفارغة بشكل صحيح");
+    } else {
+        println!("⚠️  تحذير: المعادلة الفارغة أنتجت مقبض صالح");
+        math_ai::remove_shape(empty_handle);
+    }
+    
+    // اختبار معادلة غير صالحة
+    println!("🔍 اختبار معادلة غير صالحة...");
+    let invalid_handle = math_ai::equation_to_shape("abc123xyz");
+    if invalid_handle == 0 {
+        println!("✅ تم التعامل مع المعادلة غير الصالحة بشكل صحيح");
+    } else {
+        println!("⚠️  تحذير: المعادلة غير الصالحة أنتجت مقبض صالح");
+        math_ai::remove_shape(invalid_handle);
+    }
+    
+    // اختبار مقبض غير صالح
+    println!("🔍 اختبار مقبض غير صالح...");
+    let invalid_equation = math_ai::shape_to_equation(999999);
+    if invalid_equation == "" {
+        println!("✅ تم التعامل مع المقبض غير الصالح بشكل صحيح");
+    } else {
+        println!("⚠️  تحذير: المقبض غير الصالح أنتج معادلة: {}", invalid_equation);
+    }
+    
+    // اختبار حذف مقبض غير موجود
+    println!("🔍 اختبار حذف مقبض غير موجود...");
+    let remove_result = math_ai::remove_shape(888888);
+    if remove_result != 0 {
+        println!("✅ تم التعامل مع المقبض غير الموجود بشكل صحيح");
+    } else {
+        println!("⚠️  تحذير: حذف مقبض غير موجود نجح بشكل غير متوقع");
+    }
+}
+
+/// دالة مساعدة لطباعة النتائج
+fn print_test_result(test_name: &str, success: bool) {
+    if success {
+        println!("✅ {}: نجح", test_name);
+    } else {
+        println!("❌ {}: فشل", test_name);
+    }
+}

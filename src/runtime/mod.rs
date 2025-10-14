@@ -8,6 +8,7 @@ pub mod memory;
 pub mod ai_support;
 pub mod system_interface;
 pub mod dynamic_types;
+pub mod shape_inference;
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -108,6 +109,9 @@ impl Runtime {
             let mut ai_engine = ai_engine.lock().unwrap();
             ai_engine.initialize()?;
         }
+
+        // Initialize Shape Inference Engine
+        shape_inference::initialize_shape_engine();
 
         if self.config.debug_mode {
             println!("Runtime initialized successfully");
