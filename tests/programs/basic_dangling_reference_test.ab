@@ -1,0 +1,22 @@
+// tests/programs/basic_dangling_reference_test.ab
+// اختبار أساسي لمنع المراجع المعلقة - الأولوية القصوى للخبير
+// Expert recommendation: "منع المراجع المعلقة (Dangling References) - تحليل وقت الحياة (Lifetime Analysis)"
+
+/// اختبار 1: مرجع مباشر إلى متغير محلي (يجب أن يفشل)
+fn test_direct_local_reference() -> &int {
+    let x = 42;
+    return &x; // خطأ! x ستُدمَّر عند انتهاء الدالة
+}
+
+/// اختبار صحيح: إرجاع قيمة بدلاً من مرجع (صحيح)
+fn test_return_value() -> int {
+    let x = 42;
+    return x; // صحيح! إرجاع قيمة، ليس مرجع
+}
+
+/// دالة main للاختبار
+fn main() {
+    println!("اختبار منع المراجع المعلقة");
+    let result = test_return_value();
+    println!("النتيجة: {}", result);
+}

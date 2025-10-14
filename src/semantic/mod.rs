@@ -2242,22 +2242,88 @@ impl SemanticAnalyzer {
     }
 
     /// Check return value for dangling references (Expert recommendation: Priority 1)
+    /// Enhanced implementation with comprehensive reference analysis
     fn check_return_value_for_dangling_references(&self, return_expr: &AnnotatedExpression) -> Result<(), SemanticError> {
         // Check if the return type is a reference
         if let ResolvedType::Reference(referenced_type, _is_mutable) = &return_expr.result_type {
-            // Check if this is a reference to a local variable
-            if let AnnotatedExpressionKind::Unary(unary_expr) = &return_expr.expr {
+            // Analyze the expression to find what it references
+            self.analyze_expression_for_dangling_references(return_expr)?;
+        }
+
+        Ok(())
+    }
+
+    /// Analyze an expression for dangling references (Expert recommendation: Priority 1)
+    fn analyze_expression_for_dangling_references(&self, expr: &AnnotatedExpression) -> Result<(), SemanticError> {
+        match &expr.expr {
+            // Direct reference to a variable (&var or &mut var)
+            AnnotatedExpressionKind::Unary(unary_expr) => {
                 if matches!(unary_expr.operator, UnaryOperator::Reference | UnaryOperator::MutableReference) {
-                    if let AnnotatedExpressionKind::Identifier(var_name) = &unary_expr.operand.expr {
-                        // Check if this variable is local to the current function
-                        if self.is_local_variable(var_name) {
-                            return Err(SemanticError::DanglingReference {
-                                variable_name: var_name.clone(),
-                                message: format!("Cannot return reference to local variable '{}'", var_name),
-                            });
-                        }
-                    }
+                    self.check_reference_target_for_dangling(&unary_expr.operand)?;
                 }
+            }
+
+            // Field access on a reference (&obj.field)
+            AnnotatedExpressionKind::FieldAccess { object, field: _ } => {
+                // Check if the base object is a local variable
+                self.analyze_expression_for_dangling_references(object)?;
+            }
+
+            // Array/List indexing (&arr[index])
+            AnnotatedExpressionKind::Index { object, index: _ } => {
+                // Check if the indexed object is a local variable
+                self.analyze_expression_for_dangling_references(object)?;
+            }
+
+            // Function call that returns a reference
+            AnnotatedExpressionKind::Call { function: _, arguments: _ } => {
+                // For now, we'll be conservative and allow function calls
+                // In a more advanced implementation, we'd analyze the function's lifetime annotations
+                // TODO: Implement lifetime analysis for function return types
+            }
+
+            // Variable identifier (should not happen for references, but check anyway)
+            AnnotatedExpressionKind::Identifier(var_name) => {
+                if self.is_local_variable(var_name) {
+                    return Err(SemanticError::DanglingReference {
+                        variable_name: var_name.clone(),
+                        message: format!("Cannot return reference to local variable '{}'", var_name),
+                    });
+                }
+            }
+
+            _ => {
+                // Other expression types are generally safe
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Check if a reference target would create a dangling reference (Expert recommendation: Priority 1)
+    fn check_reference_target_for_dangling(&self, target_expr: &AnnotatedExpression) -> Result<(), SemanticError> {
+        match &target_expr.expr {
+            AnnotatedExpressionKind::Identifier(var_name) => {
+                if self.is_local_variable(var_name) {
+                    return Err(SemanticError::DanglingReference {
+                        variable_name: var_name.clone(),
+                        message: format!("Cannot return reference to local variable '{}'", var_name),
+                    });
+                }
+            }
+
+            AnnotatedExpressionKind::FieldAccess { object, field: _ } => {
+                // Check if the base object is local
+                self.check_reference_target_for_dangling(object)?;
+            }
+
+            AnnotatedExpressionKind::Index { object, index: _ } => {
+                // Check if the indexed object is local
+                self.check_reference_target_for_dangling(object)?;
+            }
+
+            _ => {
+                // Other targets are generally safe
             }
         }
 
@@ -2265,22 +2331,25 @@ impl SemanticAnalyzer {
     }
 
     /// Check if a variable is local to the current function (Expert recommendation: Priority 1)
+    /// Enhanced implementation with proper scope tracking
     fn is_local_variable(&self, var_name: &str) -> bool {
-        // A variable is local if it was declared in the current function scope
-        // We need to check if the variable was declared in a Function or Block scope
-        // (not Global scope or as a function parameter)
+        // Check if variable exists in ownership analyzer
+        if let Some(var_info) = self.ownership_analyzer.get_variable_info(var_name) {
+            // Variable is local if it was declared in the current function scope
+            // (scope_depth > 0 means it's not a global variable)
+            // and it's not a function parameter
 
-        if let Some(_var_info) = self.symbol_table.lookup_variable(var_name) {
-            // For now, we'll use a simple heuristic:
-            // If we're currently analyzing a function and the variable exists,
-            // we'll consider it local unless it's a known global or parameter
-
-            // TODO: Improve this by tracking where variables were declared
-            // For the initial implementation, we'll be conservative and assume
-            // most variables in function context are local
-            true
+            // Function parameters are typically at scope_depth 1
+            // Local variables are at scope_depth > 1
+            var_info.scope_depth > 1
         } else {
-            false
+            // If variable doesn't exist in ownership analyzer, check symbol table
+            if let Some(_var_info) = self.symbol_table.lookup_variable(var_name) {
+                // For safety, assume it's local if we can't determine otherwise
+                true
+            } else {
+                false
+            }
         }
     }
 

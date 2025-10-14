@@ -418,6 +418,11 @@ impl OwnershipAnalyzer {
         self.borrow_check_state.check_borrow_conflicts(name, borrow_kind)
     }
 
+    /// Get variable information for dangling reference analysis (Expert recommendation: Priority 1)
+    pub fn get_variable_info(&self, name: &str) -> Option<&OwnershipInfo> {
+        self.variables.get(name)
+    }
+
     /// Add a borrow (Expert recommendation: Priority 1)
     pub fn add_borrow(&mut self, name: &str, borrow_kind: BorrowKind) -> Result<(), super::SemanticError> {
         self.borrow_check_state.add_borrow(name, borrow_kind, self.scope_depth)

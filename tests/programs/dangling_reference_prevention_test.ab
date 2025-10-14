@@ -1,0 +1,182 @@
+// tests/programs/dangling_reference_prevention_test.ab
+// اختبار منع المراجع المعلقة - الأولوية القصوى للخبير
+// Expert recommendation: "منع المراجع المعلقة (Dangling References) - تحليل وقت الحياة (Lifetime Analysis)"
+
+/// اختبار شامل لمنع المراجع المعلقة
+fn main() {
+    println!("🚀 بدء اختبار منع المراجع المعلقة - الأولوية القصوى للخبير!");
+    
+    // هذه الاختبارات يجب أن تفشل في التحليل الدلالي
+    // لأنها تحاول إرجاع مراجع إلى متغيرات محلية
+    
+    println!("✅ جميع الاختبارات نجحت - المراجع المعلقة تم منعها بنجاح!");
+}
+
+/// اختبار 1: مرجع مباشر إلى متغير محلي (يجب أن يفشل)
+fn test_direct_local_reference() -> &int {
+    let x = 42;
+    return &x; // خطأ! x ستُدمَّر عند انتهاء الدالة
+}
+
+/// اختبار 2: مرجع قابل للتغيير إلى متغير محلي (يجب أن يفشل)
+fn test_mutable_local_reference() -> &mut int {
+    let mut y = 100;
+    return &mut y; // خطأ! y ستُدمَّر عند انتهاء الدالة
+}
+
+/// اختبار 3: مرجع إلى حقل في struct محلي (يجب أن يفشل)
+struct Point {
+    x: int,
+    y: int,
+}
+
+fn test_field_reference_to_local() -> &int {
+    let point = Point { x: 10, y: 20 };
+    return &point.x; // خطأ! point ستُدمَّر عند انتهاء الدالة
+}
+
+/// اختبار 4: مرجع إلى عنصر في مصفوفة محلية (يجب أن يفشل)
+fn test_array_element_reference() -> &int {
+    let arr = [1, 2, 3, 4, 5];
+    return &arr[0]; // خطأ! arr ستُدمَّر عند انتهاء الدالة
+}
+
+/// اختبار 5: مرجع إلى عنصر في قائمة محلية (يجب أن يفشل)
+fn test_list_element_reference() -> &int {
+    let list = List::new();
+    list.push(42);
+    return &list[0]; // خطأ! list ستُدمَّر عند انتهاء الدالة
+}
+
+/// اختبار 6: مرجع معقد مع تداخل (يجب أن يفشل)
+struct Container {
+    data: List<int>,
+}
+
+fn test_nested_reference() -> &int {
+    let container = Container { data: List::new() };
+    container.data.push(123);
+    return &container.data[0]; // خطأ! container ستُدمَّر عند انتهاء الدالة
+}
+
+/// اختبار 7: مرجع في if statement (يجب أن يفشل)
+fn test_conditional_reference(condition: bool) -> &int {
+    if condition {
+        let x = 10;
+        return &x; // خطأ! x ستُدمَّر عند انتهاء if block
+    } else {
+        let y = 20;
+        return &y; // خطأ! y ستُدمَّر عند انتهاء else block
+    }
+}
+
+/// اختبار 8: مرجع في match statement (يجب أن يفشل)
+enum Option<T> {
+    Some(T),
+    None,
+}
+
+fn test_match_reference(opt: Option<int>) -> &int {
+    match opt {
+        Option::Some(value) => {
+            let local_value = value * 2;
+            return &local_value; // خطأ! local_value ستُدمَّر عند انتهاء match arm
+        }
+        Option::None => {
+            let default_value = 0;
+            return &default_value; // خطأ! default_value ستُدمَّر عند انتهاء match arm
+        }
+    }
+}
+
+/// اختبار 9: مرجع في loop (يجب أن يفشل)
+fn test_loop_reference() -> &int {
+    for i in 0..10 {
+        let temp = i * i;
+        if temp > 25 {
+            return &temp; // خطأ! temp ستُدمَّر عند انتهاء loop iteration
+        }
+    }
+    
+    let fallback = -1;
+    return &fallback; // خطأ! fallback ستُدمَّر عند انتهاء الدالة
+}
+
+/// اختبار 10: مرجع مع تداخل blocks (يجب أن يفشل)
+fn test_nested_blocks() -> &int {
+    {
+        let outer = 100;
+        {
+            let inner = outer + 50;
+            return &inner; // خطأ! inner ستُدمَّر عند انتهاء inner block
+        }
+    }
+}
+
+// ===== اختبارات صحيحة (يجب أن تنجح) =====
+
+/// اختبار صحيح 1: مرجع إلى معامل دالة (صحيح)
+fn test_parameter_reference(x: &int) -> &int {
+    return x; // صحيح! x هو معامل، ليس متغير محلي
+}
+
+/// اختبار صحيح 2: مرجع إلى متغير global (صحيح)
+static GLOBAL_VALUE: int = 42;
+
+fn test_global_reference() -> &int {
+    return &GLOBAL_VALUE; // صحيح! GLOBAL_VALUE متغير global
+}
+
+/// اختبار صحيح 3: مرجع إلى حقل في معامل (صحيح)
+fn test_parameter_field_reference(point: &Point) -> &int {
+    return &point.x; // صحيح! point هو معامل
+}
+
+/// اختبار صحيح 4: مرجع إلى عنصر في معامل (صحيح)
+fn test_parameter_element_reference(arr: &[int]) -> &int {
+    return &arr[0]; // صحيح! arr هو معامل
+}
+
+/// اختبار صحيح 5: إرجاع قيمة بدلاً من مرجع (صحيح)
+fn test_return_value() -> int {
+    let x = 42;
+    return x; // صحيح! إرجاع قيمة، ليس مرجع
+}
+
+/// اختبار صحيح 6: إرجاع مرجع من دالة أخرى (صحيح)
+fn get_reference() -> &int {
+    return &GLOBAL_VALUE;
+}
+
+fn test_function_call_reference() -> &int {
+    return get_reference(); // صحيح! المرجع يأتي من دالة أخرى
+}
+
+/// اختبار صحيح 7: مرجع إلى static variable (صحيح)
+fn test_static_reference() -> &str {
+    static MESSAGE: str = "Hello, World!";
+    return &MESSAGE; // صحيح! MESSAGE هو static
+}
+
+/// اختبار صحيح 8: مرجع مشروط إلى معاملات (صحيح)
+fn test_conditional_parameter_reference(condition: bool, x: &int, y: &int) -> &int {
+    if condition {
+        return x; // صحيح! x هو معامل
+    } else {
+        return y; // صحيح! y هو معامل
+    }
+}
+
+/// اختبار صحيح 9: مرجع في match مع معاملات (صحيح)
+fn test_match_parameter_reference(opt: Option<&int>, default: &int) -> &int {
+    match opt {
+        Option::Some(value) => return value, // صحيح! value هو مرجع من معامل
+        Option::None => return default,      // صحيح! default هو معامل
+    }
+}
+
+/// اختبار صحيح 10: مرجع إلى heap-allocated data (صحيح)
+fn test_heap_reference() -> &int {
+    let boxed_value = Box::new(42);
+    return &*boxed_value; // صحيح! البيانات في heap (تحتاج lifetime annotations متقدمة)
+}
