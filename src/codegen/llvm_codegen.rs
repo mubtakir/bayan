@@ -2015,24 +2015,6 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                             )?;
                         }
                     }
-                    ResolvedType::String => {
-                        // Generate destroy call for String variables (Expert recommendation)
-                        if let Some(destroy_fn) = self.functions.get("albayan_rt_string_destroy") {
-                            // Load the string handle
-                            let string_handle = self.builder.build_load(
-                                var_alloca.get_type().get_element_type().into(),
-                                var_alloca,
-                                &format!("{}_destroy_load", destroy_info.name)
-                            )?;
-
-                            // Call albayan_rt_string_destroy(handle)
-                            self.builder.build_call(
-                                *destroy_fn,
-                                &[string_handle.into()],
-                                &format!("{}_destroy", destroy_info.name)
-                            )?;
-                        }
-                    }
                     ResolvedType::Model(_) => {
                         // Generate destroy call for Model types (Expert recommendation: Priority 1)
                         if let Some(destroy_fn) = self.functions.get("albayan_rt_model_destroy") {

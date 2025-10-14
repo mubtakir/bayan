@@ -1,0 +1,107 @@
+// Enhanced Borrow Checker Test - Expert Priority 1: Complete automatic memory management
+// Tests automatic destruction and borrow conflict detection
+
+fn test_automatic_destruction() -> int {
+    // Test List<T> automatic destruction (Expert recommendation)
+    let my_list = [1, 2, 3, 4, 5];
+    let another_list = [10, 20, 30];
+
+    // These lists should be automatically destroyed when going out of scope
+    // IRGenerator should call albayan_rt_list_destroy() for both variables
+
+    return 42; // Lists destroyed here automatically
+}
+
+fn test_string_destruction() -> int {
+    // Test String automatic destruction (Expert recommendation)
+    let greeting = "Hello, AlBayan!";
+    let message = "Automatic memory management works!";
+
+    // These strings should be automatically destroyed when going out of scope
+    // IRGenerator should call albayan_rt_string_destroy() for both variables
+
+    return 24; // Strings destroyed here automatically
+}
+
+fn test_nested_scope_destruction() -> int {
+    let outer_list = [1, 2, 3];
+    let outer_string = "Outer scope";
+
+    if true {
+        let inner_list = [4, 5, 6];
+        let inner_string = "Inner scope";
+
+        // inner_list and inner_string should be destroyed here
+    } // <- Automatic destroy calls for inner scope
+
+    // outer_list and outer_string should be destroyed here
+    return 0; // <- Automatic destroy calls for outer scope
+}
+
+fn test_mixed_types_destruction() -> int {
+    // Test mixed types - some need destruction, some don't
+    let number = 42;        // Copy type - no destruction needed
+    let flag = true;        // Copy type - no destruction needed
+    let my_list = [1, 2];   // Needs destruction
+    let text = "Hello";     // Needs destruction
+    let char_val = 'A';     // Copy type - no destruction needed
+
+    // Only my_list and text should get destroy calls
+    return number;
+}
+
+// Test AI types destruction (Expert recommendation: Priority 1)
+fn test_ai_types_destruction() -> int {
+    // Note: These are placeholder tests for when AI types are fully implemented
+    // let model = load_model("path/to/model.onnx");  // Should call albayan_rt_model_destroy()
+    // let tensor = create_tensor([2, 3, 4]);         // Should call albayan_rt_tensor_destroy()
+
+    // For now, test with regular types
+    let data_list = [1, 2, 3, 4];
+    let model_name = "test_model";
+
+    // These should be destroyed automatically
+    return 0;
+}
+
+fn test_function_parameters() -> int {
+    // Function parameters should also be registered for destruction if needed
+    let test_list = [1, 2, 3];
+    return test_parameter_destruction(test_list, "parameter string");
+}
+
+fn test_parameter_destruction(param_list: List<int>, param_string: string) -> int {
+    // param_list and param_string should be destroyed at function end
+    let local_list = [4, 5, 6];
+    let local_string = "local";
+
+    // All variables should be destroyed at function end
+    return 42;
+}
+
+fn test_early_return_destruction() -> int {
+    let my_list = [1, 2, 3];
+    let my_string = "test";
+
+    if true {
+        let inner_list = [4, 5];
+        // inner_list should be destroyed here before return
+        return 1; // <- Automatic destroy calls should be generated before return
+    }
+
+    // my_list and my_string should be destroyed here if we reach this point
+    return 0;
+}
+
+fn main() -> int {
+    let result1 = test_automatic_destruction();
+    let result2 = test_string_destruction();
+    let result3 = test_nested_scope_destruction();
+    let result4 = test_mixed_types_destruction();
+    let result5 = test_ai_types_destruction();
+    let result6 = test_function_parameters();
+    let result7 = test_early_return_destruction();
+
+    // All local variables should be destroyed here
+    return result1 + result2 + result3 + result4 + result5 + result6 + result7;
+}

@@ -14,7 +14,7 @@ use std::collections::HashMap;
 
 pub use symbol_table::{SymbolTable, StructFieldInfo, FunctionInfo};
 pub use type_checker::TypeChecker;
-pub use ownership::{OwnershipAnalyzer, DestroyInfo};
+pub use ownership::{OwnershipAnalyzer, DestroyInfo, BorrowKind};
 
 /// Main semantic analyzer
 pub struct SemanticAnalyzer {
@@ -166,6 +166,8 @@ impl SemanticAnalyzer {
                     self.symbol_table.declare_variable(name, &resolved_type)?;
                     // Declare in ownership analyzer too (Expert recommendation)
                     self.ownership_analyzer.declare_variable(name, resolved_type.clone(), false)?;
+                    // Register for destruction if needed (Expert recommendation: Priority 1)
+                    self.ownership_analyzer.register_for_destruction(name, resolved_type.clone(), self.ownership_analyzer.get_scope_depth());
                     annotated_params.push(AnnotatedParameter {
                         name: name.clone(),
                         param_type: resolved_type,
@@ -748,6 +750,9 @@ impl SemanticAnalyzer {
         // Declare in ownership analyzer too (Expert recommendation)
         // For now, assume variables are immutable by default
         self.ownership_analyzer.declare_variable(&let_stmt.name, var_type.clone(), false)?;
+
+        // Register for destruction if needed (Expert recommendation: Priority 1)
+        self.ownership_analyzer.register_for_destruction(&let_stmt.name, var_type.clone(), self.ownership_analyzer.get_scope_depth());
 
         let annotated_initializer = if let Some(initializer) = &let_stmt.initializer {
             Some(self.analyze_expression(initializer)?)
@@ -2085,8 +2090,12 @@ pub enum SemanticError {
     #[error("Invalid borrow: {0}")]
     InvalidBorrow(String),
 
-    #[error("Borrow conflict: {0}")]
-    BorrowConflict(String),
+    #[error("Borrow conflict on variable '{variable}': cannot borrow as {new_borrow:?} because it is already borrowed as {existing_borrow:?}")]
+    BorrowConflict {
+        variable: String,
+        existing_borrow: BorrowKind,
+        new_borrow: BorrowKind,
+    },
 
     #[error("Dangling reference: {message}")]
     DanglingReference {
@@ -2117,6 +2126,8 @@ impl SemanticAnalyzer {
             Pattern::Identifier(name) => {
                 // Bind the identifier to the match type in current scope
                 self.symbol_table.declare_variable(name, match_type)?;
+                // Register for destruction if needed (Expert recommendation: Priority 1)
+                self.ownership_analyzer.register_for_destruction(name, match_type.clone(), self.ownership_analyzer.get_scope_depth());
                 Ok(AnnotatedPattern::Identifier(name.clone(), match_type.clone()))
             }
             Pattern::Tuple(patterns) => {

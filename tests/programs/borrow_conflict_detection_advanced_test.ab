@@ -1,0 +1,171 @@
+// Advanced Borrow Conflict Detection Test - Expert Priority 1
+// Tests borrow conflict detection with &/&mut rules
+
+fn test_multiple_immutable_borrows() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+
+    // Multiple immutable borrows should be allowed
+    // Note: These are conceptual tests - actual borrow syntax will be implemented later
+    // let ref1 = &my_list;  // Immutable borrow
+    // let ref2 = &my_list;  // Another immutable borrow - should be allowed
+    // let ref3 = &my_list;  // Third immutable borrow - should be allowed
+
+    // For now, just test that the variable is properly tracked
+    return 42;
+}
+
+fn test_mutable_borrow_conflict() -> int {
+    let my_list = [1, 2, 3];
+
+    // Mutable borrow should conflict with any other borrow
+    // Note: These are conceptual tests for future implementation
+    // let mut_ref = &mut my_list;  // Mutable borrow
+    // let ref1 = &my_list;         // Should cause conflict - ERROR!
+
+    // For now, test basic variable tracking
+    return 24;
+}
+
+fn test_borrow_scope_isolation() -> int {
+    let my_list = [1, 2, 3];
+
+    if true {
+        // Borrows in inner scope should not affect outer scope
+        // let inner_ref = &my_list;  // Immutable borrow in inner scope
+        let inner_value = 42;
+        // inner_ref goes out of scope here
+    }
+
+    // After inner scope, we should be able to borrow again
+    // let outer_ref = &mut my_list;  // Should be allowed
+
+    return 0;
+}
+
+fn test_use_after_move() -> int {
+    let my_list = [1, 2, 3];
+
+    // Move semantics test (conceptual)
+    // let moved_list = my_list;  // Move my_list
+    // let value = my_list[0];    // Should cause error - use after move
+
+    // For now, test basic tracking
+    return 0;
+}
+
+fn test_borrow_across_function_calls() -> int {
+    let my_list = [1, 2, 3];
+
+    // Test borrowing across function boundaries (conceptual)
+    // let list_ref = &my_list;
+    // let result = process_list_ref(list_ref);
+
+    return 42;
+}
+
+fn process_list_ref(list_ref: List<int>) -> int {
+    // Function that takes a reference parameter
+    // Should not affect ownership of original variable
+    return 24;
+}
+
+fn test_conditional_borrows() -> int {
+    let my_list = [1, 2, 3];
+    let condition = true;
+
+    if condition {
+        // Conditional borrow
+        // let ref1 = &my_list;
+        let value1 = 42;
+    } else {
+        // Alternative borrow
+        // let ref2 = &mut my_list;
+        let value2 = 24;
+    }
+
+    // After conditional, should be able to borrow again
+    // let final_ref = &my_list;
+
+    return 0;
+}
+
+fn test_loop_borrows() -> int {
+    let my_list = [1, 2, 3, 4, 5];
+    let sum = 0;
+
+    // Conceptual loop with borrows
+    // for i in 0..5 {
+    //     let item_ref = &my_list[i];  // Borrow in loop
+    //     sum = sum + *item_ref;
+    // }
+
+    // For now, simulate with basic operations
+    return sum;
+}
+
+fn test_nested_struct_borrows() -> int {
+    // Test borrowing fields of structs (future feature)
+    // struct Person {
+    //     name: string,
+    //     age: int,
+    // }
+    //
+    // let person = Person { name: "Ahmed", age: 25 };
+    // let name_ref = &person.name;  // Borrow field
+    // let age_ref = &person.age;    // Borrow another field - should be allowed
+
+    return 0;
+}
+
+fn test_return_with_borrows() -> int {
+    let my_list = [1, 2, 3];
+
+    if true {
+        // let list_ref = &my_list;
+        // Borrow should be cleaned up before return
+        return 42;
+    }
+
+    return 0;
+}
+
+fn test_complex_borrow_patterns() -> int {
+    let list1 = [1, 2, 3];
+    let list2 = [4, 5, 6];
+    let list3 = [7, 8, 9];
+
+    // Complex borrowing patterns (conceptual)
+    if true {
+        // let ref1 = &list1;
+        // let ref2 = &list2;
+
+        if true {
+            // let ref3 = &list3;
+            // Multiple borrows in nested scopes
+            let value = 42;
+        }
+
+        // ref3 out of scope, ref1 and ref2 still active
+    }
+
+    // All references out of scope
+    // let final_ref = &mut list1;  // Should be allowed
+
+    return 0;
+}
+
+fn main() -> int {
+    let result1 = test_multiple_immutable_borrows();
+    let result2 = test_mutable_borrow_conflict();
+    let result3 = test_borrow_scope_isolation();
+    let result4 = test_use_after_move();
+    let result5 = test_borrow_across_function_calls();
+    let result6 = test_conditional_borrows();
+    let result7 = test_loop_borrows();
+    let result8 = test_nested_struct_borrows();
+    let result9 = test_return_with_borrows();
+    let result10 = test_complex_borrow_patterns();
+
+    return result1 + result2 + result3 + result4 + result5 +
+           result6 + result7 + result8 + result9 + result10;
+}

@@ -332,6 +332,34 @@ impl BorrowCheckState {
             self.variables_to_destroy.insert(var_name.clone(), destroy_info.clone());
         }
     }
+
+    /// Check for borrow conflicts (Expert recommendation: Priority 1)
+    pub fn check_borrow_conflicts(&self, name: &str, borrow_kind: BorrowKind) -> Result<(), super::SemanticError> {
+        if let Some(existing_borrows) = self.active_borrows.get(name) {
+            for existing_borrow in existing_borrows {
+                // Conflict rules:
+                // 1. Multiple immutable borrows are allowed
+                // 2. Mutable borrow conflicts with any other borrow
+                // 3. Any borrow conflicts with mutable borrow
+                match (&existing_borrow.borrow_kind, &borrow_kind) {
+                    (BorrowKind::Immutable, BorrowKind::Immutable) => {
+                        // Multiple immutable borrows are allowed
+                        continue;
+                    }
+                    (BorrowKind::Mutable, _) | (_, BorrowKind::Mutable) => {
+                        // Mutable borrow conflicts with any other borrow
+                        return Err(super::SemanticError::BorrowConflict {
+                            variable: name.to_string(),
+                            existing_borrow: existing_borrow.borrow_kind.clone(),
+                            new_borrow: borrow_kind,
+                        });
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
 }
 
 impl OwnershipAnalyzer {
@@ -373,6 +401,26 @@ impl OwnershipAnalyzer {
         }
 
         variables_to_destroy
+    }
+
+    /// Get current scope depth (Expert recommendation: Priority 1)
+    pub fn get_scope_depth(&self) -> usize {
+        self.scope_depth
+    }
+
+    /// Register a variable for destruction (Expert recommendation: Priority 1)
+    pub fn register_for_destruction(&mut self, name: &str, var_type: ResolvedType, scope_depth: usize) {
+        self.borrow_check_state.register_for_destruction(name, var_type, scope_depth);
+    }
+
+    /// Check for borrow conflicts (Expert recommendation: Priority 1)
+    pub fn check_borrow_conflicts(&mut self, name: &str, borrow_kind: BorrowKind) -> Result<(), super::SemanticError> {
+        self.borrow_check_state.check_borrow_conflicts(name, borrow_kind)
+    }
+
+    /// Add a borrow (Expert recommendation: Priority 1)
+    pub fn add_borrow(&mut self, name: &str, borrow_kind: BorrowKind) -> Result<(), super::SemanticError> {
+        self.borrow_check_state.add_borrow(name, borrow_kind, self.scope_depth)
     }
 
     /// Declare a new variable
@@ -466,10 +514,7 @@ impl OwnershipAnalyzer {
         &mut self.borrow_check_state
     }
 
-    /// Get current scope depth (Expert recommendation)
-    pub fn get_scope_depth(&self) -> usize {
-        self.scope_depth
-    }
+
 
     /// Get variables that need destruction at current scope (Expert recommendation)
     pub fn get_variables_to_destroy(&self) -> Vec<&DestroyInfo> {
