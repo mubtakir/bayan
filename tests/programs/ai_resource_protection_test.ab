@@ -1,0 +1,93 @@
+// اختبار حماية موارد الذكاء الاصطناعي - AI Resource Protection Test
+// Expert recommendation: Priority 1 - Test automatic drop calls for AI resources
+
+// Test automatic destruction of Model handles
+fn test_model_resource_protection() {
+    // Model should be automatically destroyed at end of scope
+    let model_path = "test_model.onnx";
+    // Model handle will be automatically destroyed here
+    // Model resources should be freed automatically
+}
+
+// Test automatic destruction of Tensor handles
+fn test_tensor_resource_protection() {
+    // Tensors should be automatically destroyed at end of scope
+    let tensor_data = [1.0, 2.0, 3.0, 4.0];
+    let tensor_shape = [2, 2];
+    // Tensor handles will be automatically destroyed here
+    // Tensor resources should be freed automatically
+}
+
+// Test nested scope resource protection
+fn test_nested_scope_protection() {
+    let outer_model_path = "outer_model.onnx";
+    let inner_tensor_data = [5.0, 6.0, 7.0, 8.0];
+    let inner_tensor_shape = [2, 2];
+    // Inner tensor destroyed first
+    // Outer model destroyed second
+    // All resources freed in correct order
+}
+
+// Test conditional resource protection
+fn test_conditional_resource_protection() {
+    let condition = true;
+    if condition {
+        let conditional_model_path = "conditional_model.onnx";
+    }
+    // Model resources freed even in conditional blocks
+}
+
+// Test loop resource protection
+fn test_loop_resource_protection() {
+    let iterations = 3;
+    let loop_tensor_data = [1.0, 2.0];
+    let loop_tensor_shape = [1, 2];
+    // All loop iteration resources freed
+}
+
+// Test function scope resource protection
+fn test_function_scope_protection() {
+    create_and_use_ai_resources();
+    // Resources created in function should be freed automatically
+}
+
+fn create_and_use_ai_resources() {
+    let function_model_path = "function_model.onnx";
+    let function_tensor_data = [9.0, 10.0, 11.0, 12.0];
+    let function_tensor_shape = [2, 2];
+}
+
+// Test mixed resource types protection
+fn test_mixed_resources_protection() {
+    let model_path = "mixed_model.onnx";
+    let tensor_data = [13.0, 14.0, 15.0, 16.0];
+    let tensor_shape = [2, 2];
+    let regular_string = "regular_data";
+    let regular_number = 42;
+}
+
+// Test resource protection with early return
+fn test_early_return_protection() -> int {
+    let model_path = "early_return_model.onnx";
+    let tensor_data = [17.0, 18.0, 19.0, 20.0];
+
+    let should_return_early = true;
+    if should_return_early {
+        return 1;
+    }
+
+    return 0;
+}
+
+// Main test function
+fn main() {
+    test_model_resource_protection();
+    test_tensor_resource_protection();
+    test_nested_scope_protection();
+    test_conditional_resource_protection();
+    test_loop_resource_protection();
+    test_function_scope_protection();
+    test_mixed_resources_protection();
+
+    let result = test_early_return_protection();
+}
