@@ -358,6 +358,12 @@ impl Parser {
                 self.advance();
                 Ok(Type::Named(Path::single("TrainingResult".to_string())))
             }
+
+        // Tensor Literal (Expert recommendation: Priority 3)
+        TokenType::TensorLiteral => {
+            self.advance();
+            Ok(Type::Named(Path::single("TensorLiteral".to_string())))
+        }
             _ => Err(ParseError::UnexpectedToken {
                 expected: "type".to_string(),
                 found: self.peek().clone(),
@@ -914,6 +920,12 @@ impl Parser {
                 let c = *c;
                 self.advance();
                 Expression::Literal(Literal::Char(c))
+            }
+
+            // Tensor Literal (Expert recommendation: Priority 3)
+            TokenType::TensorLiteral => {
+                self.advance(); // consume 'tensor'
+                self.parse_tensor_literal()?
             }
             TokenType::Identifier(name) => {
                 let name = name.clone();
@@ -1474,6 +1486,64 @@ impl Parser {
             generic_params,
             methods,
         }))
+    }
+
+    /// Parse tensor literal: tensor [[1.0, 2.0], [3.0, 4.0]]
+    /// (Expert recommendation: Priority 3)
+    fn parse_tensor_literal(&mut self) -> Result<Expression, ParseError> {
+        // Expect opening bracket
+        self.consume(&TokenType::LeftBracket, "Expected '[' after 'tensor'")?;
+
+        let mut rows = Vec::new();
+
+        // Parse rows
+        if !self.check(&TokenType::RightBracket) {
+            loop {
+                // Parse a row: [1.0, 2.0, 3.0]
+                self.consume(&TokenType::LeftBracket, "Expected '[' for tensor row")?;
+
+                let mut row = Vec::new();
+
+                // Parse elements in the row
+                if !self.check(&TokenType::RightBracket) {
+                    loop {
+                        // Parse a number (float or int)
+                        let value = match &self.peek().token_type {
+                            TokenType::FloatLiteral(Some(f)) => {
+                                let f = *f;
+                                self.advance();
+                                f
+                            }
+                            TokenType::IntegerLiteral(Some(i)) => {
+                                let i = *i;
+                                self.advance();
+                                i as f64
+                            }
+                            _ => return Err(ParseError::InvalidSyntax {
+                                message: "Expected number in tensor literal".to_string()
+                            })
+                        };
+
+                        row.push(value);
+
+                        if !self.match_token(&TokenType::Comma) {
+                            break;
+                        }
+                    }
+                }
+
+                self.consume(&TokenType::RightBracket, "Expected ']' after tensor row")?;
+                rows.push(row);
+
+                if !self.match_token(&TokenType::Comma) {
+                    break;
+                }
+            }
+        }
+
+        self.consume(&TokenType::RightBracket, "Expected ']' after tensor literal")?;
+
+        Ok(Expression::Literal(Literal::Tensor(rows)))
     }
 }
 

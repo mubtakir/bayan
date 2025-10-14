@@ -1,0 +1,25 @@
+// Tensor Operations Test (Expert recommendation: Priority 3)
+fn main() {
+    // Create tensors using tensor literals
+    let tensor1 = tensor [[1.0, 2.0], [3.0, 4.0]];
+    let tensor2 = tensor [[5.0, 6.0], [7.0, 8.0]];
+    
+    // Test tensor addition: [[6.0, 8.0], [10.0, 12.0]]
+    let result_add = tensor1 + tensor2;
+    
+    // Test tensor subtraction: [[-4.0, -4.0], [-4.0, -4.0]]
+    let result_sub = tensor1 - tensor2;
+    
+    // Test tensor multiplication: [[5.0, 12.0], [21.0, 32.0]]
+    let result_mul = tensor1 * tensor2;
+    
+    // Test with different tensor sizes
+    let row_tensor1 = tensor [[1.0, 2.0, 3.0]];
+    let row_tensor2 = tensor [[4.0, 5.0, 6.0]];
+    let row_result = row_tensor1 + row_tensor2; // [[5.0, 7.0, 9.0]]
+    
+    // Test with single element tensors
+    let scalar1 = tensor [[5.0]];
+    let scalar2 = tensor [[3.0]];
+    let scalar_result = scalar1 * scalar2; // [[15.0]]
+}

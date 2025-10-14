@@ -395,6 +395,20 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             Literal::Boolean(value) => {
                 Ok(self.context.bool_type().const_int(*value as u64, false).into())
             }
+
+            // Tensor Literal (Expert recommendation: Priority 3)
+            Literal::Tensor(rows) => {
+                self.generate_tensor_literal(rows)
+            }
+
+            Literal::Char(value) => {
+                Ok(self.context.i8_type().const_int(*value as u64, false).into())
+            }
+
+            Literal::Null => {
+                // Return a null pointer
+                Ok(self.context.i8_type().ptr_type(inkwell::AddressSpace::default()).const_null().into())
+            }
         }
     }
 
@@ -422,6 +436,10 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                         right_val.into_float_value(),
                         "addtmp"
                     )?.into())
+                } else if matches!(left.result_type, ResolvedType::Tensor(_)) &&
+                          matches!(right.result_type, ResolvedType::Tensor(_)) {
+                    // Tensor addition (Expert recommendation: Priority 3)
+                    self.generate_tensor_binary_op(left_val, right_val, "tensor_add")
                 } else {
                     Err(anyhow!("Type mismatch in addition"))
                 }
@@ -439,6 +457,10 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                         right_val.into_float_value(),
                         "subtmp"
                     )?.into())
+                } else if matches!(left.result_type, ResolvedType::Tensor(_)) &&
+                          matches!(right.result_type, ResolvedType::Tensor(_)) {
+                    // Tensor subtraction (Expert recommendation: Priority 3)
+                    self.generate_tensor_binary_op(left_val, right_val, "tensor_sub")
                 } else {
                     Err(anyhow!("Type mismatch in subtraction"))
                 }
@@ -456,6 +478,10 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                         right_val.into_float_value(),
                         "multmp"
                     )?.into())
+                } else if matches!(left.result_type, ResolvedType::Tensor(_)) &&
+                          matches!(right.result_type, ResolvedType::Tensor(_)) {
+                    // Tensor multiplication (Expert recommendation: Priority 3)
+                    self.generate_tensor_binary_op(left_val, right_val, "tensor_mul")
                 } else {
                     Err(anyhow!("Type mismatch in multiplication"))
                 }
@@ -3014,6 +3040,16 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         ], false);
         self.module.add_function("albayan_rt_tensor_create", tensor_create_fn_type, None);
 
+        // albayan_rt_tensor_create_from_data(data_ptr: *const f64, rows: i64, cols: i64) -> usize
+        // (Expert recommendation: Priority 3 - Tensor Literals)
+        let f64_ptr_type = self.context.f64_type().ptr_type(AddressSpace::default());
+        let tensor_create_from_data_fn_type = i64_type.fn_type(&[
+            f64_ptr_type.into(),  // data_ptr
+            i64_type.into(),      // rows
+            i64_type.into(),      // cols
+        ], false);
+        self.module.add_function("albayan_rt_tensor_create_from_data", tensor_create_from_data_fn_type, None);
+
         // albayan_rt_model_predict(model_handle: usize, input_handles: *const usize, num_inputs: usize) -> usize
         let usize_ptr_type = i64_type.ptr_type(AddressSpace::default());
         let predict_fn_type = i64_type.fn_type(&[
@@ -3034,6 +3070,19 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         // albayan_rt_outputs_destroy(handle: usize)
         let destroy_outputs_fn_type = self.context.void_type().fn_type(&[i64_type.into()], false);
         self.module.add_function("albayan_rt_outputs_destroy", destroy_outputs_fn_type, None);
+
+        // Tensor operations (Expert recommendation: Priority 3)
+        // albayan_rt_tensor_add(left: TensorHandle, right: TensorHandle) -> TensorHandle
+        let tensor_add_fn_type = i64_type.fn_type(&[i64_type.into(), i64_type.into()], false);
+        self.module.add_function("albayan_rt_tensor_add", tensor_add_fn_type, None);
+
+        // albayan_rt_tensor_sub(left: TensorHandle, right: TensorHandle) -> TensorHandle
+        let tensor_sub_fn_type = i64_type.fn_type(&[i64_type.into(), i64_type.into()], false);
+        self.module.add_function("albayan_rt_tensor_sub", tensor_sub_fn_type, None);
+
+        // albayan_rt_tensor_mul(left: TensorHandle, right: TensorHandle) -> TensorHandle
+        let tensor_mul_fn_type = i64_type.fn_type(&[i64_type.into(), i64_type.into()], false);
+        self.module.add_function("albayan_rt_tensor_mul", tensor_mul_fn_type, None);
 
         Ok(())
     }
@@ -3114,5 +3163,90 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         self.module.add_function("albayan_rt_torch_get_device", get_device_fn_type, None);
 
         Ok(())
+    }
+
+    /// Generate code for tensor literal: tensor [[1.0, 2.0], [3.0, 4.0]]
+    /// (Expert recommendation: Priority 3)
+    fn generate_tensor_literal(&self, rows: &[Vec<f64>]) -> Result<BasicValueEnum<'ctx>> {
+        if rows.is_empty() {
+            // Empty tensor - create a null tensor handle
+            return Ok(self.context.i64_type().const_zero().into());
+        }
+
+        let num_rows = rows.len();
+        let num_cols = rows[0].len();
+
+        // Flatten the 2D array into a 1D array
+        let mut flat_data = Vec::new();
+        for row in rows {
+            for &value in row {
+                flat_data.push(value);
+            }
+        }
+
+        // Create array of f64 values
+        let f64_type = self.context.f64_type();
+        let const_values: Vec<_> = flat_data.iter()
+            .map(|&val| f64_type.const_float(val))
+            .collect();
+
+        // Create array constant
+        let array_type = f64_type.array_type(flat_data.len() as u32);
+        let array_const = array_type.const_array(&const_values);
+
+        // Allocate memory for the array
+        let array_ptr = self.builder.build_alloca(array_type, "tensor_data")?;
+        self.builder.build_store(array_ptr, array_const)?;
+
+        // Call runtime function to create tensor from data
+        // tensor_create_from_data(data: *const f64, rows: i64, cols: i64) -> TensorHandle
+        let create_tensor_fn = self.module.get_function("albayan_rt_tensor_create_from_data")
+            .ok_or_else(|| anyhow::anyhow!("tensor_create_from_data function not found"))?;
+
+        let data_ptr = self.builder.build_pointer_cast(
+            array_ptr,
+            self.context.f64_type().ptr_type(inkwell::AddressSpace::default()),
+            "data_ptr"
+        )?;
+
+        let rows_val = self.context.i64_type().const_int(num_rows as u64, false);
+        let cols_val = self.context.i64_type().const_int(num_cols as u64, false);
+
+        let tensor_handle = self.builder.build_call(
+            create_tensor_fn,
+            &[data_ptr.into(), rows_val.into(), cols_val.into()],
+            "tensor_handle"
+        )?;
+
+        Ok(tensor_handle.try_as_basic_value().left().unwrap())
+    }
+
+    /// Generate code for tensor binary operations: tensor1 + tensor2
+    /// (Expert recommendation: Priority 3)
+    fn generate_tensor_binary_op(
+        &self,
+        left_val: BasicValueEnum<'ctx>,
+        right_val: BasicValueEnum<'ctx>,
+        operation: &str
+    ) -> Result<BasicValueEnum<'ctx>> {
+        // Get the runtime function for tensor operations
+        let func_name = match operation {
+            "tensor_add" => "albayan_rt_tensor_add",
+            "tensor_sub" => "albayan_rt_tensor_sub",
+            "tensor_mul" => "albayan_rt_tensor_mul",
+            _ => return Err(anyhow!("Unknown tensor operation: {}", operation))
+        };
+
+        let tensor_op_fn = self.module.get_function(func_name)
+            .ok_or_else(|| anyhow!("{} function not found", func_name))?;
+
+        // Call the tensor operation function
+        let result_handle = self.builder.build_call(
+            tensor_op_fn,
+            &[left_val.into(), right_val.into()],
+            "tensor_op_result"
+        )?;
+
+        Ok(result_handle.try_as_basic_value().left().unwrap())
     }
 }

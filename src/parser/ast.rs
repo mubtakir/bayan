@@ -429,6 +429,10 @@ pub enum Literal {
     String(String),
     Char(char),
     Null,
+
+    // Tensor Literal (Expert recommendation: Priority 3)
+    /// Tensor literal: tensor [[1.0, 2.0], [3.0, 4.0]]
+    Tensor(Vec<Vec<f64>>),
 }
 
 /// Binary expression

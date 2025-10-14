@@ -83,6 +83,18 @@ impl TypeChecker {
             Literal::String(_) => ResolvedType::String,
             Literal::Char(_) => ResolvedType::Char,
             Literal::Null => ResolvedType::Null,
+
+            // Tensor Literal (Expert recommendation: Priority 3)
+            Literal::Tensor(rows) => {
+                // Infer tensor dimensions from the literal structure
+                if rows.is_empty() {
+                    ResolvedType::Tensor(vec![0]) // Empty tensor
+                } else {
+                    let num_rows = rows.len();
+                    let num_cols = rows[0].len();
+                    ResolvedType::Tensor(vec![num_rows, num_cols])
+                }
+            }
         }
     }
 
@@ -246,6 +258,20 @@ impl TypeChecker {
             // String concatenation (only for +)
             (ResolvedType::String, ResolvedType::String) if matches!(operator, BinaryOperator::Add) => {
                 Ok(ResolvedType::String)
+            }
+
+            // Tensor operations (Expert recommendation: Priority 3)
+            (ResolvedType::Tensor(dims1), ResolvedType::Tensor(dims2)) => {
+                // Check that tensor dimensions are compatible
+                if dims1 == dims2 {
+                    Ok(ResolvedType::Tensor(dims1.clone()))
+                } else {
+                    Err(SemanticError::InvalidBinaryOperation(
+                        operator.clone(),
+                        left_type.clone(),
+                        right_type.clone(),
+                    ))
+                }
             }
 
             _ => Err(SemanticError::InvalidBinaryOperation(

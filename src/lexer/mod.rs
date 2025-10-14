@@ -89,6 +89,10 @@ pub enum TokenType {
     #[token("Tensor")]
     Tensor,
 
+    // Keywords - Tensor Literals (Expert recommendation: Priority 3)
+    #[token("tensor")]
+    TensorLiteral,
+
     // Keywords - Concurrency
     #[token("async")]
     Async,

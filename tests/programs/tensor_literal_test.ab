@@ -1,0 +1,14 @@
+// Tensor Literal Test (Expert recommendation: Priority 3)
+fn main() {
+    // Simple 2x2 tensor
+    let my_tensor = tensor [[1.0, 2.0], [3.0, 4.0]];
+    
+    // Single row tensor
+    let row_tensor = tensor [[1.0, 2.0, 3.0]];
+    
+    // Single column tensor
+    let col_tensor = tensor [[1.0], [2.0], [3.0]];
+    
+    // Integer values (should be converted to float)
+    let int_tensor = tensor [[1, 2], [3, 4]];
+}

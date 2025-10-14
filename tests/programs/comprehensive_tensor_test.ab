@@ -1,0 +1,42 @@
+// Comprehensive Tensor Test (Expert recommendation: Priority 3)
+fn main() {
+    // Test 1: Basic tensor creation and operations
+    let a = tensor [[1.0, 2.0], [3.0, 4.0]];
+    let b = tensor [[5.0, 6.0], [7.0, 8.0]];
+    
+    // Test tensor addition
+    let sum = a + b;  // Should be [[6.0, 8.0], [10.0, 12.0]]
+    
+    // Test tensor subtraction  
+    let diff = a - b; // Should be [[-4.0, -4.0], [-4.0, -4.0]]
+    
+    // Test tensor multiplication (element-wise)
+    let product = a * b; // Should be [[5.0, 12.0], [21.0, 32.0]]
+    
+    // Test 2: Different tensor sizes
+    let row1 = tensor [[1.0, 2.0, 3.0]];
+    let row2 = tensor [[4.0, 5.0, 6.0]];
+    let row_sum = row1 + row2; // Should be [[5.0, 7.0, 9.0]]
+    
+    // Test 3: Single element tensors (scalars)
+    let scalar1 = tensor [[10.0]];
+    let scalar2 = tensor [[5.0]];
+    let scalar_add = scalar1 + scalar2; // Should be [[15.0]]
+    let scalar_mul = scalar1 * scalar2; // Should be [[50.0]]
+    
+    // Test 4: Column vectors
+    let col1 = tensor [[1.0], [2.0], [3.0]];
+    let col2 = tensor [[4.0], [5.0], [6.0]];
+    let col_result = col1 + col2; // Should be [[5.0], [7.0], [9.0]]
+    
+    // Test 5: Chained operations
+    let x = tensor [[1.0, 2.0]];
+    let y = tensor [[3.0, 4.0]];
+    let z = tensor [[5.0, 6.0]];
+    let chained = x + y * z; // Should be x + (y * z) = [[1.0, 2.0]] + [[15.0, 24.0]] = [[16.0, 26.0]]
+    
+    // Test 6: Mixed integer and float literals
+    let int_tensor = tensor [[1, 2], [3, 4]];
+    let float_tensor = tensor [[1.5, 2.5], [3.5, 4.5]];
+    let mixed_result = int_tensor + float_tensor; // Should work with type promotion
+}

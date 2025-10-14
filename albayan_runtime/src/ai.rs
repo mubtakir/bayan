@@ -163,6 +163,75 @@ impl AIRuntime {
     pub fn destroy_outputs(&mut self, handle: OutputTensorsHandle) {
         self.outputs.remove(&handle);
     }
+
+    /// Tensor addition (Expert recommendation: Priority 3)
+    pub fn tensor_add(&mut self, left_handle: TensorHandle, right_handle: TensorHandle) -> TensorHandle {
+        if let (Some(left_tensor), Some(right_tensor)) =
+            (self.tensors.get(&left_handle), self.tensors.get(&right_handle)) {
+
+            // Check dimensions compatibility
+            if left_tensor.dimensions != right_tensor.dimensions {
+                return 0; // Invalid handle for dimension mismatch
+            }
+
+            // Element-wise addition
+            let result_data: Vec<f32> = left_tensor.data.iter()
+                .zip(right_tensor.data.iter())
+                .map(|(a, b)| a + b)
+                .collect();
+
+            // Create result tensor
+            self.create_tensor(result_data, left_tensor.dimensions.clone(), "tensor_add_result".to_string())
+        } else {
+            0 // Invalid handles
+        }
+    }
+
+    /// Tensor subtraction (Expert recommendation: Priority 3)
+    pub fn tensor_sub(&mut self, left_handle: TensorHandle, right_handle: TensorHandle) -> TensorHandle {
+        if let (Some(left_tensor), Some(right_tensor)) =
+            (self.tensors.get(&left_handle), self.tensors.get(&right_handle)) {
+
+            // Check dimensions compatibility
+            if left_tensor.dimensions != right_tensor.dimensions {
+                return 0; // Invalid handle for dimension mismatch
+            }
+
+            // Element-wise subtraction
+            let result_data: Vec<f32> = left_tensor.data.iter()
+                .zip(right_tensor.data.iter())
+                .map(|(a, b)| a - b)
+                .collect();
+
+            // Create result tensor
+            self.create_tensor(result_data, left_tensor.dimensions.clone(), "tensor_sub_result".to_string())
+        } else {
+            0 // Invalid handles
+        }
+    }
+
+    /// Tensor multiplication (Expert recommendation: Priority 3)
+    pub fn tensor_mul(&mut self, left_handle: TensorHandle, right_handle: TensorHandle) -> TensorHandle {
+        if let (Some(left_tensor), Some(right_tensor)) =
+            (self.tensors.get(&left_handle), self.tensors.get(&right_handle)) {
+
+            // Check dimensions compatibility
+            if left_tensor.dimensions != right_tensor.dimensions {
+                return 0; // Invalid handle for dimension mismatch
+            }
+
+            // Element-wise multiplication
+            let result_data: Vec<f32> = left_tensor.data.iter()
+                .zip(right_tensor.data.iter())
+                .map(|(a, b)| a * b)
+                .collect();
+
+            // Create result tensor
+            self.create_tensor(result_data, left_tensor.dimensions.clone(), "tensor_mul_result".to_string())
+        } else {
+            0 // Invalid handles
+        }
+    }
 }
 
 /// Extract tensor data from ONNX Value (Simplified for now)
@@ -240,6 +309,33 @@ pub extern "C" fn albayan_rt_tensor_create(
     }
 }
 
+/// Create tensor from data (Expert recommendation: Priority 3 - Tensor Literals)
+#[no_mangle]
+pub extern "C" fn albayan_rt_tensor_create_from_data(
+    data_ptr: *const f64,
+    rows: i64,
+    cols: i64,
+) -> TensorHandle {
+    if data_ptr.is_null() || rows <= 0 || cols <= 0 {
+        return 0; // Invalid handle
+    }
+
+    unsafe {
+        if let Some(ref mut runtime) = AI_RUNTIME {
+            let data_len = (rows * cols) as usize;
+            let data_f64 = std::slice::from_raw_parts(data_ptr, data_len);
+
+            // Convert f64 to f32 for compatibility with existing tensor system
+            let data_f32: Vec<f32> = data_f64.iter().map(|&x| x as f32).collect();
+            let dimensions = vec![rows, cols];
+
+            runtime.create_tensor(data_f32, dimensions, "tensor_literal".to_string())
+        } else {
+            0 // Runtime not initialized
+        }
+    }
+}
+
 /// Run model prediction (Expert recommendation: FFI function)
 #[no_mangle]
 pub extern "C" fn albayan_rt_model_predict(
@@ -290,6 +386,51 @@ pub extern "C" fn albayan_rt_outputs_destroy(handle: OutputTensorsHandle) {
     unsafe {
         if let Some(ref mut runtime) = AI_RUNTIME {
             runtime.destroy_outputs(handle);
+        }
+    }
+}
+
+/// Tensor addition (Expert recommendation: Priority 3)
+#[no_mangle]
+pub extern "C" fn albayan_rt_tensor_add(
+    left_handle: TensorHandle,
+    right_handle: TensorHandle,
+) -> TensorHandle {
+    unsafe {
+        if let Some(ref mut runtime) = AI_RUNTIME {
+            runtime.tensor_add(left_handle, right_handle)
+        } else {
+            0 // Runtime not initialized
+        }
+    }
+}
+
+/// Tensor subtraction (Expert recommendation: Priority 3)
+#[no_mangle]
+pub extern "C" fn albayan_rt_tensor_sub(
+    left_handle: TensorHandle,
+    right_handle: TensorHandle,
+) -> TensorHandle {
+    unsafe {
+        if let Some(ref mut runtime) = AI_RUNTIME {
+            runtime.tensor_sub(left_handle, right_handle)
+        } else {
+            0 // Runtime not initialized
+        }
+    }
+}
+
+/// Tensor multiplication (Expert recommendation: Priority 3)
+#[no_mangle]
+pub extern "C" fn albayan_rt_tensor_mul(
+    left_handle: TensorHandle,
+    right_handle: TensorHandle,
+) -> TensorHandle {
+    unsafe {
+        if let Some(ref mut runtime) = AI_RUNTIME {
+            runtime.tensor_mul(left_handle, right_handle)
+        } else {
+            0 // Runtime not initialized
         }
     }
 }
