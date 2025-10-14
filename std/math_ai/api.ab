@@ -1,0 +1,461 @@
+// std/math_ai/api.ab
+// واجهة برمجة التطبيقات للذكاء الاصطناعي الرياضي
+// Expert recommendation: "بناء الواجهة (std API) لابتكارك الخاص"
+
+use core::*;
+use objects::*;
+use events::*;
+use outcomes::*;
+use adaptive_equations::*;
+
+/// واجهة برمجة التطبيقات الرئيسية للذكاء الاصطناعي الرياضي
+/// Expert insight: "الجسر بين الرؤية والتنفيذ"
+pub struct MathAI {
+    /// النظام الداخلي
+    system: MathematicalAI,
+    
+    /// هل النظام مهيأ؟
+    initialized: bool,
+    
+    /// إعدادات الواجهة
+    api_settings: APISettings,
+}
+
+/// إعدادات واجهة برمجة التطبيقات
+pub struct APISettings {
+    /// مستوى التفصيل في الإخراج
+    pub verbosity: VerbosityLevel,
+    
+    /// تنسيق الإخراج المفضل
+    pub output_format: OutputFormat,
+    
+    /// اللغة المفضلة للنتائج
+    pub preferred_language: string,
+    
+    /// هل يتم حفظ تاريخ العمليات؟
+    pub save_history: bool,
+    
+    /// الحد الأقصى لوقت العملية (ثواني)
+    pub max_operation_time: int,
+}
+
+/// مستويات التفصيل
+pub enum VerbosityLevel {
+    /// صامت - النتائج فقط
+    Silent,
+    
+    /// أساسي - النتائج والأخطاء
+    Basic,
+    
+    /// متوسط - النتائج والخطوات الرئيسية
+    Medium,
+    
+    /// مفصل - جميع التفاصيل
+    Verbose,
+    
+    /// تشخيصي - معلومات تقنية إضافية
+    Debug,
+}
+
+/// تنسيقات الإخراج
+pub enum OutputFormat {
+    /// نص عادي
+    PlainText,
+    
+    /// JSON منظم
+    JSON,
+    
+    /// XML منظم
+    XML,
+    
+    /// Markdown مع تنسيق
+    Markdown,
+    
+    /// LaTeX للرياضيات
+    LaTeX,
+    
+    /// HTML تفاعلي
+    HTML,
+}
+
+impl MathAI {
+    /// إنشاء نظام ذكاء اصطناعي رياضي جديد
+    pub fn new() -> MathAI {
+        MathAI {
+            system: MathematicalAI::new(),
+            initialized: false,
+            api_settings: APISettings::default(),
+        }
+    }
+    
+    /// تهيئة النظام
+    pub fn initialize(&mut self) -> Result<(), string> {
+        // تهيئة جميع الوحدات
+        self.system.expert_explorer.initialize()?;
+        self.system.thinking_core.initialize()?;
+        self.system.artistic_renderer.initialize()?;
+        self.system.shape_inference.initialize()?;
+        self.system.adaptive_equations.initialize()?;
+        
+        self.initialized = true;
+        Ok(())
+    }
+    
+    /// حل مشكلة رياضية شاملة
+    /// Expert recommendation: "النقطة المحورية للنظام"
+    pub fn solve_problem(&mut self, problem: string) -> Result<MathematicalSolution, string> {
+        if !self.initialized {
+            return Err("النظام غير مهيأ. يرجى استدعاء initialize() أولاً".to_string());
+        }
+        
+        // 1. تحليل المشكلة بواسطة الخبير المستكشف
+        let analysis = self.system.expert_explorer.analyze_problem(&problem)?;
+        
+        // 2. تطوير استراتيجيات متعددة بواسطة نواة التفكير
+        let strategies = self.system.thinking_core.develop_strategies(&analysis)?;
+        
+        // 3. تطوير معادلات تكيفية للمشكلة
+        let equations = self.system.adaptive_equations.evolve_for_problem(&analysis)?;
+        
+        // 4. تصور الحل بواسطة محرك الرسم
+        let visualization = self.system.artistic_renderer.visualize_solution(&equations)?;
+        
+        // 5. تجميع النتيجة النهائية
+        Ok(MathematicalSolution {
+            id: generate_unique_id(),
+            original_problem: problem,
+            main_outcomes: equations.to_outcomes(),
+            secondary_outcomes: vec![],
+            solution_path: strategies.to_solution_steps(),
+            total_time: 0, // سيتم حسابه
+            resources_used: ResourceUsage::current(),
+            quality_assessment: QualityAssessment::evaluate(&equations),
+            improvement_suggestions: vec![],
+        })
+    }
+    
+    /// تحليل معادلة رياضية
+    pub fn analyze_equation(&mut self, equation: string) -> Result<EquationAnalysis, string> {
+        let math_object = MathObject::from_equation(&equation)?;
+        let analysis = self.system.expert_explorer.analyze_object(&math_object)?;
+        
+        Ok(EquationAnalysis {
+            equation: equation,
+            object_representation: math_object,
+            analysis_results: analysis,
+            suggested_transformations: vec![],
+            related_concepts: vec![],
+        })
+    }
+    
+    /// تحويل معادلة إلى شكل بصري
+    /// Expert recommendation: "ShapeInferenceEngine - أبسط وحدة للبدء"
+    pub fn equation_to_shape(&mut self, equation: string) -> Result<GeometricShape, string> {
+        self.system.shape_inference.equation_to_shape(&equation)
+    }
+    
+    /// استنتاج معادلة من شكل بصري
+    /// Expert recommendation: "الاتجاه العكسي للتحويل"
+    pub fn shape_to_equation(&mut self, shape: GeometricShape) -> Result<string, string> {
+        self.system.shape_inference.shape_to_equation(&shape)
+    }
+    
+    /// إنشاء تصور فني لمعادلة
+    pub fn create_artistic_visualization(&mut self, equation: string, style: ArtStyle) -> Result<ImageData, string> {
+        self.system.artistic_renderer.equation_to_art(&equation, style)
+    }
+    
+    /// تدريب معادلة تكيفية على بيانات
+    pub fn train_adaptive_equation(&mut self, equation_id: string, training_data: TrainingData) -> Result<AdaptationResult, string> {
+        self.system.adaptive_equations.train_equation(&equation_id, &training_data)
+    }
+    
+    /// البحث في قاعدة المعرفة
+    pub fn search_knowledge(&self, query: string) -> Result<List<KnowledgeItem>, string> {
+        self.system.knowledge_base.search(&query)
+    }
+    
+    /// إضافة معرفة جديدة
+    pub fn add_knowledge(&mut self, knowledge: KnowledgeItem) -> Result<(), string> {
+        self.system.knowledge_base.add_item(knowledge)
+    }
+    
+    /// تقييم أداء النظام
+    pub fn evaluate_performance(&self) -> PerformanceReport {
+        PerformanceReport {
+            overall_score: self.system.performance_stats.success_rate,
+            detailed_metrics: self.system.performance_stats.clone(),
+            recommendations: vec![],
+            benchmark_results: BenchmarkResults::default(),
+        }
+    }
+    
+    /// تصدير النموذج المدرب
+    pub fn export_model(&self, format: ModelFormat) -> Result<string, string> {
+        match format {
+            ModelFormat::JSON => self.system.to_json(),
+            ModelFormat::Binary => self.system.to_binary(),
+            ModelFormat::ONNX => self.system.to_onnx(),
+        }
+    }
+    
+    /// استيراد نموذج مدرب
+    pub fn import_model(&mut self, model_data: string, format: ModelFormat) -> Result<(), string> {
+        match format {
+            ModelFormat::JSON => self.system.from_json(&model_data),
+            ModelFormat::Binary => self.system.from_binary(&model_data),
+            ModelFormat::ONNX => self.system.from_onnx(&model_data),
+        }
+    }
+    
+    /// الحصول على إحصائيات مفصلة
+    pub fn get_detailed_statistics(&self) -> DetailedStatistics {
+        DetailedStatistics {
+            performance_stats: self.system.performance_stats.clone(),
+            system_state: self.system.system_state.clone(),
+            memory_usage: get_memory_usage(),
+            cpu_usage: get_cpu_usage(),
+            active_processes: self.system.system_state.active_tasks.len(),
+        }
+    }
+    
+    /// تحديث إعدادات النظام
+    pub fn update_settings(&mut self, new_settings: SystemConfiguration) -> Result<(), string> {
+        self.system.configuration = new_settings;
+        self.apply_configuration_changes()
+    }
+    
+    /// إعادة تعيين النظام
+    pub fn reset_system(&mut self) -> Result<(), string> {
+        self.system = MathematicalAI::new();
+        self.initialized = false;
+        Ok(())
+    }
+    
+    /// حفظ حالة النظام
+    pub fn save_state(&self, file_path: string) -> Result<(), string> {
+        let state_data = self.system.serialize()?;
+        write_file(&file_path, &state_data)
+    }
+    
+    /// تحميل حالة النظام
+    pub fn load_state(&mut self, file_path: string) -> Result<(), string> {
+        let state_data = read_file(&file_path)?;
+        self.system = MathematicalAI::deserialize(&state_data)?;
+        self.initialized = true;
+        Ok(())
+    }
+}
+
+/// نتيجة تحليل المعادلة
+pub struct EquationAnalysis {
+    /// المعادلة الأصلية
+    pub equation: string,
+    
+    /// تمثيل الكائن الرياضي
+    pub object_representation: MathObject,
+    
+    /// نتائج التحليل
+    pub analysis_results: AnalysisResult,
+    
+    /// التحويلات المقترحة
+    pub suggested_transformations: List<TransformationSuggestion>,
+    
+    /// المفاهيم المرتبطة
+    pub related_concepts: List<RelatedConcept>,
+}
+
+/// نتيجة التحليل
+pub struct AnalysisResult {
+    /// نوع المعادلة
+    pub equation_type: EquationType,
+    
+    /// مستوى التعقيد (1-10)
+    pub complexity_level: int,
+    
+    /// الخصائص المكتشفة
+    pub discovered_properties: List<MathematicalProperty>,
+    
+    /// الحلول المحتملة
+    pub potential_solutions: List<PotentialSolution>,
+    
+    /// مستوى الثقة في التحليل
+    pub confidence: float,
+}
+
+/// خاصية رياضية
+pub struct MathematicalProperty {
+    /// اسم الخاصية
+    pub name: string,
+    
+    /// وصف الخاصية
+    pub description: string,
+    
+    /// القيمة (إن وجدت)
+    pub value: string,
+    
+    /// مستوى الثقة
+    pub confidence: float,
+}
+
+/// حل محتمل
+pub struct PotentialSolution {
+    /// وصف الحل
+    pub description: string,
+    
+    /// الطريقة المقترحة
+    pub suggested_method: string,
+    
+    /// الوقت المتوقع
+    pub estimated_time: int,
+    
+    /// احتمالية النجاح
+    pub success_probability: float,
+}
+
+/// اقتراح تحويل
+pub struct TransformationSuggestion {
+    /// نوع التحويل
+    pub transformation_type: TransformationType,
+    
+    /// وصف التحويل
+    pub description: string,
+    
+    /// النتيجة المتوقعة
+    pub expected_result: string,
+    
+    /// الفائدة المتوقعة
+    pub expected_benefit: string,
+}
+
+/// مفهوم مرتبط
+pub struct RelatedConcept {
+    /// اسم المفهوم
+    pub concept_name: string,
+    
+    /// نوع العلاقة
+    pub relationship_type: RelationType,
+    
+    /// قوة العلاقة
+    pub relationship_strength: float,
+    
+    /// وصف العلاقة
+    pub relationship_description: string,
+}
+
+/// نتيجة التكيف
+pub struct AdaptationResult {
+    /// هل نجح التكيف؟
+    pub success: bool,
+    
+    /// التحسن في الأداء
+    pub performance_improvement: float,
+    
+    /// عدد التكرارات المطلوبة
+    pub iterations_required: int,
+    
+    /// الوقت المطلوب
+    pub time_taken: int,
+    
+    /// التغييرات المطبقة
+    pub changes_applied: List<ParameterChange>,
+}
+
+/// عنصر معرفة
+pub struct KnowledgeItem {
+    /// نوع العنصر
+    pub item_type: KnowledgeItemType,
+    
+    /// المحتوى
+    pub content: string,
+    
+    /// الكلمات المفتاحية
+    pub keywords: List<string>,
+    
+    /// المجال
+    pub domain: string,
+    
+    /// مستوى الأهمية
+    pub importance: int,
+}
+
+/// أنواع عناصر المعرفة
+pub enum KnowledgeItemType {
+    Fact,        // حقيقة
+    Rule,        // قاعدة
+    Example,     // مثال
+    Theorem,     // نظرية
+    Method,      // طريقة
+    Concept,     // مفهوم
+}
+
+/// تقرير الأداء
+pub struct PerformanceReport {
+    /// النتيجة الإجمالية
+    pub overall_score: float,
+    
+    /// المقاييس التفصيلية
+    pub detailed_metrics: PerformanceStatistics,
+    
+    /// التوصيات
+    pub recommendations: List<string>,
+    
+    /// نتائج المقارنة
+    pub benchmark_results: BenchmarkResults,
+}
+
+/// تنسيقات النموذج
+pub enum ModelFormat {
+    JSON,
+    Binary,
+    ONNX,
+}
+
+/// إحصائيات مفصلة
+pub struct DetailedStatistics {
+    /// إحصائيات الأداء
+    pub performance_stats: PerformanceStatistics,
+    
+    /// حالة النظام
+    pub system_state: SystemState,
+    
+    /// استخدام الذاكرة
+    pub memory_usage: float,
+    
+    /// استخدام المعالج
+    pub cpu_usage: float,
+    
+    /// العمليات النشطة
+    pub active_processes: int,
+}
+
+/// دوال مساعدة للواجهة
+pub fn generate_unique_id() -> string {
+    // توليد معرف فريد
+    "math_ai_" + &timestamp().to_string()
+}
+
+pub fn get_memory_usage() -> float {
+    // الحصول على استخدام الذاكرة الحالي
+    0.0 // سيتم تنفيذها في وقت التشغيل
+}
+
+pub fn get_cpu_usage() -> float {
+    // الحصول على استخدام المعالج الحالي
+    0.0 // سيتم تنفيذها في وقت التشغيل
+}
+
+pub fn timestamp() -> int {
+    // الحصول على الطابع الزمني الحالي
+    0 // سيتم تنفيذها في وقت التشغيل
+}
+
+pub fn write_file(path: &string, content: &string) -> Result<(), string> {
+    // كتابة ملف
+    Ok(()) // سيتم تنفيذها في وقت التشغيل
+}
+
+pub fn read_file(path: &string) -> Result<string, string> {
+    // قراءة ملف
+    Ok("".to_string()) // سيتم تنفيذها في وقت التشغيل
+}

@@ -1,0 +1,320 @@
+// std/math_ai/events.ab
+// الأحداث الرياضية - تمثيل العمليات والتحولات
+// Expert recommendation: "تمثيل MathEvent بلغة البيان نفسها"
+
+/// حدث رياضي - يمثل عملية أو تحول في النظام الرياضي
+/// الفلسفة: كل عملية رياضية هي حدث يحول كائنات إلى كائنات أخرى
+pub struct MathEvent {
+    /// معرف فريد للحدث
+    pub id: string,
+    
+    /// نوع الحدث الرياضي
+    pub event_type: EventType,
+    
+    /// الكائنات المدخلة للحدث
+    pub input_objects: List<string>, // معرفات الكائنات
+    
+    /// الكائنات الناتجة من الحدث
+    pub output_objects: List<string>, // معرفات الكائنات
+    
+    /// مصفوفة التحويل (إن وجدت)
+    pub transformation: TransformationMatrix,
+    
+    /// مستوى الثقة في هذا الحدث (0.0 إلى 1.0)
+    pub confidence: float,
+    
+    /// الوقت المطلوب لتنفيذ الحدث (بالميلي ثانية)
+    pub execution_time: int,
+    
+    /// الطابع الزمني لحدوث الحدث
+    pub timestamp: int,
+    
+    /// السياق الذي حدث فيه هذا الحدث
+    pub context: EventContext,
+    
+    /// النتائج الجانبية للحدث
+    pub side_effects: List<SideEffect>,
+}
+
+/// أنواع الأحداث الرياضية المختلفة
+pub enum EventType {
+    /// عملية حسابية
+    Calculation(OperationType),
+    
+    /// تحويل رياضي
+    Transformation(TransformationType),
+    
+    /// برهان رياضي
+    Proof(ProofType),
+    
+    /// اكتشاف رياضي
+    Discovery(DiscoveryType),
+    
+    /// تحليل رياضي
+    Analysis(AnalysisType),
+    
+    /// تحسين أو تطوير
+    Optimization(OptimizationType),
+    
+    /// محاكاة رياضية
+    Simulation(SimulationType),
+    
+    /// تصور أو رسم
+    Visualization(VisualizationType),
+}
+
+/// أنواع العمليات الحسابية
+pub enum OperationType {
+    /// عمليات أساسية
+    BasicArithmetic(ArithmeticOp),
+    
+    /// عمليات جبرية
+    Algebraic(AlgebraicOp),
+    
+    /// عمليات التفاضل والتكامل
+    Calculus(CalculusOp),
+    
+    /// عمليات الإحصاء
+    Statistical(StatisticalOp),
+    
+    /// عمليات الهندسة
+    Geometric(GeometricOp),
+    
+    /// عمليات المصفوفات
+    Matrix(MatrixOp),
+    
+    /// عمليات مخصصة
+    Custom(string),
+}
+
+/// العمليات الحسابية الأساسية
+pub enum ArithmeticOp {
+    Add,        // جمع
+    Subtract,   // طرح
+    Multiply,   // ضرب
+    Divide,     // قسمة
+    Power,      // أس
+    Root,       // جذر
+    Modulo,     // باقي القسمة
+}
+
+/// العمليات الجبرية
+pub enum AlgebraicOp {
+    Solve,      // حل معادلة
+    Factor,     // تحليل
+    Expand,     // فك الأقواس
+    Simplify,   // تبسيط
+    Substitute, // تعويض
+}
+
+/// عمليات التفاضل والتكامل
+pub enum CalculusOp {
+    Differentiate,  // تفاضل
+    Integrate,      // تكامل
+    Limit,          // نهاية
+    Series,         // متسلسلة
+}
+
+/// العمليات الإحصائية
+pub enum StatisticalOp {
+    Mean,           // متوسط
+    Median,         // وسيط
+    Mode,           // منوال
+    StandardDev,    // انحراف معياري
+    Correlation,    // ارتباط
+    Regression,     // انحدار
+}
+
+/// العمليات الهندسية
+pub enum GeometricOp {
+    Area,           // مساحة
+    Perimeter,      // محيط
+    Volume,         // حجم
+    Distance,       // مسافة
+    Angle,          // زاوية
+    Transform,      // تحويل هندسي
+}
+
+/// عمليات المصفوفات
+pub enum MatrixOp {
+    Add,            // جمع مصفوفات
+    Multiply,       // ضرب مصفوفات
+    Transpose,      // تبديل
+    Determinant,    // محدد
+    Inverse,        // معكوس
+    Eigenvalues,    // القيم الذاتية
+}
+
+/// أنواع التحويلات الرياضية
+pub enum TransformationType {
+    /// تحويل خطي
+    Linear(LinearTransform),
+    
+    /// تحويل غير خطي
+    NonLinear(NonLinearTransform),
+    
+    /// تحويل هندسي
+    Geometric(GeometricTransform),
+    
+    /// تحويل إحصائي
+    Statistical(StatisticalTransform),
+    
+    /// تحويل ترددي
+    Frequency(FrequencyTransform),
+}
+
+/// التحويلات الخطية
+pub enum LinearTransform {
+    Scale,          // تكبير/تصغير
+    Rotate,         // دوران
+    Translate,      // انتقال
+    Reflect,        // انعكاس
+    Shear,          // قص
+}
+
+/// التحويلات غير الخطية
+pub enum NonLinearTransform {
+    Exponential,    // أسي
+    Logarithmic,    // لوغاريتمي
+    Trigonometric,  // مثلثي
+    Polynomial,     // كثير حدود
+    Custom(string), // مخصص
+}
+
+/// التحويلات الهندسية
+pub enum GeometricTransform {
+    Projection,     // إسقاط
+    Mapping,        // تخطيط
+    Morphing,       // تشويه
+    Tessellation,   // تبليط
+}
+
+/// التحويلات الإحصائية
+pub enum StatisticalTransform {
+    Normalization,  // تطبيع
+    Standardization, // توحيد قياسي
+    Discretization, // تقطيع
+    Smoothing,      // تنعيم
+}
+
+/// التحويلات الترددية
+pub enum FrequencyTransform {
+    Fourier,        // فورييه
+    Wavelet,        // موجيات
+    Laplace,        // لابلاس
+    ZTransform,     // تحويل Z
+}
+
+/// أنواع البراهين الرياضية
+pub enum ProofType {
+    Direct,         // مباشر
+    Indirect,       // غير مباشر
+    Contradiction,  // بالتناقض
+    Induction,      // بالاستقراء
+    Construction,   // بالبناء
+    Existence,      // وجودي
+    Uniqueness,     // وحدانية
+}
+
+/// أنواع الاكتشافات الرياضية
+pub enum DiscoveryType {
+    Pattern,        // نمط
+    Relationship,   // علاقة
+    Property,       // خاصية
+    Theorem,        // نظرية
+    Formula,        // صيغة
+    Algorithm,      // خوارزمية
+}
+
+/// أنواع التحليل الرياضي
+pub enum AnalysisType {
+    Numerical,      // عددي
+    Symbolic,       // رمزي
+    Graphical,      // بياني
+    Statistical,    // إحصائي
+    Dimensional,    // أبعادي
+}
+
+/// أنواع التحسين
+pub enum OptimizationType {
+    Minimize,       // تصغير
+    Maximize,       // تكبير
+    Constrained,    // مقيد
+    Unconstrained,  // غير مقيد
+    MultiObjective, // متعدد الأهداف
+}
+
+/// أنواع المحاكاة
+pub enum SimulationType {
+    MonteCarlo,     // مونت كارلو
+    Deterministic,  // حتمية
+    Stochastic,     // عشوائية
+    Agent,          // وكيل
+}
+
+/// أنواع التصور
+pub enum VisualizationType {
+    Plot2D,         // رسم ثنائي الأبعاد
+    Plot3D,         // رسم ثلاثي الأبعاد
+    Animation,      // رسوم متحركة
+    Interactive,    // تفاعلي
+    Artistic,       // فني
+}
+
+/// مصفوفة التحويل
+pub struct TransformationMatrix {
+    /// أبعاد المصفوفة
+    pub dimensions: (int, int),
+    
+    /// عناصر المصفوفة
+    pub elements: List<List<float>>,
+    
+    /// نوع التحويل
+    pub transform_type: string,
+    
+    /// هل التحويل قابل للعكس؟
+    pub invertible: bool,
+}
+
+/// سياق الحدث
+pub struct EventContext {
+    /// المجال الرياضي
+    pub domain: string,
+    
+    /// مستوى الصعوبة (1-10)
+    pub difficulty_level: int,
+    
+    /// الهدف من الحدث
+    pub purpose: string,
+    
+    /// الأدوات المستخدمة
+    pub tools_used: List<string>,
+    
+    /// البيئة التي حدث فيها
+    pub environment: string,
+}
+
+/// تأثير جانبي للحدث
+pub struct SideEffect {
+    /// نوع التأثير
+    pub effect_type: SideEffectType,
+    
+    /// وصف التأثير
+    pub description: string,
+    
+    /// شدة التأثير (0.0 إلى 1.0)
+    pub intensity: float,
+    
+    /// مدة التأثير (بالميلي ثانية، -1 للدائم)
+    pub duration: int,
+}
+
+/// أنواع التأثيرات الجانبية
+pub enum SideEffectType {
+    MemoryUsage,    // استخدام الذاكرة
+    Performance,    // الأداء
+    Accuracy,       // الدقة
+    Stability,      // الاستقرار
+    Learning,       // التعلم
+    Discovery,      // الاكتشاف
+}

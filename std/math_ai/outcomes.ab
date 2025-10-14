@@ -1,0 +1,400 @@
+// std/math_ai/outcomes.ab
+// النتائج الرياضية - تمثيل الحلول والاستنتاجات
+// Expert recommendation: "تمثيل MathOutcome والنتائج بلغة البيان نفسها"
+
+/// نتيجة رياضية - تمثل حل أو استنتاج من عملية رياضية
+/// الفلسفة: كل عملية رياضية تنتج نتيجة لها خصائص وثقة ومعنى
+pub struct MathOutcome {
+    /// معرف فريد للنتيجة
+    pub id: string,
+    
+    /// نوع النتيجة
+    pub outcome_type: OutcomeType,
+    
+    /// القيمة الفعلية للنتيجة
+    pub value: OutcomeValue,
+    
+    /// مستوى الثقة في النتيجة (0.0 إلى 1.0)
+    pub confidence: float,
+    
+    /// دقة النتيجة (للنتائج العددية)
+    pub precision: float,
+    
+    /// الطريقة المستخدمة للوصول للنتيجة
+    pub method_used: string,
+    
+    /// الوقت المطلوب للوصول للنتيجة (بالميلي ثانية)
+    pub computation_time: int,
+    
+    /// الأحداث التي أدت لهذه النتيجة
+    pub source_events: List<string>, // معرفات الأحداث
+    
+    /// التفسير أو المعنى
+    pub interpretation: Interpretation,
+    
+    /// التحقق من صحة النتيجة
+    pub validation: ValidationResult,
+    
+    /// النتائج المرتبطة أو المشتقة
+    pub related_outcomes: List<string>, // معرفات النتائج
+}
+
+/// أنواع النتائج الرياضية
+pub enum OutcomeType {
+    /// حل عددي
+    NumericalSolution,
+    
+    /// حل رمزي
+    SymbolicSolution,
+    
+    /// برهان رياضي
+    Proof,
+    
+    /// اكتشاف أو نمط
+    Discovery,
+    
+    /// تحليل أو تقييم
+    Analysis,
+    
+    /// تصور أو رسم
+    Visualization,
+    
+    /// تنبؤ أو توقع
+    Prediction,
+    
+    /// تحسين أو تطوير
+    Optimization,
+    
+    /// تصنيف أو تجميع
+    Classification,
+    
+    /// نتيجة مركبة
+    Composite(List<MathOutcome>),
+}
+
+/// قيمة النتيجة (يمكن أن تكون من أنواع مختلفة)
+pub enum OutcomeValue {
+    /// قيمة عددية واحدة
+    SingleNumber(float),
+    
+    /// قائمة من الأرقام
+    NumberList(List<float>),
+    
+    /// مصفوفة من الأرقام
+    Matrix(List<List<float>>),
+    
+    /// تعبير رمزي
+    SymbolicExpression(string),
+    
+    /// معادلة
+    Equation(string),
+    
+    /// دالة
+    Function(string),
+    
+    /// شكل هندسي
+    GeometricShape(GeometricShape),
+    
+    /// رسم بياني
+    Graph(GraphStructure),
+    
+    /// صورة أو تصور
+    Image(ImageData),
+    
+    /// نص أو وصف
+    Text(string),
+    
+    /// قيمة منطقية
+    Boolean(bool),
+    
+    /// مجموعة من القيم
+    Set(List<OutcomeValue>),
+    
+    /// قاموس من القيم
+    Dictionary(Dict<string, OutcomeValue>),
+}
+
+/// بيانات الصورة للتصورات
+pub struct ImageData {
+    /// عرض الصورة
+    pub width: int,
+    
+    /// ارتفاع الصورة
+    pub height: int,
+    
+    /// تنسيق الصورة
+    pub format: ImageFormat,
+    
+    /// البيانات الخام للصورة (مُرمزة)
+    pub data: string,
+    
+    /// وصف الصورة
+    pub description: string,
+    
+    /// معلومات إضافية
+    pub metadata: Dict<string, string>,
+}
+
+/// تنسيقات الصور المدعومة
+pub enum ImageFormat {
+    PNG,
+    JPEG,
+    SVG,
+    PDF,
+    Canvas, // HTML5 Canvas
+}
+
+/// تفسير النتيجة ومعناها
+pub struct Interpretation {
+    /// الوصف الأساسي
+    pub description: string,
+    
+    /// المعنى الرياضي
+    pub mathematical_meaning: string,
+    
+    /// التطبيقات العملية
+    pub practical_applications: List<string>,
+    
+    /// الأهمية النسبية (1-10)
+    pub significance: int,
+    
+    /// العلاقة بالمفاهيم الأخرى
+    pub conceptual_connections: List<ConceptualConnection>,
+    
+    /// التحذيرات أو القيود
+    pub limitations: List<string>,
+    
+    /// اقتراحات للخطوات التالية
+    pub next_steps: List<string>,
+}
+
+/// اتصال مفاهيمي
+pub struct ConceptualConnection {
+    /// المفهوم المرتبط
+    pub concept: string,
+    
+    /// نوع الاتصال
+    pub connection_type: ConnectionType,
+    
+    /// قوة الاتصال (0.0 إلى 1.0)
+    pub strength: float,
+    
+    /// وصف الاتصال
+    pub description: string,
+}
+
+/// أنواع الاتصالات المفاهيمية
+pub enum ConnectionType {
+    /// يشبه أو يماثل
+    Analogy,
+    
+    /// يعمم أو يخصص
+    Generalization,
+    
+    /// يطبق أو يستخدم
+    Application,
+    
+    /// يتناقض مع
+    Contradiction,
+    
+    /// يكمل أو يدعم
+    Complement,
+    
+    /// يؤدي إلى
+    Implication,
+    
+    /// مثال على
+    Example,
+}
+
+/// نتيجة التحقق من صحة النتيجة
+pub struct ValidationResult {
+    /// هل النتيجة صحيحة؟
+    pub is_valid: bool,
+    
+    /// مستوى الثقة في التحقق (0.0 إلى 1.0)
+    pub validation_confidence: float,
+    
+    /// الطرق المستخدمة في التحقق
+    pub validation_methods: List<ValidationMethod>,
+    
+    /// النتائج التفصيلية للتحقق
+    pub validation_details: List<ValidationDetail>,
+    
+    /// الأخطاء المكتشفة (إن وجدت)
+    pub errors_found: List<ValidationError>,
+    
+    /// التحذيرات
+    pub warnings: List<string>,
+}
+
+/// طرق التحقق من صحة النتائج
+pub enum ValidationMethod {
+    /// التحقق العددي
+    NumericalVerification,
+    
+    /// التحقق الرمزي
+    SymbolicVerification,
+    
+    /// التحقق بالمقارنة مع نتائج معروفة
+    BenchmarkComparison,
+    
+    /// التحقق بطرق مستقلة
+    IndependentMethod,
+    
+    /// التحقق بالمحاكاة
+    SimulationVerification,
+    
+    /// التحقق بالخبراء
+    ExpertReview,
+    
+    /// التحقق التلقائي
+    AutomaticValidation,
+}
+
+/// تفاصيل التحقق
+pub struct ValidationDetail {
+    /// الطريقة المستخدمة
+    pub method: ValidationMethod,
+    
+    /// النتيجة
+    pub result: bool,
+    
+    /// التفاصيل
+    pub details: string,
+    
+    /// الوقت المطلوب
+    pub time_taken: int,
+    
+    /// مستوى الثقة
+    pub confidence: float,
+}
+
+/// خطأ في التحقق
+pub struct ValidationError {
+    /// نوع الخطأ
+    pub error_type: ValidationErrorType,
+    
+    /// وصف الخطأ
+    pub description: string,
+    
+    /// شدة الخطأ (1-10)
+    pub severity: int,
+    
+    /// اقتراحات للإصلاح
+    pub suggestions: List<string>,
+}
+
+/// أنواع أخطاء التحقق
+pub enum ValidationErrorType {
+    /// خطأ عددي
+    NumericalError,
+    
+    /// خطأ منطقي
+    LogicalError,
+    
+    /// خطأ في الطريقة
+    MethodError,
+    
+    /// خطأ في البيانات
+    DataError,
+    
+    /// خطأ في التفسير
+    InterpretationError,
+    
+    /// خطأ في الدقة
+    PrecisionError,
+    
+    /// خطأ في النطاق
+    RangeError,
+}
+
+/// حل مشكلة رياضية شاملة
+pub struct MathematicalSolution {
+    /// معرف فريد للحل
+    pub id: string,
+    
+    /// المشكلة الأصلية
+    pub original_problem: string,
+    
+    /// النتائج الرئيسية
+    pub main_outcomes: List<MathOutcome>,
+    
+    /// النتائج الثانوية
+    pub secondary_outcomes: List<MathOutcome>,
+    
+    /// مسار الحل (الخطوات المتبعة)
+    pub solution_path: List<SolutionStep>,
+    
+    /// الوقت الإجمالي للحل
+    pub total_time: int,
+    
+    /// الموارد المستخدمة
+    pub resources_used: ResourceUsage,
+    
+    /// تقييم جودة الحل
+    pub quality_assessment: QualityAssessment,
+    
+    /// التوصيات للتحسين
+    pub improvement_suggestions: List<string>,
+}
+
+/// خطوة في مسار الحل
+pub struct SolutionStep {
+    /// رقم الخطوة
+    pub step_number: int,
+    
+    /// وصف الخطوة
+    pub description: string,
+    
+    /// الطريقة المستخدمة
+    pub method: string,
+    
+    /// المدخلات
+    pub inputs: List<string>,
+    
+    /// المخرجات
+    pub outputs: List<string>,
+    
+    /// الوقت المطلوب
+    pub time_taken: int,
+    
+    /// مستوى الثقة
+    pub confidence: float,
+}
+
+/// استخدام الموارد
+pub struct ResourceUsage {
+    /// استخدام الذاكرة (بالميجابايت)
+    pub memory_mb: float,
+    
+    /// استخدام المعالج (نسبة مئوية)
+    pub cpu_percent: float,
+    
+    /// عدد العمليات المنفذة
+    pub operations_count: int,
+    
+    /// عدد الاستدعاءات للدوال
+    pub function_calls: int,
+}
+
+/// تقييم جودة الحل
+pub struct QualityAssessment {
+    /// الدقة الإجمالية (0.0 إلى 1.0)
+    pub overall_accuracy: float,
+    
+    /// الكفاءة (0.0 إلى 1.0)
+    pub efficiency: float,
+    
+    /// الوضوح (0.0 إلى 1.0)
+    pub clarity: float,
+    
+    /// الشمولية (0.0 إلى 1.0)
+    pub completeness: float,
+    
+    /// الابتكار (0.0 إلى 1.0)
+    pub innovation: float,
+    
+    /// التقييم الإجمالي (0.0 إلى 1.0)
+    pub overall_score: float,
+}

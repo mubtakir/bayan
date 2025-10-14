@@ -1,0 +1,523 @@
+// std/math_ai/adaptive_equations.ab
+// المعادلات التكيفية - معادلات تتعلم وتتطور
+// Expert recommendation: "تمثيل AdaptiveEquation بلغة البيان نفسها"
+
+/// معادلة تكيفية - معادلة تتطور وتتعلم مع الوقت
+/// الفلسفة: المعادلات ليست ثابتة، بل يمكنها التعلم والتحسن
+pub struct AdaptiveEquation {
+    /// معرف فريد للمعادلة
+    pub id: string,
+    
+    /// المعادلة الأساسية (كنص رياضي)
+    pub base_equation: string,
+    
+    /// المعاملات التكيفية
+    pub parameters: List<AdaptiveParameter>,
+    
+    /// معدل التعلم العام
+    pub learning_rate: float,
+    
+    /// تاريخ التكيف والتطور
+    pub adaptation_history: List<AdaptationStep>,
+    
+    /// مقاييس الأداء
+    pub performance_metrics: PerformanceMetrics,
+    
+    /// نوع المعادلة
+    pub equation_type: EquationType,
+    
+    /// المجال الذي تعمل فيه المعادلة
+    pub domain: EquationDomain,
+    
+    /// حالة المعادلة الحالية
+    pub current_state: EquationState,
+    
+    /// استراتيجية التكيف
+    pub adaptation_strategy: AdaptationStrategy,
+    
+    /// قيود التكيف
+    pub adaptation_constraints: List<AdaptationConstraint>,
+}
+
+/// معامل تكيفي يتغير مع التعلم
+pub struct AdaptiveParameter {
+    /// اسم المعامل
+    pub name: string,
+    
+    /// القيمة الحالية
+    pub current_value: float,
+    
+    /// معدل التعلم الخاص بهذا المعامل
+    pub learning_rate: float,
+    
+    /// الحدود الدنيا والعليا للقيمة
+    pub bounds: (float, float),
+    
+    /// استراتيجية التكيف لهذا المعامل
+    pub adaptation_strategy: ParameterAdaptationStrategy,
+    
+    /// تاريخ تغيرات القيمة
+    pub value_history: List<ParameterChange>,
+    
+    /// الحساسية للتغيير
+    pub sensitivity: float,
+    
+    /// مستوى الثقة في القيمة الحالية
+    pub confidence: float,
+    
+    /// التأثير على الأداء العام
+    pub impact_on_performance: float,
+}
+
+/// خطوة تكيف في تطور المعادلة
+pub struct AdaptationStep {
+    /// رقم الخطوة
+    pub step_number: int,
+    
+    /// الطابع الزمني
+    pub timestamp: int,
+    
+    /// نوع التكيف
+    pub adaptation_type: AdaptationType,
+    
+    /// التغييرات المطبقة
+    pub changes_applied: List<ParameterChange>,
+    
+    /// الأداء قبل التكيف
+    pub performance_before: float,
+    
+    /// الأداء بعد التكيف
+    pub performance_after: float,
+    
+    /// التحسن المحقق
+    pub improvement: float,
+    
+    /// السبب في التكيف
+    pub adaptation_reason: string,
+    
+    /// البيانات المستخدمة في التكيف
+    pub training_data: TrainingData,
+}
+
+/// مقاييس أداء المعادلة
+pub struct PerformanceMetrics {
+    /// الدقة الحالية (0.0 إلى 1.0)
+    pub accuracy: float,
+    
+    /// سرعة التقارب
+    pub convergence_speed: float,
+    
+    /// الاستقرار
+    pub stability: float,
+    
+    /// القدرة على التعميم
+    pub generalization: float,
+    
+    /// الكفاءة الحاسوبية
+    pub computational_efficiency: float,
+    
+    /// مقاومة الضوضاء
+    pub noise_resistance: float,
+    
+    /// تاريخ الأداء
+    pub performance_history: List<PerformanceSnapshot>,
+    
+    /// المقارنة مع المعادلات الأخرى
+    pub benchmark_comparison: BenchmarkResults,
+}
+
+/// لقطة من أداء المعادلة في لحظة معينة
+pub struct PerformanceSnapshot {
+    /// الطابع الزمني
+    pub timestamp: int,
+    
+    /// قيم المقاييس في هذه اللحظة
+    pub metrics: Dict<string, float>,
+    
+    /// السياق (نوع البيانات، المشكلة، إلخ)
+    pub context: string,
+    
+    /// عدد العينات المستخدمة في التقييم
+    pub sample_size: int,
+}
+
+/// نتائج المقارنة مع المعايير
+pub struct BenchmarkResults {
+    /// المعايير المستخدمة
+    pub benchmarks: List<Benchmark>,
+    
+    /// النتائج مقابل كل معيار
+    pub results: Dict<string, float>,
+    
+    /// الترتيب العام
+    pub overall_ranking: int,
+    
+    /// نقاط القوة
+    pub strengths: List<string>,
+    
+    /// نقاط الضعف
+    pub weaknesses: List<string>,
+}
+
+/// معيار للمقارنة
+pub struct Benchmark {
+    /// اسم المعيار
+    pub name: string,
+    
+    /// وصف المعيار
+    pub description: string,
+    
+    /// البيانات المرجعية
+    pub reference_data: string,
+    
+    /// النتيجة المتوقعة
+    pub expected_result: float,
+    
+    /// هامش الخطأ المقبول
+    pub tolerance: float,
+}
+
+/// أنواع المعادلات
+pub enum EquationType {
+    /// معادلة خطية
+    Linear,
+    
+    /// معادلة غير خطية
+    NonLinear,
+    
+    /// معادلة تفاضلية
+    Differential,
+    
+    /// معادلة تكاملية
+    Integral,
+    
+    /// معادلة جبرية
+    Algebraic,
+    
+    /// معادلة إحصائية
+    Statistical,
+    
+    /// معادلة هندسية
+    Geometric,
+    
+    /// معادلة ديناميكية
+    Dynamic,
+    
+    /// معادلة عشوائية
+    Stochastic,
+    
+    /// معادلة مركبة
+    Composite(List<EquationType>),
+}
+
+/// مجال عمل المعادلة
+pub struct EquationDomain {
+    /// اسم المجال
+    pub name: string,
+    
+    /// نوع المجال
+    pub domain_type: DomainType,
+    
+    /// المتغيرات المستقلة
+    pub independent_variables: List<Variable>,
+    
+    /// المتغيرات التابعة
+    pub dependent_variables: List<Variable>,
+    
+    /// القيود على المجال
+    pub constraints: List<DomainConstraint>,
+    
+    /// خصائص المجال
+    pub properties: DomainProperties,
+}
+
+/// أنواع المجالات
+pub enum DomainType {
+    /// مجال رقمي
+    Numerical,
+    
+    /// مجال رمزي
+    Symbolic,
+    
+    /// مجال هندسي
+    Geometric,
+    
+    /// مجال إحصائي
+    Statistical,
+    
+    /// مجال منطقي
+    Logical,
+    
+    /// مجال مختلط
+    Mixed,
+}
+
+/// متغير في المعادلة
+pub struct Variable {
+    /// اسم المتغير
+    pub name: string,
+    
+    /// نوع المتغير
+    pub variable_type: VariableType,
+    
+    /// النطاق المسموح
+    pub range: (float, float),
+    
+    /// القيمة الافتراضية
+    pub default_value: float,
+    
+    /// الوحدة (إن وجدت)
+    pub unit: string,
+    
+    /// الوصف
+    pub description: string,
+}
+
+/// أنواع المتغيرات
+pub enum VariableType {
+    /// متغير مستمر
+    Continuous,
+    
+    /// متغير منفصل
+    Discrete,
+    
+    /// متغير منطقي
+    Boolean,
+    
+    /// متغير فئوي
+    Categorical,
+    
+    /// متغير مركب
+    Complex,
+}
+
+/// قيد على المجال
+pub struct DomainConstraint {
+    /// نوع القيد
+    pub constraint_type: ConstraintType,
+    
+    /// التعبير الرياضي للقيد
+    pub expression: string,
+    
+    /// مستوى الأهمية (1-10)
+    pub importance: int,
+    
+    /// هل القيد صارم أم مرن؟
+    pub is_hard_constraint: bool,
+}
+
+/// أنواع القيود
+pub enum ConstraintType {
+    /// قيد مساواة
+    Equality,
+    
+    /// قيد عدم مساواة
+    Inequality,
+    
+    /// قيد حدود
+    Boundary,
+    
+    /// قيد استمرارية
+    Continuity,
+    
+    /// قيد تفاضلية
+    Differentiability,
+    
+    /// قيد مخصص
+    Custom(string),
+}
+
+/// خصائص المجال
+pub struct DomainProperties {
+    /// هل المجال محدود؟
+    pub is_bounded: bool,
+    
+    /// هل المجال متصل؟
+    pub is_connected: bool,
+    
+    /// هل المجال محدب؟
+    pub is_convex: bool,
+    
+    /// البعد
+    pub dimension: int,
+    
+    /// الحجم (إن كان محدود)
+    pub volume: float,
+    
+    /// خصائص إضافية
+    pub additional_properties: Dict<string, string>,
+}
+
+/// حالة المعادلة
+pub enum EquationState {
+    /// في مرحلة التدريب
+    Training,
+    
+    /// جاهزة للاستخدام
+    Ready,
+    
+    /// في مرحلة التحسين
+    Optimizing,
+    
+    /// في مرحلة التقييم
+    Evaluating,
+    
+    /// متوقفة مؤقتاً
+    Paused,
+    
+    /// تحتاج إعادة تدريب
+    NeedsRetraining,
+    
+    /// معطلة
+    Disabled,
+}
+
+/// استراتيجية التكيف
+pub enum AdaptationStrategy {
+    /// تدرج عادي
+    GradientDescent,
+    
+    /// خوارزمية جينية
+    GeneticAlgorithm,
+    
+    /// محاكاة التبريد
+    SimulatedAnnealing,
+    
+    /// تحسين الجسيمات
+    ParticleSwarmOptimization,
+    
+    /// تعلم معزز
+    ReinforcementLearning,
+    
+    /// تعلم بايزي
+    BayesianOptimization,
+    
+    /// استراتيجية مخصصة
+    Custom(string),
+}
+
+/// استراتيجية تكيف المعامل
+pub enum ParameterAdaptationStrategy {
+    /// تكيف خطي
+    Linear,
+    
+    /// تكيف أسي
+    Exponential,
+    
+    /// تكيف تدريجي
+    Gradual,
+    
+    /// تكيف مفاجئ
+    Sudden,
+    
+    /// تكيف تكيفي (يتكيف مع التكيف!)
+    Adaptive,
+    
+    /// تكيف مخصص
+    Custom(string),
+}
+
+/// تغيير في قيمة المعامل
+pub struct ParameterChange {
+    /// الطابع الزمني
+    pub timestamp: int,
+    
+    /// القيمة القديمة
+    pub old_value: float,
+    
+    /// القيمة الجديدة
+    pub new_value: float,
+    
+    /// سبب التغيير
+    pub reason: string,
+    
+    /// التأثير على الأداء
+    pub performance_impact: float,
+}
+
+/// نوع التكيف
+pub enum AdaptationType {
+    /// تكيف المعاملات
+    ParameterAdjustment,
+    
+    /// تكيف البنية
+    StructuralChange,
+    
+    /// تكيف الاستراتيجية
+    StrategyChange,
+    
+    /// تكيف المجال
+    DomainAdaptation,
+    
+    /// تكيف شامل
+    ComprehensiveAdaptation,
+}
+
+/// قيد على التكيف
+pub struct AdaptationConstraint {
+    /// نوع القيد
+    pub constraint_type: AdaptationConstraintType,
+    
+    /// وصف القيد
+    pub description: string,
+    
+    /// القيمة الحدية
+    pub threshold: float,
+    
+    /// هل القيد نشط؟
+    pub is_active: bool,
+}
+
+/// أنواع قيود التكيف
+pub enum AdaptationConstraintType {
+    /// حد أقصى للتغيير
+    MaxChangeRate,
+    
+    /// حد أدنى للأداء
+    MinPerformance,
+    
+    /// حد أقصى للوقت
+    MaxTime,
+    
+    /// حد أقصى للموارد
+    MaxResources,
+    
+    /// استقرار مطلوب
+    StabilityRequirement,
+}
+
+/// بيانات التدريب
+pub struct TrainingData {
+    /// المدخلات
+    pub inputs: List<List<float>>,
+    
+    /// المخرجات المتوقعة
+    pub expected_outputs: List<List<float>>,
+    
+    /// أوزان العينات
+    pub sample_weights: List<float>,
+    
+    /// معلومات إضافية
+    pub metadata: Dict<string, string>,
+    
+    /// جودة البيانات
+    pub data_quality: DataQuality,
+}
+
+/// جودة البيانات
+pub struct DataQuality {
+    /// اكتمال البيانات (0.0 إلى 1.0)
+    pub completeness: float,
+    
+    /// دقة البيانات (0.0 إلى 1.0)
+    pub accuracy: float,
+    
+    /// اتساق البيانات (0.0 إلى 1.0)
+    pub consistency: float,
+    
+    /// حداثة البيانات (0.0 إلى 1.0)
+    pub freshness: float,
+    
+    /// تنوع البيانات (0.0 إلى 1.0)
+    pub diversity: float,
+}

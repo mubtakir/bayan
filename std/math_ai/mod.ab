@@ -1,0 +1,270 @@
+// std/math_ai/mod.ab
+// وحدة الذكاء الاصطناعي الرياضي - النقطة المحورية للنظام
+// Expert recommendation: "الجسر بين الرؤية والتنفيذ"
+
+/// تصدير جميع الوحدات الفرعية
+pub use objects::*;
+pub use events::*;
+pub use outcomes::*;
+pub use adaptive_equations::*;
+pub use core::*;
+pub use api::*;
+
+/// الوحدات الفرعية
+pub mod objects;
+pub mod events;
+pub mod outcomes;
+pub mod adaptive_equations;
+pub mod core;
+pub mod api;
+
+/// دوال الواجهة الرئيسية للاستخدام السريع
+/// Expert insight: "نقاط دخول بسيطة للمطورين"
+
+/// إنشاء نظام ذكاء اصطناعي رياضي جديد
+pub fn create_math_ai() -> MathAI {
+    let mut ai = MathAI::new();
+    ai.initialize().expect("فشل في تهيئة النظام");
+    ai
+}
+
+/// حل مشكلة رياضية بسيطة (واجهة مبسطة)
+pub fn solve(problem: string) -> Result<string, string> {
+    let mut ai = create_math_ai();
+    let solution = ai.solve_problem(problem)?;
+    Ok(solution.to_string())
+}
+
+/// تحويل معادلة إلى شكل (واجهة مبسطة)
+pub fn equation_to_shape(equation: string) -> Result<GeometricShape, string> {
+    let mut ai = create_math_ai();
+    ai.equation_to_shape(equation)
+}
+
+/// تحويل شكل إلى معادلة (واجهة مبسطة)
+pub fn shape_to_equation(shape: GeometricShape) -> Result<string, string> {
+    let mut ai = create_math_ai();
+    ai.shape_to_equation(shape)
+}
+
+/// تحليل معادلة (واجهة مبسطة)
+pub fn analyze(equation: string) -> Result<EquationAnalysis, string> {
+    let mut ai = create_math_ai();
+    ai.analyze_equation(equation)
+}
+
+/// إنشاء تصور فني (واجهة مبسطة)
+pub fn visualize(equation: string) -> Result<ImageData, string> {
+    let mut ai = create_math_ai();
+    let default_style = ArtStyle::default();
+    ai.create_artistic_visualization(equation, default_style)
+}
+
+/// ثوابت النظام
+pub const VERSION: string = "1.0.0";
+pub const AUTHOR: string = "Bassel Yahya Abdullah";
+pub const DESCRIPTION: string = "نظام الذكاء الاصطناعي الرياضي المبتكر في لغة البيان";
+
+/// أمثلة للاستخدام
+pub mod examples {
+    use super::*;
+    
+    /// مثال على حل معادلة تربيعية
+    pub fn quadratic_equation_example() -> Result<MathematicalSolution, string> {
+        let mut ai = create_math_ai();
+        ai.solve_problem("حل المعادلة التربيعية: x² + 2x - 3 = 0".to_string())
+    }
+    
+    /// مثال على تحليل دالة
+    pub fn function_analysis_example() -> Result<EquationAnalysis, string> {
+        let mut ai = create_math_ai();
+        ai.analyze_equation("f(x) = sin(x) + cos(x)".to_string())
+    }
+    
+    /// مثال على تحويل معادلة دائرة إلى شكل
+    pub fn circle_equation_to_shape_example() -> Result<GeometricShape, string> {
+        let mut ai = create_math_ai();
+        ai.equation_to_shape("x² + y² = 25".to_string())
+    }
+    
+    /// مثال على إنشاء تصور فني لمعادلة
+    pub fn artistic_visualization_example() -> Result<ImageData, string> {
+        let mut ai = create_math_ai();
+        let style = ArtStyle {
+            name: "كلاسيكي".to_string(),
+            description: "نمط كلاسيكي أنيق".to_string(),
+            color_scheme: ColorScheme::default(),
+            line_settings: LineSettings::default(),
+            text_settings: TextSettings::default(),
+            special_effects: vec![],
+        };
+        ai.create_artistic_visualization("y = x²".to_string(), style)
+    }
+    
+    /// مثال على تدريب معادلة تكيفية
+    pub fn adaptive_equation_training_example() -> Result<AdaptationResult, string> {
+        let mut ai = create_math_ai();
+        
+        // إنشاء بيانات تدريب تجريبية
+        let training_data = TrainingData {
+            inputs: vec![
+                vec![1.0, 2.0],
+                vec![2.0, 4.0],
+                vec![3.0, 6.0],
+            ],
+            expected_outputs: vec![
+                vec![3.0],
+                vec![6.0],
+                vec![9.0],
+            ],
+            sample_weights: vec![1.0, 1.0, 1.0],
+            metadata: Dict::new(),
+            data_quality: DataQuality {
+                completeness: 1.0,
+                accuracy: 0.95,
+                consistency: 0.98,
+                freshness: 1.0,
+                diversity: 0.8,
+            },
+        };
+        
+        ai.train_adaptive_equation("linear_model_1".to_string(), training_data)
+    }
+}
+
+/// اختبارات النظام
+pub mod tests {
+    use super::*;
+    
+    /// اختبار إنشاء النظام
+    pub fn test_system_creation() -> bool {
+        let ai = create_math_ai();
+        ai.initialized
+    }
+    
+    /// اختبار حل مشكلة بسيطة
+    pub fn test_simple_problem_solving() -> bool {
+        match solve("2 + 2".to_string()) {
+            Ok(_) => true,
+            Err(_) => false,
+        }
+    }
+    
+    /// اختبار تحليل معادلة
+    pub fn test_equation_analysis() -> bool {
+        match analyze("y = mx + b".to_string()) {
+            Ok(_) => true,
+            Err(_) => false,
+        }
+    }
+    
+    /// اختبار تحويل معادلة إلى شكل
+    pub fn test_equation_to_shape_conversion() -> bool {
+        match equation_to_shape("x² + y² = 1".to_string()) {
+            Ok(_) => true,
+            Err(_) => false,
+        }
+    }
+    
+    /// تشغيل جميع الاختبارات
+    pub fn run_all_tests() -> TestResults {
+        TestResults {
+            system_creation: test_system_creation(),
+            simple_solving: test_simple_problem_solving(),
+            equation_analysis: test_equation_analysis(),
+            shape_conversion: test_equation_to_shape_conversion(),
+        }
+    }
+}
+
+/// نتائج الاختبارات
+pub struct TestResults {
+    pub system_creation: bool,
+    pub simple_solving: bool,
+    pub equation_analysis: bool,
+    pub shape_conversion: bool,
+}
+
+impl TestResults {
+    /// هل جميع الاختبارات نجحت؟
+    pub fn all_passed(&self) -> bool {
+        self.system_creation && 
+        self.simple_solving && 
+        self.equation_analysis && 
+        self.shape_conversion
+    }
+    
+    /// عدد الاختبارات الناجحة
+    pub fn passed_count(&self) -> int {
+        let mut count = 0;
+        if self.system_creation { count += 1; }
+        if self.simple_solving { count += 1; }
+        if self.equation_analysis { count += 1; }
+        if self.shape_conversion { count += 1; }
+        count
+    }
+    
+    /// النسبة المئوية للنجاح
+    pub fn success_rate(&self) -> float {
+        self.passed_count() as float / 4.0
+    }
+}
+
+/// معلومات النظام
+pub struct SystemInfo {
+    pub version: string,
+    pub author: string,
+    pub description: string,
+    pub build_date: string,
+    pub features: List<string>,
+}
+
+/// الحصول على معلومات النظام
+pub fn get_system_info() -> SystemInfo {
+    SystemInfo {
+        version: VERSION.to_string(),
+        author: AUTHOR.to_string(),
+        description: DESCRIPTION.to_string(),
+        build_date: "2024-01-01".to_string(), // سيتم تحديثها تلقائياً
+        features: vec![
+            "حل المشاكل الرياضية المعقدة".to_string(),
+            "تحليل المعادلات والدوال".to_string(),
+            "تحويل المعادلات إلى أشكال بصرية".to_string(),
+            "إنشاء تصورات فنية للرياضيات".to_string(),
+            "معادلات تكيفية تتعلم وتتطور".to_string(),
+            "نظام خبير متعدد المجالات".to_string(),
+            "تفكير متعدد الطبقات والنطاقات".to_string(),
+            "قاعدة معرفة شاملة".to_string(),
+            "واجهة برمجة تطبيقات سهلة الاستخدام".to_string(),
+            "دعم كامل للغة العربية".to_string(),
+        ],
+    }
+}
+
+/// رسالة ترحيب
+pub fn welcome_message() -> string {
+    format!(
+        "🎊 مرحباً بك في {} 🎊\n\
+        الإصدار: {}\n\
+        المطور: {}\n\
+        \n\
+        {} هو نظام ذكاء اصطناعي رياضي مبتكر يجمع بين:\n\
+        • البرمجة الآمنة والموثوقة\n\
+        • المنطق الرمزي المتقدم\n\
+        • الذكاء الاصطناعي التكيفي\n\
+        • التصور الفني للرياضيات\n\
+        • التفكير متعدد المستويات\n\
+        \n\
+        ابدأ رحلتك في عالم الرياضيات الذكية! 🚀",
+        DESCRIPTION,
+        VERSION,
+        AUTHOR,
+        DESCRIPTION
+    )
+}
+
+/// تهيئة النظام مع رسالة ترحيب
+pub fn initialize_with_welcome() -> MathAI {
+    println!("{}", welcome_message());
+    create_math_ai()
+}

@@ -1,0 +1,382 @@
+// tests/programs/math_ai_comprehensive_test.ab
+// اختبار شامل لنظام الذكاء الاصطناعي الرياضي
+// Expert recommendation: "إظهار الجسر بين الرؤية والتنفيذ"
+
+use std::math_ai::*;
+
+/// اختبار شامل لجميع ميزات النظام
+fn main() {
+    println!("🎊 بدء الاختبار الشامل لنظام الذكاء الاصطناعي الرياضي 🎊");
+    
+    // 1. إنشاء وتهيئة النظام
+    test_system_initialization();
+    
+    // 2. اختبار حل المشاكل الرياضية
+    test_problem_solving();
+    
+    // 3. اختبار تحليل المعادلات
+    test_equation_analysis();
+    
+    // 4. اختبار تحويل المعادلات إلى أشكال
+    test_shape_inference();
+    
+    // 5. اختبار التصور الفني
+    test_artistic_visualization();
+    
+    // 6. اختبار المعادلات التكيفية
+    test_adaptive_equations();
+    
+    // 7. اختبار قاعدة المعرفة
+    test_knowledge_base();
+    
+    // 8. اختبار الأداء والإحصائيات
+    test_performance_evaluation();
+    
+    println!("✅ انتهى الاختبار الشامل بنجاح!");
+}
+
+/// اختبار تهيئة النظام
+fn test_system_initialization() {
+    println!("\n🔧 اختبار تهيئة النظام...");
+    
+    // إنشاء نظام جديد
+    let mut ai = MathAI::new();
+    
+    // تهيئة النظام
+    match ai.initialize() {
+        Ok(()) => println!("✅ تم تهيئة النظام بنجاح"),
+        Err(error) => println!("❌ فشل في تهيئة النظام: {}", error),
+    }
+    
+    // اختبار الواجهة المبسطة
+    let ai_simple = create_math_ai();
+    println!("✅ تم إنشاء النظام بالواجهة المبسطة");
+    
+    // عرض معلومات النظام
+    let info = get_system_info();
+    println!("📋 معلومات النظام:");
+    println!("   الإصدار: {}", info.version);
+    println!("   المطور: {}", info.author);
+    println!("   الوصف: {}", info.description);
+}
+
+/// اختبار حل المشاكل الرياضية
+fn test_problem_solving() {
+    println!("\n🧮 اختبار حل المشاكل الرياضية...");
+    
+    let mut ai = create_math_ai();
+    
+    // مشاكل رياضية متنوعة
+    let problems = [
+        "حل المعادلة التربيعية: x² - 5x + 6 = 0",
+        "احسب مساحة دائرة نصف قطرها 5",
+        "جد مشتقة الدالة: f(x) = x³ + 2x² - x + 1",
+        "حل نظام المعادلات: x + y = 5, x - y = 1",
+        "احسب تكامل: ∫(2x + 3)dx",
+    ];
+    
+    for problem in problems {
+        println!("🔍 حل المشكلة: {}", problem);
+        
+        match ai.solve_problem(problem.to_string()) {
+            Ok(solution) => {
+                println!("✅ تم الحل بنجاح!");
+                println!("   المعرف: {}", solution.id);
+                println!("   عدد النتائج الرئيسية: {}", solution.main_outcomes.len());
+                println!("   الوقت الإجمالي: {} مللي ثانية", solution.total_time);
+                println!("   تقييم الجودة: {:.2}", solution.quality_assessment.overall_score);
+            },
+            Err(error) => println!("❌ فشل في الحل: {}", error),
+        }
+    }
+    
+    // اختبار الواجهة المبسطة
+    println!("\n🎯 اختبار الواجهة المبسطة:");
+    match solve("2 + 2 × 3".to_string()) {
+        Ok(result) => println!("✅ النتيجة: {}", result),
+        Err(error) => println!("❌ خطأ: {}", error),
+    }
+}
+
+/// اختبار تحليل المعادلات
+fn test_equation_analysis() {
+    println!("\n🔬 اختبار تحليل المعادلات...");
+    
+    let mut ai = create_math_ai();
+    
+    let equations = [
+        "y = x²",
+        "y = sin(x)",
+        "x² + y² = 25",
+        "y = e^x",
+        "y = log(x)",
+    ];
+    
+    for equation in equations {
+        println!("🔍 تحليل المعادلة: {}", equation);
+        
+        match ai.analyze_equation(equation.to_string()) {
+            Ok(analysis) => {
+                println!("✅ تم التحليل بنجاح!");
+                println!("   نوع المعادلة: {:?}", analysis.analysis_results.equation_type);
+                println!("   مستوى التعقيد: {}", analysis.analysis_results.complexity_level);
+                println!("   عدد الخصائص المكتشفة: {}", analysis.analysis_results.discovered_properties.len());
+                println!("   مستوى الثقة: {:.2}", analysis.analysis_results.confidence);
+            },
+            Err(error) => println!("❌ فشل في التحليل: {}", error),
+        }
+    }
+    
+    // اختبار الواجهة المبسطة
+    println!("\n🎯 اختبار التحليل المبسط:");
+    match analyze("f(x) = x² + 1".to_string()) {
+        Ok(analysis) => println!("✅ تم التحليل: {}", analysis.equation),
+        Err(error) => println!("❌ خطأ: {}", error),
+    }
+}
+
+/// اختبار تحويل المعادلات إلى أشكال
+fn test_shape_inference() {
+    println!("\n🎨 اختبار استنتاج الأشكال...");
+    
+    let mut ai = create_math_ai();
+    
+    let shape_equations = [
+        "x² + y² = 16",  // دائرة
+        "x² + y² = 1",   // دائرة وحدة
+        "y = x²",        // قطع مكافئ
+        "x²/4 + y²/9 = 1", // قطع ناقص
+        "x² - y² = 1",   // قطع زائد
+    ];
+    
+    for equation in shape_equations {
+        println!("🔍 تحويل المعادلة إلى شكل: {}", equation);
+        
+        match ai.equation_to_shape(equation.to_string()) {
+            Ok(shape) => {
+                println!("✅ تم التحويل بنجاح!");
+                println!("   نوع الشكل: {:?}", shape.shape_type);
+                println!("   عدد المعاملات: {}", shape.parameters.len());
+                println!("   المساحة: {:.2}", shape.properties.area);
+                println!("   المحيط: {:.2}", shape.properties.perimeter);
+                
+                // اختبار التحويل العكسي
+                match ai.shape_to_equation(shape) {
+                    Ok(recovered_equation) => {
+                        println!("🔄 المعادلة المستنتجة: {}", recovered_equation);
+                    },
+                    Err(error) => println!("❌ فشل في التحويل العكسي: {}", error),
+                }
+            },
+            Err(error) => println!("❌ فشل في التحويل: {}", error),
+        }
+    }
+    
+    // اختبار الواجهة المبسطة
+    println!("\n🎯 اختبار التحويل المبسط:");
+    match equation_to_shape("x² + y² = 9".to_string()) {
+        Ok(shape) => println!("✅ تم إنشاء شكل: {:?}", shape.shape_type),
+        Err(error) => println!("❌ خطأ: {}", error),
+    }
+}
+
+/// اختبار التصور الفني
+fn test_artistic_visualization() {
+    println!("\n🎨 اختبار التصور الفني...");
+    
+    let mut ai = create_math_ai();
+    
+    // أنماط فنية مختلفة
+    let classic_style = ArtStyle {
+        name: "كلاسيكي".to_string(),
+        description: "نمط كلاسيكي أنيق".to_string(),
+        color_scheme: ColorScheme::default(),
+        line_settings: LineSettings::default(),
+        text_settings: TextSettings::default(),
+        special_effects: vec![],
+    };
+    
+    let modern_style = ArtStyle {
+        name: "عصري".to_string(),
+        description: "نمط عصري جريء".to_string(),
+        color_scheme: ColorScheme::default(),
+        line_settings: LineSettings::default(),
+        text_settings: TextSettings::default(),
+        special_effects: vec![],
+    };
+    
+    let equations_for_art = [
+        "y = sin(x)",
+        "y = x²",
+        "r = cos(θ)",
+    ];
+    
+    let styles = [classic_style, modern_style];
+    
+    for equation in equations_for_art {
+        for style in &styles {
+            println!("🎨 إنشاء تصور فني للمعادلة: {} بالنمط: {}", equation, style.name);
+            
+            match ai.create_artistic_visualization(equation.to_string(), style.clone()) {
+                Ok(image) => {
+                    println!("✅ تم إنشاء التصور بنجاح!");
+                    println!("   الأبعاد: {}×{}", image.width, image.height);
+                    println!("   التنسيق: {:?}", image.format);
+                    println!("   الوصف: {}", image.description);
+                },
+                Err(error) => println!("❌ فشل في إنشاء التصور: {}", error),
+            }
+        }
+    }
+    
+    // اختبار الواجهة المبسطة
+    println!("\n🎯 اختبار التصور المبسط:");
+    match visualize("y = cos(x)".to_string()) {
+        Ok(image) => println!("✅ تم إنشاء تصور: {}×{}", image.width, image.height),
+        Err(error) => println!("❌ خطأ: {}", error),
+    }
+}
+
+/// اختبار المعادلات التكيفية
+fn test_adaptive_equations() {
+    println!("\n🧠 اختبار المعادلات التكيفية...");
+    
+    let mut ai = create_math_ai();
+    
+    // إنشاء بيانات تدريب
+    let training_data = TrainingData {
+        inputs: vec![
+            vec![1.0, 1.0],
+            vec![2.0, 2.0],
+            vec![3.0, 3.0],
+            vec![4.0, 4.0],
+            vec![5.0, 5.0],
+        ],
+        expected_outputs: vec![
+            vec![2.0],
+            vec![4.0],
+            vec![6.0],
+            vec![8.0],
+            vec![10.0],
+        ],
+        sample_weights: vec![1.0, 1.0, 1.0, 1.0, 1.0],
+        metadata: Dict::new(),
+        data_quality: DataQuality {
+            completeness: 1.0,
+            accuracy: 0.95,
+            consistency: 0.98,
+            freshness: 1.0,
+            diversity: 0.8,
+        },
+    };
+    
+    println!("🔍 تدريب معادلة تكيفية...");
+    match ai.train_adaptive_equation("linear_model".to_string(), training_data) {
+        Ok(result) => {
+            println!("✅ تم التدريب بنجاح!");
+            println!("   نجح التكيف: {}", result.success);
+            println!("   تحسن الأداء: {:.2}%", result.performance_improvement * 100.0);
+            println!("   عدد التكرارات: {}", result.iterations_required);
+            println!("   الوقت المطلوب: {} مللي ثانية", result.time_taken);
+        },
+        Err(error) => println!("❌ فشل في التدريب: {}", error),
+    }
+}
+
+/// اختبار قاعدة المعرفة
+fn test_knowledge_base() {
+    println!("\n📚 اختبار قاعدة المعرفة...");
+    
+    let mut ai = create_math_ai();
+    
+    // إضافة معرفة جديدة
+    let knowledge_items = [
+        KnowledgeItem {
+            item_type: KnowledgeItemType::Fact,
+            content: "π ≈ 3.14159".to_string(),
+            keywords: vec!["π".to_string(), "pi".to_string(), "ثابت".to_string()],
+            domain: "الهندسة".to_string(),
+            importance: 10,
+        },
+        KnowledgeItem {
+            item_type: KnowledgeItemType::Theorem,
+            content: "نظرية فيثاغورس: a² + b² = c²".to_string(),
+            keywords: vec!["فيثاغورس".to_string(), "مثلث".to_string(), "قائم".to_string()],
+            domain: "الهندسة".to_string(),
+            importance: 9,
+        },
+        KnowledgeItem {
+            item_type: KnowledgeItemType::Rule,
+            content: "قاعدة الضرب: (a + b)(c + d) = ac + ad + bc + bd".to_string(),
+            keywords: vec!["ضرب".to_string(), "توزيع".to_string(), "جبر".to_string()],
+            domain: "الجبر".to_string(),
+            importance: 8,
+        },
+    ];
+    
+    for item in knowledge_items {
+        println!("📝 إضافة عنصر معرفة: {}", item.content);
+        match ai.add_knowledge(item) {
+            Ok(()) => println!("✅ تم إضافة العنصر بنجاح"),
+            Err(error) => println!("❌ فشل في الإضافة: {}", error),
+        }
+    }
+    
+    // البحث في قاعدة المعرفة
+    let search_queries = [
+        "π",
+        "فيثاغورس",
+        "ضرب",
+        "هندسة",
+    ];
+    
+    for query in search_queries {
+        println!("🔍 البحث عن: {}", query);
+        match ai.search_knowledge(query.to_string()) {
+            Ok(results) => {
+                println!("✅ تم العثور على {} نتيجة", results.len());
+                for result in results {
+                    println!("   - {}", result.content);
+                }
+            },
+            Err(error) => println!("❌ فشل في البحث: {}", error),
+        }
+    }
+}
+
+/// اختبار تقييم الأداء
+fn test_performance_evaluation() {
+    println!("\n📊 اختبار تقييم الأداء...");
+    
+    let ai = create_math_ai();
+    
+    // تقييم الأداء العام
+    let performance_report = ai.evaluate_performance();
+    println!("📈 تقرير الأداء:");
+    println!("   النتيجة الإجمالية: {:.2}", performance_report.overall_score);
+    println!("   عدد المشاكل المحلولة: {}", performance_report.detailed_metrics.problems_solved);
+    println!("   متوسط وقت الحل: {:.2} ثانية", performance_report.detailed_metrics.average_solve_time);
+    println!("   معدل النجاح: {:.2}%", performance_report.detailed_metrics.success_rate * 100.0);
+    
+    // إحصائيات مفصلة
+    let detailed_stats = ai.get_detailed_statistics();
+    println!("\n📋 إحصائيات مفصلة:");
+    println!("   استخدام الذاكرة: {:.2} MB", detailed_stats.memory_usage);
+    println!("   استخدام المعالج: {:.2}%", detailed_stats.cpu_usage);
+    println!("   العمليات النشطة: {}", detailed_stats.active_processes);
+    
+    // تشغيل الاختبارات المدمجة
+    println!("\n🧪 تشغيل الاختبارات المدمجة:");
+    let test_results = tests::run_all_tests();
+    println!("   إنشاء النظام: {}", if test_results.system_creation { "✅" } else { "❌" });
+    println!("   الحل البسيط: {}", if test_results.simple_solving { "✅" } else { "❌" });
+    println!("   تحليل المعادلات: {}", if test_results.equation_analysis { "✅" } else { "❌" });
+    println!("   تحويل الأشكال: {}", if test_results.shape_conversion { "✅" } else { "❌" });
+    println!("   معدل النجاح: {:.1}%", test_results.success_rate() * 100.0);
+    
+    if test_results.all_passed() {
+        println!("🎊 جميع الاختبارات نجحت!");
+    } else {
+        println!("⚠️  بعض الاختبارات فشلت - يحتاج تحسين");
+    }
+}

@@ -1,0 +1,282 @@
+// std/math_ai/objects.ab
+// الطبقة الدلالية للذكاء الاصطناعي الرياضي - تمثيل المفاهيم الأساسية
+// Expert recommendation: "تمثيل هياكل الذكاء الاصطناعي الرياضي بلغة البيان نفسها"
+
+/// كائن رياضي أساسي - يمثل أي عنصر في المسألة الرياضية
+/// الفلسفة: كل شيء في الرياضيات هو كائن له خصائص وعلاقات
+pub struct MathObject {
+    /// معرف فريد للكائن
+    pub id: string,
+    
+    /// نوع الكائن الرياضي
+    pub object_type: ObjectType,
+    
+    /// خصائص الكائن (مثل القيمة، الحجم، اللون، إلخ)
+    pub properties: Dict<string, float>,
+    
+    /// العلاقات مع كائنات أخرى
+    pub relationships: List<Relationship>,
+    
+    /// مستوى عدم اليقين في هذا الكائن (0.0 = مؤكد، 1.0 = غير مؤكد تماماً)
+    pub uncertainty: float,
+    
+    /// الطابع الزمني لإنشاء الكائن
+    pub created_at: int,
+    
+    /// تاريخ التحديثات على هذا الكائن
+    pub update_history: List<UpdateRecord>,
+}
+
+/// أنواع الكائنات الرياضية المختلفة
+/// Expert insight: "تمثيل شامل لجميع أنواع الكائنات الرياضية"
+pub enum ObjectType {
+    /// عدد بسيط
+    Number(float),
+    
+    /// متجه (قائمة من الأرقام)
+    Vector(List<float>),
+    
+    /// مصفوفة (قائمة من المتجهات)
+    Matrix(List<List<float>>),
+    
+    /// دالة رياضية (معرفة كنص)
+    Function(string),
+    
+    /// معادلة رياضية
+    Equation(string),
+    
+    /// شكل هندسي
+    Shape(GeometricShape),
+    
+    /// مفهوم رياضي مجرد
+    Concept(string),
+    
+    /// مجموعة من الكائنات
+    Set(List<MathObject>),
+    
+    /// تسلسل أو متتالية
+    Sequence(List<MathObject>),
+    
+    /// رسم بياني أو شبكة
+    Graph(GraphStructure),
+}
+
+/// شكل هندسي مع خصائصه
+pub struct GeometricShape {
+    /// نوع الشكل
+    pub shape_type: ShapeType,
+    
+    /// معاملات الشكل (مثل نصف القطر، الطول، العرض)
+    pub parameters: List<float>,
+    
+    /// المعادلات التي تصف هذا الشكل
+    pub equations: List<string>,
+    
+    /// خصائص الشكل (المساحة، المحيط، الحجم، إلخ)
+    pub properties: ShapeProperties,
+    
+    /// الإحداثيات أو النقاط المهمة
+    pub key_points: List<Point>,
+}
+
+/// أنواع الأشكال الهندسية
+pub enum ShapeType {
+    /// دائرة
+    Circle,
+    
+    /// مربع
+    Square,
+    
+    /// مستطيل
+    Rectangle,
+    
+    /// مثلث
+    Triangle,
+    
+    /// مضلع عام
+    Polygon(int), // عدد الأضلاع
+    
+    /// شكل ثلاثي الأبعاد
+    ThreeDimensional(Shape3DType),
+    
+    /// منحنى
+    Curve(CurveType),
+    
+    /// شكل مركب من أشكال أخرى
+    Composite(List<GeometricShape>),
+}
+
+/// أنواع الأشكال ثلاثية الأبعاد
+pub enum Shape3DType {
+    Sphere,      // كرة
+    Cube,        // مكعب
+    Cylinder,    // أسطوانة
+    Cone,        // مخروط
+    Pyramid,     // هرم
+}
+
+/// أنواع المنحنيات
+pub enum CurveType {
+    Line,        // خط مستقيم
+    Parabola,    // قطع مكافئ
+    Ellipse,     // قطع ناقص
+    Hyperbola,   // قطع زائد
+    Sine,        // منحنى جيبي
+    Cosine,      // منحنى جيب التمام
+    Exponential, // منحنى أسي
+    Logarithmic, // منحنى لوغاريتمي
+    Custom(string), // منحنى مخصص
+}
+
+/// خصائص الشكل الهندسي
+pub struct ShapeProperties {
+    /// المساحة
+    pub area: float,
+    
+    /// المحيط
+    pub perimeter: float,
+    
+    /// الحجم (للأشكال ثلاثية الأبعاد)
+    pub volume: float,
+    
+    /// مساحة السطح (للأشكال ثلاثية الأبعاد)
+    pub surface_area: float,
+    
+    /// مركز الثقل
+    pub centroid: Point,
+    
+    /// نقاط التماثل
+    pub symmetry_points: List<Point>,
+}
+
+/// نقطة في الفضاء (يمكن أن تكون 2D أو 3D أو أكثر)
+pub struct Point {
+    /// الإحداثيات
+    pub coordinates: List<float>,
+    
+    /// تسمية النقطة (اختيارية)
+    pub label: string,
+}
+
+/// علاقة بين كائنين رياضيين
+pub struct Relationship {
+    /// نوع العلاقة
+    pub relation_type: RelationType,
+    
+    /// الكائن المرتبط
+    pub target_object_id: string,
+    
+    /// قوة العلاقة (0.0 إلى 1.0)
+    pub strength: float,
+    
+    /// اتجاه العلاقة (أحادي أم ثنائي الاتجاه)
+    pub bidirectional: bool,
+}
+
+/// أنواع العلاقات الرياضية
+pub enum RelationType {
+    /// يساوي
+    Equals,
+    
+    /// أكبر من
+    GreaterThan,
+    
+    /// أصغر من
+    LessThan,
+    
+    /// يحتوي على
+    Contains,
+    
+    /// جزء من
+    PartOf,
+    
+    /// مشابه لـ
+    SimilarTo,
+    
+    /// متناظر مع
+    SymmetricWith,
+    
+    /// دالة من
+    FunctionOf,
+    
+    /// مشتق من
+    DerivedFrom,
+    
+    /// علاقة مخصصة
+    Custom(string),
+}
+
+/// سجل تحديث للكائن الرياضي
+pub struct UpdateRecord {
+    /// الطابع الزمني للتحديث
+    pub timestamp: int,
+    
+    /// نوع التحديث
+    pub update_type: UpdateType,
+    
+    /// وصف التحديث
+    pub description: string,
+    
+    /// القيمة القديمة (إن وجدت)
+    pub old_value: string,
+    
+    /// القيمة الجديدة
+    pub new_value: string,
+}
+
+/// أنواع التحديثات
+pub enum UpdateType {
+    PropertyChange,  // تغيير خاصية
+    RelationshipAdd, // إضافة علاقة
+    RelationshipRemove, // حذف علاقة
+    TypeChange,      // تغيير النوع
+    Refinement,      // تحسين أو تدقيق
+}
+
+/// هيكل الرسم البياني أو الشبكة
+pub struct GraphStructure {
+    /// العقد في الرسم البياني
+    pub nodes: List<GraphNode>,
+    
+    /// الحواف بين العقد
+    pub edges: List<GraphEdge>,
+    
+    /// نوع الرسم البياني
+    pub graph_type: GraphType,
+}
+
+/// عقدة في الرسم البياني
+pub struct GraphNode {
+    /// معرف العقدة
+    pub id: string,
+    
+    /// قيمة العقدة
+    pub value: MathObject,
+    
+    /// موقع العقدة (للرسم)
+    pub position: Point,
+}
+
+/// حافة في الرسم البياني
+pub struct GraphEdge {
+    /// العقدة المصدر
+    pub from_node: string,
+    
+    /// العقدة الهدف
+    pub to_node: string,
+    
+    /// وزن الحافة
+    pub weight: float,
+    
+    /// تسمية الحافة
+    pub label: string,
+}
+
+/// أنواع الرسوم البيانية
+pub enum GraphType {
+    Directed,    // موجه
+    Undirected,  // غير موجه
+    Weighted,    // مرجح
+    Tree,        // شجرة
+    Network,     // شبكة
+}
