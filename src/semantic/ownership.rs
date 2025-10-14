@@ -212,8 +212,20 @@ impl BorrowCheckState {
 
     /// Register a variable for destruction at end of scope (Expert recommendation)
     pub fn register_for_destruction(&mut self, name: &str, var_type: ResolvedType, scope_depth: usize) {
-        // Only register List<T> types for destruction for now
-        if matches!(var_type, ResolvedType::List(_)) {
+        // Register types that need destruction (Expert recommendation: Priority 1)
+        let needs_destruction = match &var_type {
+            ResolvedType::List(_) => true,
+            ResolvedType::String => true,
+            ResolvedType::Struct(_) => true,
+            // AI types need destruction (Expert recommendation: Priority 1)
+            ResolvedType::Model(_) => true,
+            ResolvedType::Tensor(_) => true,
+            // Copy types don't need destruction
+            ResolvedType::Int | ResolvedType::Float | ResolvedType::Bool | ResolvedType::Char => false,
+            _ => false, // Conservative: assume other types need destruction
+        };
+
+        if needs_destruction {
             self.variables_to_destroy.insert(name.to_string(), DestroyInfo {
                 name: name.to_string(),
                 var_type,

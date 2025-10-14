@@ -1,0 +1,40 @@
+// اختبار أساسي لإدارة الذاكرة التلقائية
+// Expert recommendation: Priority 1 - Complete Borrow Checker
+
+fn test_basic_list_destruction() -> int {
+    // Test basic List<T> automatic destruction
+    let my_list = [1, 2, 3];
+    let len = my_list.len();
+    
+    // my_list should be automatically destroyed at function end
+    // IRGenerator should call albayan_rt_list_destroy()
+    return len;
+}
+
+fn test_basic_string_destruction() -> int {
+    // Test basic String automatic destruction
+    let my_string = "Hello, World!";
+    
+    // my_string should be automatically destroyed at function end
+    // IRGenerator should call albayan_rt_string_destroy()
+    return 0;
+}
+
+fn test_copy_types_no_destruction() -> int {
+    // Test that copy types don't get destruction calls
+    let my_int = 42;
+    let my_float = 3.14;
+    let my_bool = true;
+    let my_char = 'A';
+    
+    // These are copy types and should NOT get destruction calls
+    return my_int;
+}
+
+fn main() -> int {
+    let result1 = test_basic_list_destruction();
+    let result2 = test_basic_string_destruction();
+    let result3 = test_copy_types_no_destruction();
+    
+    return result1 + result2 + result3;
+}

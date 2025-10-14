@@ -1721,6 +1721,20 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         ], false);
         let struct_destroy_fn = self.module.add_function("albayan_rt_struct_destroy", struct_destroy_fn_type, None);
 
+        // AI types destroy functions (Expert recommendation: Priority 1 - AI types)
+
+        // albayan_rt_model_destroy(model_ptr: *mut u8) -> void
+        let model_destroy_fn_type = self.context.void_type().fn_type(&[
+            i8_ptr_type.into(), // model_ptr
+        ], false);
+        let model_destroy_fn = self.module.add_function("albayan_rt_model_destroy", model_destroy_fn_type, None);
+
+        // albayan_rt_tensor_destroy(tensor_ptr: *mut u8) -> void
+        let tensor_destroy_fn_type = self.context.void_type().fn_type(&[
+            i8_ptr_type.into(), // tensor_ptr
+        ], false);
+        let tensor_destroy_fn = self.module.add_function("albayan_rt_tensor_destroy", tensor_destroy_fn_type, None);
+
         // Store function references for later use
         self.functions.insert("albayan_rt_list_create".to_string(), list_create_fn);
         self.functions.insert("albayan_rt_list_push".to_string(), list_push_fn);
@@ -1730,6 +1744,8 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         self.functions.insert("albayan_rt_string_destroy".to_string(), string_destroy_fn);
         self.functions.insert("albayan_rt_dict_destroy".to_string(), dict_destroy_fn);
         self.functions.insert("albayan_rt_struct_destroy".to_string(), struct_destroy_fn);
+        self.functions.insert("albayan_rt_model_destroy".to_string(), model_destroy_fn);
+        self.functions.insert("albayan_rt_tensor_destroy".to_string(), tensor_destroy_fn);
         self.functions.insert("albayan_rt_panic".to_string(), panic_fn);
 
         Ok(())
@@ -1999,8 +2015,62 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                             )?;
                         }
                     }
+                    ResolvedType::String => {
+                        // Generate destroy call for String variables (Expert recommendation)
+                        if let Some(destroy_fn) = self.functions.get("albayan_rt_string_destroy") {
+                            // Load the string handle
+                            let string_handle = self.builder.build_load(
+                                var_alloca.get_type().get_element_type().into(),
+                                var_alloca,
+                                &format!("{}_destroy_load", destroy_info.name)
+                            )?;
+
+                            // Call albayan_rt_string_destroy(handle)
+                            self.builder.build_call(
+                                *destroy_fn,
+                                &[string_handle.into()],
+                                &format!("{}_destroy", destroy_info.name)
+                            )?;
+                        }
+                    }
+                    ResolvedType::Model(_) => {
+                        // Generate destroy call for Model types (Expert recommendation: Priority 1)
+                        if let Some(destroy_fn) = self.functions.get("albayan_rt_model_destroy") {
+                            // Load the model handle
+                            let model_handle = self.builder.build_load(
+                                var_alloca.get_type().get_element_type().into(),
+                                var_alloca,
+                                &format!("{}_destroy_load", destroy_info.name)
+                            )?;
+
+                            // Call albayan_rt_model_destroy(handle)
+                            self.builder.build_call(
+                                *destroy_fn,
+                                &[model_handle.into()],
+                                &format!("{}_destroy", destroy_info.name)
+                            )?;
+                        }
+                    }
+                    ResolvedType::Tensor(_) => {
+                        // Generate destroy call for Tensor types (Expert recommendation: Priority 1)
+                        if let Some(destroy_fn) = self.functions.get("albayan_rt_tensor_destroy") {
+                            // Load the tensor handle
+                            let tensor_handle = self.builder.build_load(
+                                var_alloca.get_type().get_element_type().into(),
+                                var_alloca,
+                                &format!("{}_destroy_load", destroy_info.name)
+                            )?;
+
+                            // Call albayan_rt_tensor_destroy(handle)
+                            self.builder.build_call(
+                                *destroy_fn,
+                                &[tensor_handle.into()],
+                                &format!("{}_destroy", destroy_info.name)
+                            )?;
+                        }
+                    }
                     // Copy types (Int, Float, Bool) don't need destruction
-                    ResolvedType::Int | ResolvedType::Float | ResolvedType::Bool => {
+                    ResolvedType::Int | ResolvedType::Float | ResolvedType::Bool | ResolvedType::Char => {
                         // No destruction needed for Copy types
                     }
                     _ => {

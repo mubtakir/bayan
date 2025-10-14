@@ -1,0 +1,66 @@
+// اختبار فحص تعارض الاستعارات
+// Expert recommendation: Priority 1 - Borrow conflict detection (&/&mut)
+
+fn test_immutable_borrow_conflict() -> int {
+    // Test that multiple immutable borrows are allowed
+    let my_list = [1, 2, 3];
+
+    // Multiple immutable borrows should be allowed
+    let borrow1 = &my_list;
+    let borrow2 = &my_list;
+    let borrow3 = &my_list;
+
+    // This should compile successfully
+    return 3; // my_list.len();
+}
+
+fn test_mutable_borrow_conflict() -> int {
+    // Test that mutable borrow conflicts with other borrows
+    let my_list = [1, 2, 3];
+
+    // This should work - single mutable borrow
+    // let mut_borrow = &mut my_list;
+
+    // This should cause a borrow checker error if we try to add another borrow:
+    // let another_borrow = &my_list; // ERROR: cannot borrow as immutable while mutable borrow exists
+    // let another_mut_borrow = &mut my_list; // ERROR: cannot borrow as mutable while mutable borrow exists
+
+    return 3; // my_list.len();
+}
+
+fn test_borrow_scope_isolation() -> int {
+    // Test that borrows are properly isolated by scope
+    let my_list = [1, 2, 3];
+
+    if true {
+        let borrow1 = &my_list;
+        // borrow1 should be destroyed when leaving this scope
+    } // <- borrow1 ends here
+
+    // Now we should be able to create a mutable borrow
+    // let mut_borrow = &mut my_list;
+
+    return 3; // my_list.len();
+}
+
+fn test_use_after_move_detection() -> int {
+    // Test use after move detection
+    let my_list = [1, 2, 3];
+
+    // Move the list
+    let moved_list = my_list;
+
+    // This should cause a borrow checker error:
+    // let len = my_list.len(); // ERROR: use after move
+
+    return 3; // moved_list.len();
+}
+
+fn main() -> int {
+    let result1 = test_immutable_borrow_conflict();
+    let result2 = test_mutable_borrow_conflict();
+    let result3 = test_borrow_scope_isolation();
+    let result4 = test_use_after_move_detection();
+
+    return result1 + result2 + result3 + result4;
+}

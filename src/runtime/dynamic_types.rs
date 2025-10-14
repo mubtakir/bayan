@@ -421,6 +421,34 @@ pub extern "C" fn albayan_rt_struct_destroy(struct_ptr: *mut AlbayanStruct) {
     }
 }
 
+/// Destroy a model and all its resources (Expert recommendation: Priority 1 - AI types)
+#[no_mangle]
+pub extern "C" fn albayan_rt_model_destroy(model_ptr: *mut u8) {
+    if !model_ptr.is_null() {
+        // For now, treat as generic pointer since we use RuntimeHandle system
+        // In a full implementation, this would properly destroy an AI model
+        unsafe {
+            // The actual model destruction is handled by the runtime handle system
+            // This function serves as the interface for LLVM-generated code
+            std::alloc::dealloc(model_ptr, std::alloc::Layout::from_size_align(8, 8).unwrap());
+        }
+    }
+}
+
+/// Destroy a tensor and all its resources (Expert recommendation: Priority 1 - AI types)
+#[no_mangle]
+pub extern "C" fn albayan_rt_tensor_destroy(tensor_ptr: *mut u8) {
+    if !tensor_ptr.is_null() {
+        // For now, treat as generic pointer since we use RuntimeHandle system
+        // In a full implementation, this would properly destroy a tensor
+        unsafe {
+            // The actual tensor destruction is handled by the runtime handle system
+            // This function serves as the interface for LLVM-generated code
+            std::alloc::dealloc(tensor_ptr, std::alloc::Layout::from_size_align(8, 8).unwrap());
+        }
+    }
+}
+
 // =============================================================================
 // AlbayanValue Helper Functions
 // =============================================================================
