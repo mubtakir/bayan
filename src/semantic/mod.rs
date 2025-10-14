@@ -46,6 +46,9 @@ impl SemanticAnalyzer {
         // Register std::ai functions (Expert recommendation: Priority 1)
         analyzer.register_std_ai_functions();
 
+        // Register std::torch functions (Expert recommendation: Priority 2)
+        analyzer.register_std_torch_functions();
+
         analyzer
     }
 
@@ -2077,6 +2080,12 @@ pub enum ResolvedType {
     Tensor(Vec<usize>),
     Dataset(Box<ResolvedType>),
     Model(String),
+
+    // PyTorch types (Expert recommendation: Priority 2)
+    TorchModel,
+    TorchOptimizer,
+    TorchTensor,
+    TrainingResult,
 }
 
 /// Information about a relation
@@ -2687,6 +2696,102 @@ impl SemanticAnalyzer {
                 ResolvedType::String,
             ],
             return_type: Some(ResolvedType::Tensor(vec![])),
+        });
+    }
+
+    /// Register std::torch functions (Expert recommendation: Priority 2)
+    fn register_std_torch_functions(&mut self) {
+        use crate::semantic::FunctionInfo;
+
+        // torch_create_model(name: string, input_size: int, hidden_size: int, output_size: int) -> TorchModel
+        self.symbol_table.add_function_info("torch_create_model", FunctionInfo {
+            name: "torch_create_model".to_string(),
+            parameters: vec![
+                ResolvedType::String,
+                ResolvedType::Int,
+                ResolvedType::Int,
+                ResolvedType::Int,
+            ],
+            return_type: Some(ResolvedType::TorchModel),
+        });
+
+        // torch_destroy_model(model: TorchModel)
+        self.symbol_table.add_function_info("torch_destroy_model", FunctionInfo {
+            name: "torch_destroy_model".to_string(),
+            parameters: vec![ResolvedType::TorchModel],
+            return_type: Some(ResolvedType::Unit),
+        });
+
+        // torch_create_optimizer(model: TorchModel, optimizer_type: string, learning_rate: float) -> TorchOptimizer
+        self.symbol_table.add_function_info("torch_create_optimizer", FunctionInfo {
+            name: "torch_create_optimizer".to_string(),
+            parameters: vec![
+                ResolvedType::TorchModel,
+                ResolvedType::String,
+                ResolvedType::Float,
+            ],
+            return_type: Some(ResolvedType::TorchOptimizer),
+        });
+
+        // torch_destroy_optimizer(optimizer: TorchOptimizer)
+        self.symbol_table.add_function_info("torch_destroy_optimizer", FunctionInfo {
+            name: "torch_destroy_optimizer".to_string(),
+            parameters: vec![ResolvedType::TorchOptimizer],
+            return_type: Some(ResolvedType::Unit),
+        });
+
+        // torch_create_tensor(name: string, data: [float], shape: [int]) -> TorchTensor
+        self.symbol_table.add_function_info("torch_create_tensor", FunctionInfo {
+            name: "torch_create_tensor".to_string(),
+            parameters: vec![
+                ResolvedType::String,
+                ResolvedType::List(Box::new(ResolvedType::Float)),
+                ResolvedType::List(Box::new(ResolvedType::Int)),
+            ],
+            return_type: Some(ResolvedType::TorchTensor),
+        });
+
+        // torch_destroy_tensor(tensor: TorchTensor)
+        self.symbol_table.add_function_info("torch_destroy_tensor", FunctionInfo {
+            name: "torch_destroy_tensor".to_string(),
+            parameters: vec![ResolvedType::TorchTensor],
+            return_type: Some(ResolvedType::Unit),
+        });
+
+        // torch_train_step(model: TorchModel, optimizer: TorchOptimizer, input: TorchTensor, target: TorchTensor) -> TrainingResult
+        self.symbol_table.add_function_info("torch_train_step", FunctionInfo {
+            name: "torch_train_step".to_string(),
+            parameters: vec![
+                ResolvedType::TorchModel,
+                ResolvedType::TorchOptimizer,
+                ResolvedType::TorchTensor,
+                ResolvedType::TorchTensor,
+            ],
+            return_type: Some(ResolvedType::TrainingResult),
+        });
+
+        // torch_forward(model: TorchModel, input: TorchTensor) -> TorchTensor
+        self.symbol_table.add_function_info("torch_forward", FunctionInfo {
+            name: "torch_forward".to_string(),
+            parameters: vec![
+                ResolvedType::TorchModel,
+                ResolvedType::TorchTensor,
+            ],
+            return_type: Some(ResolvedType::TorchTensor),
+        });
+
+        // torch_cuda_available() -> bool
+        self.symbol_table.add_function_info("torch_cuda_available", FunctionInfo {
+            name: "torch_cuda_available".to_string(),
+            parameters: vec![],
+            return_type: Some(ResolvedType::Bool),
+        });
+
+        // torch_get_device() -> string
+        self.symbol_table.add_function_info("torch_get_device", FunctionInfo {
+            name: "torch_get_device".to_string(),
+            parameters: vec![],
+            return_type: Some(ResolvedType::String),
         });
     }
 }

@@ -234,6 +234,10 @@ impl BorrowCheckState {
             // AI types need destruction (Expert recommendation: Priority 1)
             ResolvedType::Model(_) => true,
             ResolvedType::Tensor(_) => true,
+            // PyTorch types need destruction (Expert recommendation: Priority 2)
+            ResolvedType::TorchModel => true,
+            ResolvedType::TorchOptimizer => true,
+            ResolvedType::TorchTensor => true,
             // Copy types don't need destruction
             ResolvedType::Int | ResolvedType::Float | ResolvedType::Bool | ResolvedType::Char => false,
             _ => false, // Conservative: assume other types need destruction

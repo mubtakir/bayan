@@ -1,0 +1,4 @@
+// Debug torch test
+fn main() {
+    let model = torch_create_model("test", 2, 4, 1);
+}

@@ -25,10 +25,10 @@ serde_json = "1.0"
 ndarray = "0.15"
 rand = "0.8"
 ort = "1.16"  # ONNX Runtime (Expert recommendation: Priority 1)
+# tch = "0.13"  # PyTorch bindings (Expert recommendation: Priority 2) - disabled until libtorch is installed
 # candle-core = "0.3"
 # candle-nn = "0.3"
 # candle-transformers = "0.3"
-# tch = "0.13"  # PyTorch bindings
 
 # Command line interface
 clap = { version = "4.0", features = ["derive"] }

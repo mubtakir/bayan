@@ -341,6 +341,23 @@ impl Parser {
                     Ok(Type::Named(Path::single(name)))
                 }
             }
+            // PyTorch types (Expert recommendation: Priority 2)
+            TokenType::TorchModel => {
+                self.advance();
+                Ok(Type::Named(Path::single("TorchModel".to_string())))
+            }
+            TokenType::TorchOptimizer => {
+                self.advance();
+                Ok(Type::Named(Path::single("TorchOptimizer".to_string())))
+            }
+            TokenType::TorchTensor => {
+                self.advance();
+                Ok(Type::Named(Path::single("TorchTensor".to_string())))
+            }
+            TokenType::TrainingResult => {
+                self.advance();
+                Ok(Type::Named(Path::single("TrainingResult".to_string())))
+            }
             _ => Err(ParseError::UnexpectedToken {
                 expected: "type".to_string(),
                 found: self.peek().clone(),

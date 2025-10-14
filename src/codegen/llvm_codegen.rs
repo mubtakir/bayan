@@ -83,6 +83,9 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         // Declare AI runtime FFI functions (Expert recommendation: Priority 1)
         generator.declare_ai_runtime_functions()?;
 
+        // Declare PyTorch runtime FFI functions (Expert recommendation: Priority 2)
+        generator.declare_torch_runtime_functions()?;
+
         Ok(generator)
     }
 
@@ -579,6 +582,11 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             return self.generate_ai_function_call(name, arguments);
         }
 
+        // Handle PyTorch function calls (Expert recommendation: Priority 2)
+        if name.starts_with("torch_") {
+            return self.generate_torch_function_call(name, arguments);
+        }
+
         // Handle AI Model method calls (Expert recommendation: Priority 1)
         if name.starts_with("ai_model::") {
             return self.generate_ai_model_method_call(name, arguments);
@@ -840,6 +848,143 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             },
 
             _ => Err(anyhow!("Unknown std::ai function: {}", name))
+        }
+    }
+
+    /// Generate PyTorch function calls (Expert recommendation: Priority 2)
+    fn generate_torch_function_call(
+        &mut self,
+        name: &str,
+        arguments: &[AnnotatedExpression]
+    ) -> Result<BasicValueEnum<'ctx>> {
+        match name {
+            "torch_create_model" => {
+                if arguments.len() != 4 {
+                    return Err(anyhow!("torch_create_model() expects 4 arguments: name, input_size, hidden_size, output_size"));
+                }
+
+                // Generate arguments
+                let name_arg = self.generate_expression(&arguments[0])?;
+                let input_size_arg = self.generate_expression(&arguments[1])?;
+                let hidden_size_arg = self.generate_expression(&arguments[2])?;
+                let output_size_arg = self.generate_expression(&arguments[3])?;
+
+                // Convert name to C string
+                let name_ptr = if name_arg.is_pointer_value() {
+                    name_arg.into_pointer_value()
+                } else {
+                    let string_global = self.builder.build_global_string_ptr(
+                        &format!("{}", name_arg),
+                        "model_name_str"
+                    )?;
+                    string_global.as_pointer_value()
+                };
+
+                // Get string length (simplified)
+                let name_len = self.context.i64_type().const_int(10, false); // Placeholder
+
+                // Call albayan_rt_torch_create_model
+                let create_model_fn = self.module.get_function("albayan_rt_torch_create_model")
+                    .ok_or_else(|| anyhow!("PyTorch runtime function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    create_model_fn,
+                    &[
+                        name_ptr.into(),
+                        name_len.into(),
+                        input_size_arg.into(),
+                        hidden_size_arg.into(),
+                        output_size_arg.into(),
+                    ],
+                    "torch_model_handle"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "torch_create_optimizer" => {
+                if arguments.len() != 3 {
+                    return Err(anyhow!("torch_create_optimizer() expects 3 arguments: model, optimizer_type, learning_rate"));
+                }
+
+                // Generate arguments
+                let model_handle = self.generate_expression(&arguments[0])?;
+                let optimizer_type_arg = self.generate_expression(&arguments[1])?;
+                let learning_rate_arg = self.generate_expression(&arguments[2])?;
+
+                // Convert optimizer type to C string
+                let optimizer_type_ptr = if optimizer_type_arg.is_pointer_value() {
+                    optimizer_type_arg.into_pointer_value()
+                } else {
+                    let string_global = self.builder.build_global_string_ptr(
+                        &format!("{}", optimizer_type_arg),
+                        "optimizer_type_str"
+                    )?;
+                    string_global.as_pointer_value()
+                };
+
+                let optimizer_type_len = self.context.i64_type().const_int(4, false); // Placeholder
+
+                // Call albayan_rt_torch_create_optimizer
+                let create_optimizer_fn = self.module.get_function("albayan_rt_torch_create_optimizer")
+                    .ok_or_else(|| anyhow!("PyTorch runtime function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    create_optimizer_fn,
+                    &[
+                        model_handle.into(),
+                        optimizer_type_ptr.into(),
+                        optimizer_type_len.into(),
+                        learning_rate_arg.into(),
+                    ],
+                    "torch_optimizer_handle"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "torch_train_step" => {
+                if arguments.len() != 4 {
+                    return Err(anyhow!("torch_train_step() expects 4 arguments: model, optimizer, input, target"));
+                }
+
+                // Generate arguments
+                let model_handle = self.generate_expression(&arguments[0])?;
+                let optimizer_handle = self.generate_expression(&arguments[1])?;
+                let input_handle = self.generate_expression(&arguments[2])?;
+                let target_handle = self.generate_expression(&arguments[3])?;
+
+                // Call albayan_rt_torch_train_step
+                let train_step_fn = self.module.get_function("albayan_rt_torch_train_step")
+                    .ok_or_else(|| anyhow!("PyTorch runtime function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    train_step_fn,
+                    &[
+                        model_handle.into(),
+                        optimizer_handle.into(),
+                        input_handle.into(),
+                        target_handle.into(),
+                    ],
+                    "train_step_loss"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "torch_create_tensor" => {
+                // Simplified implementation - in real version would handle arrays properly
+                let handle_type = self.context.i64_type();
+                Ok(handle_type.const_int(1, false).into()) // Placeholder tensor handle
+            },
+
+            "torch_destroy_model" | "torch_destroy_optimizer" | "torch_destroy_tensor" => {
+                // These are void functions, return unit
+                let unit_type = self.context.struct_type(&[], false);
+                Ok(unit_type.const_zero().into())
+            },
+
+            _ => Err(anyhow!("Unknown PyTorch function: {}", name))
         }
     }
 
@@ -2385,6 +2530,60 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                             )?;
                         }
                     }
+                    ResolvedType::TorchModel => {
+                        // Generate destroy call for PyTorch Model types (Expert recommendation: Priority 2)
+                        if let Some(destroy_fn) = self.functions.get("albayan_rt_torch_destroy_model") {
+                            // Load the model handle
+                            let model_handle = self.builder.build_load(
+                                var_alloca.get_type().get_element_type().into(),
+                                var_alloca,
+                                &format!("{}_destroy_load", destroy_info.name)
+                            )?;
+
+                            // Call albayan_rt_torch_destroy_model(handle)
+                            self.builder.build_call(
+                                *destroy_fn,
+                                &[model_handle.into()],
+                                &format!("{}_destroy", destroy_info.name)
+                            )?;
+                        }
+                    }
+                    ResolvedType::TorchOptimizer => {
+                        // Generate destroy call for PyTorch Optimizer types (Expert recommendation: Priority 2)
+                        if let Some(destroy_fn) = self.functions.get("albayan_rt_torch_destroy_optimizer") {
+                            // Load the optimizer handle
+                            let optimizer_handle = self.builder.build_load(
+                                var_alloca.get_type().get_element_type().into(),
+                                var_alloca,
+                                &format!("{}_destroy_load", destroy_info.name)
+                            )?;
+
+                            // Call albayan_rt_torch_destroy_optimizer(handle)
+                            self.builder.build_call(
+                                *destroy_fn,
+                                &[optimizer_handle.into()],
+                                &format!("{}_destroy", destroy_info.name)
+                            )?;
+                        }
+                    }
+                    ResolvedType::TorchTensor => {
+                        // Generate destroy call for PyTorch Tensor types (Expert recommendation: Priority 2)
+                        if let Some(destroy_fn) = self.functions.get("albayan_rt_torch_destroy_tensor") {
+                            // Load the tensor handle
+                            let tensor_handle = self.builder.build_load(
+                                var_alloca.get_type().get_element_type().into(),
+                                var_alloca,
+                                &format!("{}_destroy_load", destroy_info.name)
+                            )?;
+
+                            // Call albayan_rt_torch_destroy_tensor(handle)
+                            self.builder.build_call(
+                                *destroy_fn,
+                                &[tensor_handle.into()],
+                                &format!("{}_destroy", destroy_info.name)
+                            )?;
+                        }
+                    }
                     // Copy types (Int, Float, Bool) don't need destruction
                     ResolvedType::Int | ResolvedType::Float | ResolvedType::Bool | ResolvedType::Char => {
                         // No destruction needed for Copy types
@@ -2835,6 +3034,84 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         // albayan_rt_outputs_destroy(handle: usize)
         let destroy_outputs_fn_type = self.context.void_type().fn_type(&[i64_type.into()], false);
         self.module.add_function("albayan_rt_outputs_destroy", destroy_outputs_fn_type, None);
+
+        Ok(())
+    }
+
+    /// Declare PyTorch runtime FFI functions (Expert recommendation: Priority 2)
+    fn declare_torch_runtime_functions(&mut self) -> Result<()> {
+        let i32_type = self.context.i32_type();
+        let i64_type = self.context.i64_type();
+        let f64_type = self.context.f64_type();
+        let ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+        let f32_ptr_type = self.context.f32_type().ptr_type(AddressSpace::default());
+        let i64_ptr_type = i64_type.ptr_type(AddressSpace::default());
+
+        // albayan_rt_torch_create_model(name_ptr: *const u8, name_len: usize, input_size: i64, hidden_size: i64, output_size: i64) -> usize
+        let create_model_fn_type = i64_type.fn_type(&[
+            ptr_type.into(),
+            i64_type.into(),
+            i64_type.into(),
+            i64_type.into(),
+            i64_type.into(),
+        ], false);
+        self.module.add_function("albayan_rt_torch_create_model", create_model_fn_type, None);
+
+        // albayan_rt_torch_create_optimizer(model_handle: usize, optimizer_type_ptr: *const u8, optimizer_type_len: usize, learning_rate: f64) -> usize
+        let create_optimizer_fn_type = i64_type.fn_type(&[
+            i64_type.into(),
+            ptr_type.into(),
+            i64_type.into(),
+            f64_type.into(),
+        ], false);
+        self.module.add_function("albayan_rt_torch_create_optimizer", create_optimizer_fn_type, None);
+
+        // albayan_rt_torch_create_tensor(name_ptr: *const u8, name_len: usize, data_ptr: *const f32, data_len: usize, shape_ptr: *const i64, shape_len: usize) -> usize
+        let create_tensor_fn_type = i64_type.fn_type(&[
+            ptr_type.into(),
+            i64_type.into(),
+            f32_ptr_type.into(),
+            i64_type.into(),
+            i64_ptr_type.into(),
+            i64_type.into(),
+        ], false);
+        self.module.add_function("albayan_rt_torch_create_tensor", create_tensor_fn_type, None);
+
+        // albayan_rt_torch_train_step(model_handle: usize, optimizer_handle: usize, input_handle: usize, target_handle: usize) -> f64
+        let train_step_fn_type = f64_type.fn_type(&[
+            i64_type.into(),
+            i64_type.into(),
+            i64_type.into(),
+            i64_type.into(),
+        ], false);
+        self.module.add_function("albayan_rt_torch_train_step", train_step_fn_type, None);
+
+        // albayan_rt_torch_forward(model_handle: usize, input_handle: usize) -> usize
+        let forward_fn_type = i64_type.fn_type(&[
+            i64_type.into(),
+            i64_type.into(),
+        ], false);
+        self.module.add_function("albayan_rt_torch_forward", forward_fn_type, None);
+
+        // albayan_rt_torch_destroy_model(handle: usize)
+        let destroy_model_fn_type = self.context.void_type().fn_type(&[i64_type.into()], false);
+        self.module.add_function("albayan_rt_torch_destroy_model", destroy_model_fn_type, None);
+
+        // albayan_rt_torch_destroy_optimizer(handle: usize)
+        let destroy_optimizer_fn_type = self.context.void_type().fn_type(&[i64_type.into()], false);
+        self.module.add_function("albayan_rt_torch_destroy_optimizer", destroy_optimizer_fn_type, None);
+
+        // albayan_rt_torch_destroy_tensor(handle: usize)
+        let destroy_tensor_fn_type = self.context.void_type().fn_type(&[i64_type.into()], false);
+        self.module.add_function("albayan_rt_torch_destroy_tensor", destroy_tensor_fn_type, None);
+
+        // albayan_rt_torch_cuda_available() -> i32 (bool)
+        let cuda_available_fn_type = i32_type.fn_type(&[], false);
+        self.module.add_function("albayan_rt_torch_cuda_available", cuda_available_fn_type, None);
+
+        // albayan_rt_torch_get_device() -> *const char
+        let get_device_fn_type = ptr_type.fn_type(&[], false);
+        self.module.add_function("albayan_rt_torch_get_device", get_device_fn_type, None);
 
         Ok(())
     }

@@ -6,12 +6,14 @@ pub mod unification;
 pub mod solver;
 pub mod api;
 pub mod ai;  // Expert recommendation: Priority 1 - AI Module
+pub mod torch;  // Expert recommendation: Priority 2 - PyTorch Training
 
 pub use knowledge_base::*;
 pub use unification::*;
 pub use solver::*;
 pub use api::*;
 pub use ai::*;
+pub use torch::*;
 
 /// Runtime initialization
 pub fn init_runtime() {

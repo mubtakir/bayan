@@ -1,0 +1,367 @@
+// std::torch - PyTorch Training Module for AlBayan
+// Expert recommendation: Priority 2 - Training capabilities beyond ONNX inference
+// 
+// This module provides PyTorch training capabilities including:
+// - Model creation and management
+// - Optimizer configuration (Adam, SGD)
+// - Training loops with forward/backward passes
+// - Tensor operations for training
+
+// ============================================================================
+// Core Types
+// ============================================================================
+
+/// PyTorch Model Handle
+/// Represents a neural network model for training
+type TorchModel = usize;
+
+/// PyTorch Optimizer Handle  
+/// Represents an optimizer (Adam, SGD, etc.)
+type TorchOptimizer = usize;
+
+/// PyTorch Tensor Handle
+/// Represents a tensor for training operations
+type TorchTensor = usize;
+
+/// Training Result
+/// Contains loss value and training metrics
+struct TrainingResult {
+    loss: float,
+    success: bool,
+}
+
+// ============================================================================
+// Model Creation and Management
+// ============================================================================
+
+/// Create a simple feedforward neural network
+/// 
+/// Parameters:
+/// - name: Model name for identification
+/// - input_size: Number of input features
+/// - hidden_size: Number of hidden units
+/// - output_size: Number of output units
+///
+/// Returns: TorchModel handle or 0 on failure
+///
+/// Example:
+/// ```albayan
+/// let model = torch_create_model("my_model", 784, 128, 10);
+/// ```
+fn torch_create_model(name: string, input_size: int, hidden_size: int, output_size: int) -> TorchModel {
+    // This will be implemented in the code generator
+    // Calls: albayan_rt_torch_create_model
+    return 0;
+}
+
+/// Destroy a PyTorch model and free resources
+///
+/// Parameters:
+/// - model: TorchModel handle to destroy
+///
+/// Example:
+/// ```albayan
+/// torch_destroy_model(model);
+/// ```
+fn torch_destroy_model(model: TorchModel) {
+    // This will be implemented in the code generator
+    // Calls: albayan_rt_torch_destroy_model
+}
+
+// ============================================================================
+// Optimizer Creation and Management
+// ============================================================================
+
+/// Create an optimizer for training
+///
+/// Parameters:
+/// - model: TorchModel to optimize
+/// - optimizer_type: "adam" or "sgd"
+/// - learning_rate: Learning rate for training
+///
+/// Returns: TorchOptimizer handle or 0 on failure
+///
+/// Example:
+/// ```albayan
+/// let optimizer = torch_create_optimizer(model, "adam", 0.001);
+/// ```
+fn torch_create_optimizer(model: TorchModel, optimizer_type: string, learning_rate: float) -> TorchOptimizer {
+    // This will be implemented in the code generator
+    // Calls: albayan_rt_torch_create_optimizer
+    return 0;
+}
+
+/// Destroy an optimizer and free resources
+///
+/// Parameters:
+/// - optimizer: TorchOptimizer handle to destroy
+///
+/// Example:
+/// ```albayan
+/// torch_destroy_optimizer(optimizer);
+/// ```
+fn torch_destroy_optimizer(optimizer: TorchOptimizer) {
+    // This will be implemented in the code generator
+    // Calls: albayan_rt_torch_destroy_optimizer
+}
+
+// ============================================================================
+// Tensor Creation and Management
+// ============================================================================
+
+/// Create a tensor from data array
+///
+/// Parameters:
+/// - name: Tensor name for identification
+/// - data: Array of float values
+/// - shape: Array of dimensions
+///
+/// Returns: TorchTensor handle or 0 on failure
+///
+/// Example:
+/// ```albayan
+/// let input_data = [1.0, 2.0, 3.0, 4.0];
+/// let input_shape = [2, 2];
+/// let tensor = torch_create_tensor("input", input_data, input_shape);
+/// ```
+fn torch_create_tensor(name: string, data: [float], shape: [int]) -> TorchTensor {
+    // This will be implemented in the code generator
+    // Calls: albayan_rt_torch_create_tensor
+    return 0;
+}
+
+/// Destroy a tensor and free resources
+///
+/// Parameters:
+/// - tensor: TorchTensor handle to destroy
+///
+/// Example:
+/// ```albayan
+/// torch_destroy_tensor(tensor);
+/// ```
+fn torch_destroy_tensor(tensor: TorchTensor) {
+    // This will be implemented in the code generator
+    // Calls: albayan_rt_torch_destroy_tensor
+}
+
+// ============================================================================
+// Training Operations
+// ============================================================================
+
+/// Perform one training step (forward + backward + optimizer step)
+///
+/// Parameters:
+/// - model: TorchModel to train
+/// - optimizer: TorchOptimizer to use
+/// - input: Input tensor
+/// - target: Target tensor for loss computation
+///
+/// Returns: TrainingResult with loss value
+///
+/// Example:
+/// ```albayan
+/// let result = torch_train_step(model, optimizer, input_tensor, target_tensor);
+/// if result.success {
+///     println("Loss: " + result.loss);
+/// }
+/// ```
+fn torch_train_step(model: TorchModel, optimizer: TorchOptimizer, input: TorchTensor, target: TorchTensor) -> TrainingResult {
+    // This will be implemented in the code generator
+    // Calls: albayan_rt_torch_train_step
+    let loss = 0.0; // Placeholder - will be replaced with actual FFI call
+    return TrainingResult { loss: loss, success: true };
+}
+
+/// Perform forward pass only (for inference)
+///
+/// Parameters:
+/// - model: TorchModel to use
+/// - input: Input tensor
+///
+/// Returns: Output tensor handle or 0 on failure
+///
+/// Example:
+/// ```albayan
+/// let output = torch_forward(model, input_tensor);
+/// ```
+fn torch_forward(model: TorchModel, input: TorchTensor) -> TorchTensor {
+    // This will be implemented in the code generator
+    // Calls: albayan_rt_torch_forward
+    return 0;
+}
+
+// ============================================================================
+// High-Level Training API
+// ============================================================================
+
+/// Complete training loop for a model
+///
+/// Parameters:
+/// - model: TorchModel to train
+/// - optimizer: TorchOptimizer to use
+/// - train_inputs: Array of input tensors
+/// - train_targets: Array of target tensors
+/// - epochs: Number of training epochs
+///
+/// Returns: Array of loss values for each epoch
+///
+/// Example:
+/// ```albayan
+/// let losses = torch_train_model(model, optimizer, inputs, targets, 100);
+/// for i in 0..losses.length {
+///     println("Epoch " + i + " Loss: " + losses[i]);
+/// }
+/// ```
+fn torch_train_model(model: TorchModel, optimizer: TorchOptimizer, 
+                    train_inputs: [TorchTensor], train_targets: [TorchTensor], 
+                    epochs: int) -> [float] {
+    let losses = [];
+    
+    for epoch in 0..epochs {
+        let epoch_loss = 0.0;
+        let batch_count = 0;
+        
+        // Train on all batches
+        for i in 0..train_inputs.length {
+            let result = torch_train_step(model, optimizer, train_inputs[i], train_targets[i]);
+            if result.success {
+                epoch_loss = epoch_loss + result.loss;
+                batch_count = batch_count + 1;
+            }
+        }
+        
+        // Average loss for this epoch
+        if batch_count > 0 {
+            epoch_loss = epoch_loss / batch_count;
+        }
+        
+        losses.push(epoch_loss);
+    }
+    
+    return losses;
+}
+
+/// Evaluate model on test data
+///
+/// Parameters:
+/// - model: TorchModel to evaluate
+/// - test_inputs: Array of test input tensors
+/// - test_targets: Array of test target tensors
+///
+/// Returns: Average test loss
+///
+/// Example:
+/// ```albayan
+/// let test_loss = torch_evaluate_model(model, test_inputs, test_targets);
+/// println("Test Loss: " + test_loss);
+/// ```
+fn torch_evaluate_model(model: TorchModel, test_inputs: [TorchTensor], test_targets: [TorchTensor]) -> float {
+    let total_loss = 0.0;
+    let batch_count = 0;
+    
+    for i in 0..test_inputs.length {
+        let output = torch_forward(model, test_inputs[i]);
+        if output != 0 {
+            // Calculate loss (simplified - in real implementation would compute actual loss)
+            // For now, we'll use a placeholder
+            total_loss = total_loss + 1.0; // Placeholder
+            batch_count = batch_count + 1;
+            
+            // Clean up output tensor
+            torch_destroy_tensor(output);
+        }
+    }
+    
+    if batch_count > 0 {
+        return total_loss / batch_count;
+    } else {
+        return -1.0; // Error indicator
+    }
+}
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+/// Check if CUDA is available for GPU training
+///
+/// Returns: true if CUDA is available, false otherwise
+///
+/// Example:
+/// ```albayan
+/// if torch_cuda_available() {
+///     println("GPU training available!");
+/// } else {
+///     println("Using CPU training");
+/// }
+/// ```
+fn torch_cuda_available() -> bool {
+    // This will be implemented in the code generator
+    // Calls: albayan_rt_torch_cuda_available
+    return false;
+}
+
+/// Get device information
+///
+/// Returns: Device string ("cpu" or "cuda:0", etc.)
+///
+/// Example:
+/// ```albayan
+/// let device = torch_get_device();
+/// println("Training on: " + device);
+/// ```
+fn torch_get_device() -> string {
+    // This will be implemented in the code generator
+    // Calls: albayan_rt_torch_get_device
+    return "cpu";
+}
+
+// ============================================================================
+// Example Usage
+// ============================================================================
+
+/// Example: Simple neural network training
+///
+/// This function demonstrates how to use the PyTorch API for training
+/// a simple neural network on dummy data.
+fn example_torch_training() {
+    // Create model
+    let model = torch_create_model("example_model", 4, 8, 2);
+    if model == 0 {
+        println("Failed to create model");
+        return;
+    }
+    
+    // Create optimizer
+    let optimizer = torch_create_optimizer(model, "adam", 0.01);
+    if optimizer == 0 {
+        println("Failed to create optimizer");
+        torch_destroy_model(model);
+        return;
+    }
+    
+    // Create training data
+    let input_data = [1.0, 2.0, 3.0, 4.0];
+    let input_shape = [1, 4];
+    let input_tensor = torch_create_tensor("input", input_data, input_shape);
+    
+    let target_data = [0.0, 1.0];
+    let target_shape = [1, 2];
+    let target_tensor = torch_create_tensor("target", target_data, target_shape);
+    
+    // Training loop
+    for epoch in 0..10 {
+        let result = torch_train_step(model, optimizer, input_tensor, target_tensor);
+        if result.success {
+            println("Epoch " + epoch + " Loss: " + result.loss);
+        }
+    }
+    
+    // Cleanup
+    torch_destroy_tensor(input_tensor);
+    torch_destroy_tensor(target_tensor);
+    torch_destroy_optimizer(optimizer);
+    torch_destroy_model(model);
+    
+    println("Training completed!");
+}

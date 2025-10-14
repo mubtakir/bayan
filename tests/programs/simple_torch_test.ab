@@ -1,0 +1,4 @@
+// Simple PyTorch test without type annotation
+fn main() {
+    let model = torch_create_model("test", 2, 4, 1);
+}

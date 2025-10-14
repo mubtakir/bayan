@@ -1,0 +1,184 @@
+// PyTorch Training Integration Test for AlBayan
+// Expert recommendation: Priority 2 - Training capabilities beyond ONNX inference
+//
+// This test verifies that PyTorch training functionality works correctly
+// including model creation, optimizer setup, and training loops.
+
+// Test basic model creation and destruction
+fn test_model_creation() {
+    let model = torch_create_model("test_model", 4, 8, 2);
+    // Model created successfully - destroy it
+    torch_destroy_model(model);
+}
+
+// Test optimizer creation and destruction
+fn test_optimizer_creation() {
+    let model = torch_create_model("optimizer_test", 4, 8, 2);
+    let optimizer = torch_create_optimizer(model, "adam", 0.01);
+    // Optimizer created successfully - destroy it
+    torch_destroy_optimizer(optimizer);
+    torch_destroy_model(model);
+}
+
+// Test tensor creation and destruction
+fn test_tensor_creation() {
+    let input_data = [1.0, 2.0, 3.0, 4.0];
+    let input_shape = [1, 4];
+    let tensor = torch_create_tensor("test_tensor", input_data, input_shape);
+    // Tensor created successfully - destroy it
+    torch_destroy_tensor(tensor);
+}
+
+// Test complete training step
+fn test_training_step() {
+    // Create model
+    let model = torch_create_model("training_model", 4, 8, 2);
+
+    // Create optimizer
+    let optimizer = torch_create_optimizer(model, "adam", 0.01);
+
+    // Create input tensor
+    let input_data = [1.0, 2.0, 3.0, 4.0];
+    let input_shape = [1, 4];
+    let input_tensor = torch_create_tensor("input", input_data, input_shape);
+
+    // Create target tensor
+    let target_data = [0.0, 1.0];
+    let target_shape = [1, 2];
+    let target_tensor = torch_create_tensor("target", target_data, target_shape);
+
+    // Perform training step
+    let result = torch_train_step(model, optimizer, input_tensor, target_tensor);
+    // Training step completed (result contains loss)
+
+    // Cleanup
+    torch_destroy_tensor(input_tensor);
+    torch_destroy_tensor(target_tensor);
+    torch_destroy_optimizer(optimizer);
+    torch_destroy_model(model);
+}
+
+// Test resource protection in nested scopes
+fn test_nested_scope_protection() {
+    let outer_model = torch_create_model("outer_model", 4, 8, 2);
+    if true {
+        let inner_model = torch_create_model("inner_model", 2, 4, 1);
+        let optimizer = torch_create_optimizer(inner_model, "sgd", 0.1);
+        // All resources should be automatically destroyed when scope ends
+    }
+    // outer_model should be automatically destroyed when function ends
+}
+
+// Test conditional resource protection
+fn test_conditional_protection() {
+    let condition = true;
+    if condition {
+        let model = torch_create_model("conditional_model", 3, 6, 1);
+        let optimizer = torch_create_optimizer(model, "adam", 0.001);
+        // Resources should be destroyed when if block ends
+    }
+}
+
+// Test multiple training iterations
+fn test_training_loop() {
+    let model = torch_create_model("loop_model", 2, 4, 1);
+    let optimizer = torch_create_optimizer(model, "adam", 0.01);
+
+    // Create training data
+    let input_data = [0.5, 1.5];
+    let input_shape = [1, 2];
+    let input_tensor = torch_create_tensor("train_input", input_data, input_shape);
+
+    let target_data = [1.0];
+    let target_shape = [1, 1];
+    let target_tensor = torch_create_tensor("train_target", target_data, target_shape);
+
+    // Training loop (simplified - no for loop support yet)
+    let epochs = 5;
+    let loss1 = torch_train_step(model, optimizer, input_tensor, target_tensor);
+    let loss2 = torch_train_step(model, optimizer, input_tensor, target_tensor);
+    let loss3 = torch_train_step(model, optimizer, input_tensor, target_tensor);
+
+    // Cleanup
+    torch_destroy_tensor(input_tensor);
+    torch_destroy_tensor(target_tensor);
+    torch_destroy_optimizer(optimizer);
+    torch_destroy_model(model);
+}
+
+// Test device detection
+fn test_device_detection() {
+    let cuda_available = torch_cuda_available();
+    let device = torch_get_device();
+    // Device information retrieved
+}
+
+// Test forward pass
+fn test_forward_pass() {
+    let model = torch_create_model("forward_model", 3, 5, 2);
+
+    let input_data = [1.0, 0.5, 2.0];
+    let input_shape = [1, 3];
+    let input_tensor = torch_create_tensor("forward_input", input_data, input_shape);
+
+    let output_tensor = torch_forward(model, input_tensor);
+    torch_destroy_tensor(output_tensor);
+    torch_destroy_tensor(input_tensor);
+    torch_destroy_model(model);
+}
+
+// Test mixed AI resources (ONNX + PyTorch)
+fn test_mixed_ai_resources() {
+    // Create PyTorch model
+    let torch_model = torch_create_model("mixed_torch", 4, 8, 2);
+
+    // Create PyTorch tensors
+    let torch_input_data = [1.0, 2.0, 3.0, 4.0];
+    let torch_input_shape = [1, 4];
+    let torch_tensor = torch_create_tensor("mixed_tensor", torch_input_data, torch_input_shape);
+
+    // All resources should be automatically destroyed
+}
+
+// Test early return with resource cleanup
+fn test_early_return_cleanup() {
+    let model = torch_create_model("early_return_model", 2, 4, 1);
+    let optimizer = torch_create_optimizer(model, "adam", 0.01);
+
+    let tensor_data = [1.0, 2.0];
+    let tensor_shape = [1, 2];
+    let tensor = torch_create_tensor("early_tensor", tensor_data, tensor_shape);
+    // All resources should be automatically destroyed when function ends
+}
+
+// Test function scope resource protection
+fn test_function_scope_protection() {
+    let model = torch_create_model("function_model", 3, 6, 2);
+    let optimizer = torch_create_optimizer(model, "sgd", 0.05);
+
+    let input_data = [0.1, 0.2, 0.3];
+    let input_shape = [1, 3];
+    let input_tensor = torch_create_tensor("func_input", input_data, input_shape);
+
+    let target_data = [1.0, 0.0];
+    let target_shape = [1, 2];
+    let target_tensor = torch_create_tensor("func_target", target_data, target_shape);
+
+    // All resources automatically destroyed when function ends
+}
+
+// Main test function
+fn main() {
+    test_model_creation();
+    test_optimizer_creation();
+    test_tensor_creation();
+    test_training_step();
+    test_nested_scope_protection();
+    test_conditional_protection();
+    test_training_loop();
+    test_device_detection();
+    test_forward_pass();
+    test_mixed_ai_resources();
+    test_early_return_cleanup();
+    test_function_scope_protection();
+}

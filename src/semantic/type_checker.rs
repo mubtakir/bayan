@@ -35,6 +35,14 @@ impl TypeChecker {
                     "bool" => Ok(ResolvedType::Bool),
                     "string" => Ok(ResolvedType::String),
                     "char" => Ok(ResolvedType::Char),
+                    // AI types (Expert recommendation: Priority 1)
+                    "Model" => Ok(ResolvedType::Model("Model".to_string())),
+                    "Tensor" => Ok(ResolvedType::Tensor(vec![])),
+                    // PyTorch types (Expert recommendation: Priority 2)
+                    "TorchModel" => Ok(ResolvedType::TorchModel),
+                    "TorchOptimizer" => Ok(ResolvedType::TorchOptimizer),
+                    "TorchTensor" => Ok(ResolvedType::TorchTensor),
+                    "TrainingResult" => Ok(ResolvedType::TrainingResult),
                     _ => {
                         // For user-defined types, we assume they exist
                         // (this should be validated by the symbol table)

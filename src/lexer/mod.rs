@@ -73,10 +73,20 @@ pub enum TokenType {
     #[token("retract")]
     Retract,
 
+    // Keywords - PyTorch (Expert recommendation: Priority 2) - Must come before AI keywords
+    #[token("TorchModel")]
+    TorchModel,
+    #[token("TorchOptimizer")]
+    TorchOptimizer,
+    #[token("TorchTensor")]
+    TorchTensor,
+    #[token("TrainingResult")]
+    TrainingResult,
+
     // Keywords - AI
-    #[token("model")]
+    #[token("Model")]
     Model,
-    #[token("tensor")]
+    #[token("Tensor")]
     Tensor,
 
     // Keywords - Concurrency
