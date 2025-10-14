@@ -295,6 +295,11 @@ impl SymbolTable {
         self.functions.get(name)
     }
 
+    /// Add a function info directly (Expert recommendation: for built-in functions)
+    pub fn add_function_info(&mut self, name: &str, func_info: FunctionInfo) {
+        self.functions.insert(name.to_string(), func_info);
+    }
+
     /// Declare a struct
     pub fn declare_struct(&mut self, name: &str, struct_decl: &StructDecl) -> Result<(), SemanticError> {
         if self.types.contains_key(name) {

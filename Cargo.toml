@@ -24,10 +24,10 @@ serde_json = "1.0"
 # Machine Learning and AI
 ndarray = "0.15"
 rand = "0.8"
+ort = "1.16"  # ONNX Runtime (Expert recommendation: Priority 1)
 # candle-core = "0.3"
 # candle-nn = "0.3"
 # candle-transformers = "0.3"
-# ort = "1.16"  # ONNX Runtime
 # tch = "0.13"  # PyTorch bindings
 
 # Command line interface

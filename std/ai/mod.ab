@@ -1,0 +1,246 @@
+// std::ai - AI Module for AlBayan Language
+// Expert recommendation: Priority 1 - AI Integration
+
+// Core AI types and functions
+module ai;
+
+// External FFI declarations for ONNX Runtime
+extern "C" {
+    fn albayan_rt_ai_init() -> int;
+    fn albayan_rt_model_load(path: *const char) -> ModelHandle;
+    fn albayan_rt_tensor_create(
+        data_ptr: *const float,
+        data_len: usize,
+        dims: *const int,
+        num_dims: usize,
+        name: *const char
+    ) -> TensorHandle;
+    fn albayan_rt_model_predict(
+        model_handle: ModelHandle,
+        input_handles: *const TensorHandle,
+        num_inputs: usize
+    ) -> OutputTensorsHandle;
+    fn albayan_rt_tensor_destroy(handle: TensorHandle);
+    fn albayan_rt_model_destroy(handle: ModelHandle);
+    fn albayan_rt_outputs_destroy(handle: OutputTensorsHandle);
+}
+
+// Type aliases for AI handles
+type ModelHandle = usize;
+type TensorHandle = usize;
+type OutputTensorsHandle = usize;
+
+// AI Model wrapper
+struct Model {
+    handle: ModelHandle;
+}
+
+// Tensor wrapper
+struct Tensor {
+    handle: TensorHandle;
+    shape: List<int>;
+    name: string;
+}
+
+// Output collection
+struct ModelOutput {
+    handle: OutputTensorsHandle;
+}
+
+impl Model {
+    // Load model from file path (Expert specification)
+    fn load(path: string) -> Result<Model, string> {
+        let handle = albayan_rt_model_load(path.as_ptr());
+        if handle == 0 {
+            Err("Failed to load model")
+        } else {
+            Ok(Model { handle })
+        }
+    }
+
+    // Run prediction on the model (Expert specification)
+    fn predict(self, inputs: List<Tensor>) -> Result<ModelOutput, string> {
+        let input_handles: List<TensorHandle> = inputs.map(|tensor| tensor.handle);
+        let handle = albayan_rt_model_predict(
+            self.handle,
+            input_handles.as_ptr(),
+            input_handles.len()
+        );
+        
+        if handle == 0 {
+            Err("Prediction failed")
+        } else {
+            Ok(ModelOutput { handle })
+        }
+    }
+}
+
+impl Drop for Model {
+    fn drop(self) {
+        albayan_rt_model_destroy(self.handle);
+    }
+}
+
+impl Tensor {
+    // Create tensor from data and shape (Expert specification)
+    fn new(data: List<float>, shape: List<int>, name: string) -> Tensor {
+        let handle = albayan_rt_tensor_create(
+            data.as_ptr(),
+            data.len(),
+            shape.as_ptr(),
+            shape.len(),
+            name.as_ptr()
+        );
+        
+        Tensor {
+            handle,
+            shape,
+            name,
+        }
+    }
+
+    // Create tensor from 1D data
+    fn from_1d(data: List<float>, name: string) -> Tensor {
+        let shape = [data.len() as int];
+        Tensor::new(data, shape.to_list(), name)
+    }
+
+    // Create tensor from 2D data
+    fn from_2d(data: List<List<float>>, name: string) -> Tensor {
+        let rows = data.len() as int;
+        let cols = if rows > 0 { data[0].len() as int } else { 0 };
+        let shape = [rows, cols];
+        
+        let flat_data: List<float> = data.flatten();
+        Tensor::new(flat_data, shape.to_list(), name)
+    }
+
+    // Get tensor shape
+    fn shape(self) -> List<int> {
+        self.shape.clone()
+    }
+
+    // Get tensor name
+    fn name(self) -> string {
+        self.name.clone()
+    }
+}
+
+impl Drop for Tensor {
+    fn drop(self) {
+        albayan_rt_tensor_destroy(self.handle);
+    }
+}
+
+impl Drop for ModelOutput {
+    fn drop(self) {
+        albayan_rt_outputs_destroy(self.handle);
+    }
+}
+
+// Public API functions (Expert recommendation)
+
+// Initialize AI runtime
+fn init() -> Result<(), string> {
+    let result = albayan_rt_ai_init();
+    if result == 0 {
+        Ok(())
+    } else {
+        Err("Failed to initialize AI runtime")
+    }
+}
+
+// Load ONNX model from file
+fn load_model(path: string) -> Result<Model, string> {
+    Model::load(path)
+}
+
+// Create tensor from data
+fn tensor(data: List<float>, shape: List<int>, name: string) -> Tensor {
+    Tensor::new(data, shape, name)
+}
+
+// Create 1D tensor
+fn tensor_1d(data: List<float>, name: string) -> Tensor {
+    Tensor::from_1d(data, name)
+}
+
+// Create 2D tensor
+fn tensor_2d(data: List<List<float>>, name: string) -> Tensor {
+    Tensor::from_2d(data, name)
+}
+
+// Example usage functions (Expert validation)
+
+// Load and run a simple MNIST model
+fn example_mnist(model_path: string, image_data: List<float>) -> Result<int, string> {
+    // Initialize AI runtime
+    init()?;
+    
+    // Load model
+    let model = load_model(model_path)?;
+    
+    // Create input tensor (28x28 image)
+    let input_tensor = tensor_1d(image_data, "input");
+    
+    // Run prediction
+    let output = model.predict([input_tensor])?;
+    
+    // In a real implementation, we'd extract the prediction result
+    // For now, return a placeholder
+    Ok(0)
+}
+
+// Load and run an image classification model
+fn example_image_classification(
+    model_path: string,
+    image_data: List<List<List<float>>>  // RGB image data
+) -> Result<string, string> {
+    // Initialize AI runtime
+    init()?;
+    
+    // Load model
+    let model = load_model(model_path)?;
+    
+    // Flatten image data for tensor creation
+    let flat_data: List<float> = image_data.flatten().flatten();
+    let height = image_data.len() as int;
+    let width = if height > 0 { image_data[0].len() as int } else { 0 };
+    let channels = if width > 0 { image_data[0][0].len() as int } else { 0 };
+    
+    // Create input tensor (batch_size=1, channels, height, width)
+    let shape = [1, channels, height, width];
+    let input_tensor = tensor(flat_data, shape.to_list(), "image_input");
+    
+    // Run prediction
+    let output = model.predict([input_tensor])?;
+    
+    // In a real implementation, we'd extract the class name
+    // For now, return a placeholder
+    Ok("unknown")
+}
+
+// Text processing with AI model
+fn example_text_processing(
+    model_path: string,
+    text_tokens: List<int>
+) -> Result<List<float>, string> {
+    // Initialize AI runtime
+    init()?;
+    
+    // Load model
+    let model = load_model(model_path)?;
+    
+    // Convert tokens to float for tensor
+    let token_data: List<float> = text_tokens.map(|token| token as float);
+    
+    // Create input tensor
+    let input_tensor = tensor_1d(token_data, "text_input");
+    
+    // Run prediction
+    let output = model.predict([input_tensor])?;
+    
+    // In a real implementation, we'd extract the embeddings/predictions
+    // For now, return a placeholder
+    Ok([0.0])
+}

@@ -5,11 +5,13 @@ pub mod knowledge_base;
 pub mod unification;
 pub mod solver;
 pub mod api;
+pub mod ai;  // Expert recommendation: Priority 1 - AI Module
 
 pub use knowledge_base::*;
 pub use unification::*;
 pub use solver::*;
 pub use api::*;
+pub use ai::*;
 
 /// Runtime initialization
 pub fn init_runtime() {

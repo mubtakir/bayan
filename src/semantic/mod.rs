@@ -33,7 +33,7 @@ pub struct SemanticAnalyzer {
 impl SemanticAnalyzer {
     /// Create a new semantic analyzer
     pub fn new(options: &CompilerOptions) -> Self {
-        Self {
+        let mut analyzer = Self {
             symbol_table: SymbolTable::new(),
             type_checker: TypeChecker::new(),
             ownership_analyzer: OwnershipAnalyzer::new(),
@@ -41,7 +41,12 @@ impl SemanticAnalyzer {
             dyn_trait_codegen: DynTraitCodeGenerator::new(),
             options: options.clone(),
             errors: Vec::new(),
-        }
+        };
+
+        // Register std::ai functions (Expert recommendation: Priority 1)
+        analyzer.register_std_ai_functions();
+
+        analyzer
     }
 
     /// Analyze the AST and return an annotated version
@@ -1251,6 +1256,11 @@ impl SemanticAnalyzer {
             }
         }
 
+        // Check if this is an AI Model method call (Expert recommendation: Priority 1 - std::ai)
+        if let ResolvedType::Model(_) = &object_type {
+            return self.analyze_ai_model_method_call(method_name, arguments, annotated_object);
+        }
+
         // Try to find the method in impl blocks (Expert recommendation: Priority 1)
         if let Some(method_info) = self.find_method_in_impls(&object_type, method_name) {
             // Check argument count (including self parameter)
@@ -1407,6 +1417,59 @@ impl SemanticAnalyzer {
             },
             result_type: return_type,
         })
+    }
+
+    /// Analyze AI Model method call (Expert recommendation: Priority 1 - std::ai)
+    fn analyze_ai_model_method_call(
+        &mut self,
+        method_name: &str,
+        arguments: &[Expression],
+        annotated_object: AnnotatedExpression
+    ) -> Result<AnnotatedExpression, SemanticError> {
+        match method_name {
+            "predict" => {
+                // model.predict(inputs: List<Tensor>) -> Result<ModelOutput, string>
+                if arguments.len() != 1 {
+                    return Err(SemanticError::TypeMismatch {
+                        expected: ResolvedType::Unit, // Placeholder
+                        found: ResolvedType::Unit,    // Placeholder
+                    });
+                }
+
+                // Analyze the input argument
+                let input_arg = self.analyze_expression(&arguments[0])?;
+
+                // Check that input is List<Tensor>
+                let expected_input_type = ResolvedType::List(Box::new(ResolvedType::Tensor(vec![])));
+                if input_arg.result_type != expected_input_type {
+                    return Err(SemanticError::TypeMismatch {
+                        expected: expected_input_type,
+                        found: input_arg.result_type.clone(),
+                    });
+                }
+
+                let mut annotated_args = Vec::new();
+                annotated_args.push(annotated_object); // Add model as first argument
+                annotated_args.push(input_arg);
+
+                // Return type: Result<ModelOutput, string>
+                let return_type = ResolvedType::Result(
+                    Box::new(ResolvedType::Model("ModelOutput".to_string())),
+                    Box::new(ResolvedType::String)
+                );
+
+                Ok(AnnotatedExpression {
+                    expr: AnnotatedExpressionKind::Call {
+                        function: "ai_model::predict".to_string(), // AI model method marker
+                        arguments: annotated_args,
+                    },
+                    result_type: return_type,
+                })
+            }
+            _ => Err(SemanticError::UndefinedVariable(
+                format!("Method {} not found for AI Model", method_name)
+            )),
+        }
     }
 
     /// Analyze a unary expression (Expert recommendation: &/&mut support)
@@ -2569,5 +2632,61 @@ impl SemanticAnalyzer {
     /// Check read access to a variable (Expert recommendation)
     pub fn check_variable_read_access(&self, name: &str) -> Result<(), SemanticError> {
         self.ownership_analyzer.check_read_access(name)
+    }
+
+    /// Register std::ai functions (Expert recommendation: Priority 1)
+    fn register_std_ai_functions(&mut self) {
+        use crate::semantic::FunctionInfo;
+
+        // ai::init() -> Result<(), string>
+        self.symbol_table.add_function_info("ai::init", FunctionInfo {
+            name: "ai::init".to_string(),
+            parameters: vec![],
+            return_type: Some(ResolvedType::Result(
+                Box::new(ResolvedType::Unit),
+                Box::new(ResolvedType::String)
+            )),
+        });
+
+        // ai::load_model(path: string) -> Result<Model, string>
+        self.symbol_table.add_function_info("ai::load_model", FunctionInfo {
+            name: "ai::load_model".to_string(),
+            parameters: vec![ResolvedType::String],
+            return_type: Some(ResolvedType::Result(
+                Box::new(ResolvedType::Model("Model".to_string())),
+                Box::new(ResolvedType::String)
+            )),
+        });
+
+        // ai::tensor(data: List<float>, shape: List<int>, name: string) -> Tensor
+        self.symbol_table.add_function_info("ai::tensor", FunctionInfo {
+            name: "ai::tensor".to_string(),
+            parameters: vec![
+                ResolvedType::List(Box::new(ResolvedType::Float)),
+                ResolvedType::List(Box::new(ResolvedType::Int)),
+                ResolvedType::String,
+            ],
+            return_type: Some(ResolvedType::Tensor(vec![])), // Shape will be determined at runtime
+        });
+
+        // ai::tensor_1d(data: List<float>, name: string) -> Tensor
+        self.symbol_table.add_function_info("ai::tensor_1d", FunctionInfo {
+            name: "ai::tensor_1d".to_string(),
+            parameters: vec![
+                ResolvedType::List(Box::new(ResolvedType::Float)),
+                ResolvedType::String,
+            ],
+            return_type: Some(ResolvedType::Tensor(vec![])),
+        });
+
+        // ai::tensor_2d(data: List<List<float>>, name: string) -> Tensor
+        self.symbol_table.add_function_info("ai::tensor_2d", FunctionInfo {
+            name: "ai::tensor_2d".to_string(),
+            parameters: vec![
+                ResolvedType::List(Box::new(ResolvedType::List(Box::new(ResolvedType::Float)))),
+                ResolvedType::String,
+            ],
+            return_type: Some(ResolvedType::Tensor(vec![])),
+        });
     }
 }

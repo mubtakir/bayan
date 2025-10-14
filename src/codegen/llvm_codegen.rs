@@ -64,7 +64,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             crate::codegen::OptimizationLevel::Aggressive => OptimizationLevel::Aggressive,
         };
 
-        Ok(Self {
+        let mut generator = Self {
             context,
             module,
             builder,
@@ -78,7 +78,12 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             struct_field_indices: HashMap::new(),
             vtables: HashMap::new(),
             vtable_manager: VTableManager::new(),
-        })
+        };
+
+        // Declare AI runtime FFI functions (Expert recommendation: Priority 1)
+        generator.declare_ai_runtime_functions()?;
+
+        Ok(generator)
     }
 
     /// Generate LLVM IR for the entire program
@@ -569,6 +574,16 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             return self.generate_math_ai_call(name, arguments);
         }
 
+        // Handle std::ai function calls (Expert recommendation: Priority 1)
+        if name.starts_with("ai::") {
+            return self.generate_ai_function_call(name, arguments);
+        }
+
+        // Handle AI Model method calls (Expert recommendation: Priority 1)
+        if name.starts_with("ai_model::") {
+            return self.generate_ai_model_method_call(name, arguments);
+        }
+
         // Look up user-defined function
         if let Some(&function) = self.functions.get(name) {
             let mut args: Vec<BasicValueEnum> = Vec::new();
@@ -756,6 +771,119 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
             },
 
             _ => Err(anyhow!("Unknown Mathematical AI function: {}", name))
+        }
+    }
+
+    /// Generate std::ai function calls (Expert recommendation: Priority 1)
+    fn generate_ai_function_call(
+        &mut self,
+        name: &str,
+        arguments: &[AnnotatedExpression]
+    ) -> Result<BasicValueEnum<'ctx>> {
+        match name {
+            "ai::init" => {
+                if !arguments.is_empty() {
+                    return Err(anyhow!("ai::init() expects no arguments"));
+                }
+
+                // Call albayan_rt_ai_init
+                let init_fn = self.module.get_function("albayan_rt_ai_init")
+                    .ok_or_else(|| anyhow!("AI runtime function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    init_fn,
+                    &[],
+                    "ai_init_result"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "ai::load_model" => {
+                if arguments.len() != 1 {
+                    return Err(anyhow!("ai::load_model() expects exactly one argument"));
+                }
+
+                // Generate path string argument
+                let path_arg = self.generate_expression(&arguments[0])?;
+
+                // Convert to C string if needed
+                let path_ptr = if path_arg.is_pointer_value() {
+                    path_arg.into_pointer_value()
+                } else {
+                    // Create string literal and get pointer
+                    let string_global = self.builder.build_global_string_ptr(
+                        &format!("{}", path_arg),
+                        "model_path_str"
+                    )?;
+                    string_global.as_pointer_value()
+                };
+
+                // Call albayan_rt_model_load
+                let load_fn = self.module.get_function("albayan_rt_model_load")
+                    .ok_or_else(|| anyhow!("AI runtime function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    load_fn,
+                    &[path_ptr.into()],
+                    "model_handle"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "ai::tensor" | "ai::tensor_1d" | "ai::tensor_2d" => {
+                // These functions create tensors from data
+                // For now, return a placeholder handle
+                let handle_type = self.context.i64_type();
+                Ok(handle_type.const_int(1, false).into()) // Placeholder tensor handle
+            },
+
+            _ => Err(anyhow!("Unknown std::ai function: {}", name))
+        }
+    }
+
+    /// Generate AI Model method calls (Expert recommendation: Priority 1)
+    fn generate_ai_model_method_call(
+        &mut self,
+        name: &str,
+        arguments: &[AnnotatedExpression]
+    ) -> Result<BasicValueEnum<'ctx>> {
+        match name {
+            "ai_model::predict" => {
+                if arguments.len() != 2 {
+                    return Err(anyhow!("model.predict() expects model and inputs"));
+                }
+
+                // First argument is the model handle
+                let model_handle = self.generate_expression(&arguments[0])?;
+
+                // Second argument is the input tensors (List<Tensor>)
+                // For now, we'll simplify and assume it's a single tensor handle
+                let input_tensors = self.generate_expression(&arguments[1])?;
+
+                // Call albayan_rt_model_predict
+                let predict_fn = self.module.get_function("albayan_rt_model_predict")
+                    .ok_or_else(|| anyhow!("AI runtime function not declared"))?;
+
+                // For now, we'll pass simplified arguments
+                // In a full implementation, we'd need to handle the List<Tensor> properly
+                let num_inputs = self.context.i64_type().const_int(1, false);
+
+                let call_result = self.builder.build_call(
+                    predict_fn,
+                    &[
+                        model_handle.into(),
+                        input_tensors.into(), // This should be a pointer to tensor handles array
+                        num_inputs.into(),
+                    ],
+                    "prediction_result"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            _ => Err(anyhow!("Unknown AI Model method: {}", name))
         }
     }
 
@@ -2657,6 +2785,56 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
 
         // Generate V-Table
         self.generate_vtable(trait_name, &implementing_type, method_implementations)?;
+
+        Ok(())
+    }
+
+    /// Declare AI runtime FFI functions (Expert recommendation: Priority 1)
+    fn declare_ai_runtime_functions(&mut self) -> Result<()> {
+        let i32_type = self.context.i32_type();
+        let i64_type = self.context.i64_type();
+        let ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+
+        // albayan_rt_ai_init() -> i32
+        let init_fn_type = i32_type.fn_type(&[], false);
+        self.module.add_function("albayan_rt_ai_init", init_fn_type, None);
+
+        // albayan_rt_model_load(path: *const char) -> usize
+        let load_fn_type = i64_type.fn_type(&[ptr_type.into()], false);
+        self.module.add_function("albayan_rt_model_load", load_fn_type, None);
+
+        // albayan_rt_tensor_create(data_ptr: *const f32, data_len: usize, dims: *const i64, num_dims: usize, name: *const char) -> usize
+        let f32_ptr_type = self.context.f32_type().ptr_type(AddressSpace::default());
+        let i64_ptr_type = i64_type.ptr_type(AddressSpace::default());
+        let tensor_create_fn_type = i64_type.fn_type(&[
+            f32_ptr_type.into(),  // data_ptr
+            i64_type.into(),      // data_len
+            i64_ptr_type.into(),  // dims
+            i64_type.into(),      // num_dims
+            ptr_type.into(),      // name
+        ], false);
+        self.module.add_function("albayan_rt_tensor_create", tensor_create_fn_type, None);
+
+        // albayan_rt_model_predict(model_handle: usize, input_handles: *const usize, num_inputs: usize) -> usize
+        let usize_ptr_type = i64_type.ptr_type(AddressSpace::default());
+        let predict_fn_type = i64_type.fn_type(&[
+            i64_type.into(),      // model_handle
+            usize_ptr_type.into(), // input_handles
+            i64_type.into(),      // num_inputs
+        ], false);
+        self.module.add_function("albayan_rt_model_predict", predict_fn_type, None);
+
+        // albayan_rt_tensor_destroy(handle: usize)
+        let destroy_tensor_fn_type = self.context.void_type().fn_type(&[i64_type.into()], false);
+        self.module.add_function("albayan_rt_tensor_destroy", destroy_tensor_fn_type, None);
+
+        // albayan_rt_model_destroy(handle: usize)
+        let destroy_model_fn_type = self.context.void_type().fn_type(&[i64_type.into()], false);
+        self.module.add_function("albayan_rt_model_destroy", destroy_model_fn_type, None);
+
+        // albayan_rt_outputs_destroy(handle: usize)
+        let destroy_outputs_fn_type = self.context.void_type().fn_type(&[i64_type.into()], false);
+        self.module.add_function("albayan_rt_outputs_destroy", destroy_outputs_fn_type, None);
 
         Ok(())
     }
