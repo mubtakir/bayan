@@ -1,36 +1,44 @@
 // اختبار نواة التفكير - ThinkingCore Test
 // تنفيذ الأولوية الثالثة: بناء محلل الكلمات الأولي
 // Expert recommendation: Priority 3 - Build Initial Word Analyzer
+// Expert Request: Create tests for ThinkingCore that call find_semantically_similar_words
 
 using std::thinking;
 
 fn main() {
     print("🧠 بدء اختبار نواة التفكير الثورية...");
+    print("Expert Request: Testing find_semantically_similar_words");
     print("════════════════════════════════════════");
-    
+
     // عرض المبدأ الثوري
     print("💡 المبدأ الثوري لنواة التفكير:");
     print("   'معنى الكلمات ينبع من دلالات أصوات وأشكال الحروف المكونة لها'");
     print("   Expert: 'Computational Etymology/Semiotics'");
     print("");
-    
+
+    // اختبار find_semantically_similar_words كما طلب الخبير
+    print("🔍 اختبار find_semantically_similar_words...");
+    let similar_words_test = test_find_semantically_similar_words();
+    print("");
+
     // تشغيل الاختبار الشامل
     let comprehensive_result = test_thinking_core_comprehensive();
     print("");
-    
+
     // تشغيل الاختبار المتقدم
     let advanced_result = test_advanced_thinking_analysis();
     print("");
-    
+
     // عرض قوة النظام
     let power_demo_result = demonstrate_thinking_core_power();
     print("");
-    
+
     // النتيجة النهائية
-    if comprehensive_result && advanced_result && power_demo_result {
+    if similar_words_test && comprehensive_result && advanced_result && power_demo_result {
         print("🎊 نجح اختبار نواة التفكير بالكامل!");
         print("🧠 لغة البيان أصبحت تملك ذكاء دلالي ثوري!");
         print("🔥 تحقق مبدأ 'الحوسبة الاشتقاقية' بنجاح كامل!");
+        print("✅ Expert Request: find_semantically_similar_words - TESTED!");
         print("");
         print("✅ الأولوية الثالثة مكتملة: بناء محلل الكلمات الأولي");
         print("🎯 جاهز للانتقال إلى الأولوية الرابعة: الذكاء الاصطناعي الرياضي");
@@ -38,8 +46,60 @@ fn main() {
         print("❌ فشل في اختبار نواة التفكير");
         print("🔧 يحتاج إلى مراجعة وإصلاح");
     }
-    
+
     print("");
     print("════════════════════════════════════════");
     print("🎊 انتهى اختبار نواة التفكير!");
+}
+
+// اختبار find_semantically_similar_words كما طلب الخبير
+fn test_find_semantically_similar_words() -> bool {
+    print("📚 اختبار البحث عن الكلمات المتشابهة دلالياً...");
+
+    // اختبار البحث عن كلمات متشابهة للكلمة "كتاب"
+    print("   🔍 البحث عن كلمات متشابهة لكلمة 'كتاب'...");
+    let book_result = find_semantically_similar_words("كتاب");
+    if book_result {
+        print("   ✅ نجح البحث عن كلمات متشابهة لكلمة 'كتاب'");
+    } else {
+        print("   ❌ فشل البحث عن كلمات متشابهة لكلمة 'كتاب'");
+    }
+
+    // اختبار البحث عن كلمات متشابهة للكلمة "علم"
+    print("   🔬 البحث عن كلمات متشابهة لكلمة 'علم'...");
+    let science_result = find_semantically_similar_words("علم");
+    if science_result {
+        print("   ✅ نجح البحث عن كلمات متشابهة لكلمة 'علم'");
+    } else {
+        print("   ❌ فشل البحث عن كلمات متشابهة لكلمة 'علم'");
+    }
+
+    // اختبار البحث عن كلمات متشابهة للكلمة "حب"
+    print("   ❤️ البحث عن كلمات متشابهة لكلمة 'حب'...");
+    let love_result = find_semantically_similar_words("حب");
+    if love_result {
+        print("   ✅ نجح البحث عن كلمات متشابهة لكلمة 'حب'");
+    } else {
+        print("   ❌ فشل البحث عن كلمات متشابهة لكلمة 'حب'");
+    }
+
+    // اختبار البحث عن كلمات متشابهة للكلمة "ماء"
+    print("   💧 البحث عن كلمات متشابهة لكلمة 'ماء'...");
+    let water_result = find_semantically_similar_words("ماء");
+    if water_result {
+        print("   ✅ نجح البحث عن كلمات متشابهة لكلمة 'ماء'");
+    } else {
+        print("   ❌ فشل البحث عن كلمات متشابهة لكلمة 'ماء'");
+    }
+
+    let overall_result = book_result && science_result && love_result && water_result;
+
+    if overall_result {
+        print("🎊 نجح اختبار find_semantically_similar_words بالكامل!");
+        print("🔥 Expert Request: COMPLETED SUCCESSFULLY!");
+    } else {
+        print("❌ فشل في بعض اختبارات find_semantically_similar_words");
+    }
+
+    return overall_result;
 }

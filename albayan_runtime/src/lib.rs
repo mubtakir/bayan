@@ -14,7 +14,8 @@ pub mod nlu_engine;  // Expert recommendation: Priority 4 - Natural Language Und
 pub mod baserah_semantic_system;
 pub mod linguistic_db;  // User specification: Baserah Revolutionary Semantic System
 pub mod thinking_core;  // Expert recommendation: Priority 3 - Build Initial Word Analyzer
-pub mod math_ai_engine;  // Expert recommendation: Priority 4 - Build First Mathematical Engine
+pub mod math_ai_engine;
+pub mod shape_inference_engine;  // Expert recommendation: Priority 4 - Build First Mathematical Engine
 
 pub use knowledge_base::*;
 pub use unification::*;

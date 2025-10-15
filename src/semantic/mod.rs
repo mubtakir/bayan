@@ -3,21 +3,21 @@
 //! This module implements semantic analysis for the AlBayan programming language.
 //! It performs type checking, scope resolution, ownership analysis, and logic validation.
 
+pub mod logic_analyzer;
+pub mod ownership;
 pub mod symbol_table;
 pub mod type_checker;
-pub mod ownership;
-pub mod logic_analyzer;
 
 use crate::parser::ast::*;
 use crate::CompilerOptions;
 use std::collections::HashMap;
 
-pub use symbol_table::{SymbolTable, StructFieldInfo, FunctionInfo};
+pub use ownership::{BorrowKind, DestroyInfo, OwnershipAnalyzer};
+pub use symbol_table::{FunctionInfo, StructFieldInfo, SymbolTable};
 pub use type_checker::TypeChecker;
-pub use ownership::{OwnershipAnalyzer, DestroyInfo, BorrowKind};
 
 // نظام تعدد الأشكال الديناميكي - الأولوية القصوى للخبير
-use crate::codegen::{VTableManager, DynTraitCodeGenerator};
+use crate::codegen::{DynTraitCodeGenerator, VTableManager};
 
 /// Main semantic analyzer
 pub struct SemanticAnalyzer {
@@ -52,6 +52,12 @@ impl SemanticAnalyzer {
         // Register std::math_ai functions (Expert specification: Priority 1)
         analyzer.register_std_math_ai_functions();
 
+        // Register std::math_ai::shape_inference functions (Expert Priority 4)
+        analyzer.register_shape_inference_functions();
+
+        // Register std::thinking functions (Expert Priority 3: ThinkingCore)
+        analyzer.register_thinking_core_functions();
+
         // Register built-in functions (Expert fix: print function)
         analyzer.register_builtin_functions();
 
@@ -77,25 +83,30 @@ impl SemanticAnalyzer {
                     self.symbol_table.declare_function(&func.name, func)?;
                 }
                 Item::Struct(struct_decl) => {
-                    self.symbol_table.declare_struct(&struct_decl.name, struct_decl)?;
+                    self.symbol_table
+                        .declare_struct(&struct_decl.name, struct_decl)?;
                 }
                 Item::Enum(enum_decl) => {
                     self.symbol_table.declare_enum(&enum_decl.name, enum_decl)?;
                 }
                 Item::Class(class_decl) => {
-                    self.symbol_table.declare_class(&class_decl.name, class_decl)?;
+                    self.symbol_table
+                        .declare_class(&class_decl.name, class_decl)?;
                 }
                 Item::Interface(interface_decl) => {
-                    self.symbol_table.declare_interface(&interface_decl.name, interface_decl)?;
+                    self.symbol_table
+                        .declare_interface(&interface_decl.name, interface_decl)?;
                 }
                 Item::Trait(trait_decl) => {
-                    self.symbol_table.declare_trait(&trait_decl.name, trait_decl)?;  // NEWLY ADDED: Expert recommendation
+                    self.symbol_table
+                        .declare_trait(&trait_decl.name, trait_decl)?; // NEWLY ADDED: Expert recommendation
                 }
                 Item::Impl(impl_decl) => {
-                    self.symbol_table.declare_impl(impl_decl)?;  // NEWLY ADDED: Expert recommendation
+                    self.symbol_table.declare_impl(impl_decl)?; // NEWLY ADDED: Expert recommendation
                 }
                 Item::Relation(relation_decl) => {
-                    self.symbol_table.declare_relation(&relation_decl.name, relation_decl)?;
+                    self.symbol_table
+                        .declare_relation(&relation_decl.name, relation_decl)?;
                 }
                 _ => {} // Rules, facts, modules, etc. handled in second pass
             }
@@ -146,15 +157,15 @@ impl SemanticAnalyzer {
                 Ok(AnnotatedItem::Enum(annotated_enum))
             }
             Item::Trait(trait_decl) => {
-                let annotated_trait = self.analyze_trait(trait_decl)?;  // NEWLY ADDED: Expert recommendation
+                let annotated_trait = self.analyze_trait(trait_decl)?; // NEWLY ADDED: Expert recommendation
                 Ok(AnnotatedItem::Trait(annotated_trait))
             }
             Item::Impl(impl_decl) => {
-                let annotated_impl = self.analyze_impl(impl_decl)?;  // NEWLY ADDED: Expert recommendation
+                let annotated_impl = self.analyze_impl(impl_decl)?; // NEWLY ADDED: Expert recommendation
                 Ok(AnnotatedItem::Impl(annotated_impl))
             }
             Item::Using(using_decl) => {
-                let annotated_using = self.analyze_using(using_decl)?;  // NEWLY ADDED: Expert fix for using statements
+                let annotated_using = self.analyze_using(using_decl)?; // NEWLY ADDED: Expert fix for using statements
                 Ok(AnnotatedItem::Using(annotated_using))
             }
             _ => todo!("Analysis for other item types not yet implemented"),
@@ -162,13 +173,17 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a function
-    fn analyze_function(&mut self, func: &FunctionDecl) -> Result<AnnotatedFunction, SemanticError> {
+    fn analyze_function(
+        &mut self,
+        func: &FunctionDecl,
+    ) -> Result<AnnotatedFunction, SemanticError> {
         // Enter function scope
         self.symbol_table.enter_scope();
         self.ownership_analyzer.enter_scope();
 
         // Set current function for borrow checking (Expert recommendation)
-        self.ownership_analyzer.set_current_function(Some(func.name.clone()));
+        self.ownership_analyzer
+            .set_current_function(Some(func.name.clone()));
 
         // Add generic parameters to scope as type variables (Expert recommendation: Priority 1)
         let annotated_generics = if let Some(ref generics) = func.generic_params {
@@ -190,9 +205,14 @@ impl SemanticAnalyzer {
                     let resolved_type = self.symbol_table.resolve_type_name(param_type)?;
                     self.symbol_table.declare_variable(name, &resolved_type)?;
                     // Declare in ownership analyzer too (Expert recommendation)
-                    self.ownership_analyzer.declare_variable(name, resolved_type.clone(), false)?;
+                    self.ownership_analyzer
+                        .declare_variable(name, resolved_type.clone(), false)?;
                     // Register for destruction if needed (Expert recommendation: Priority 1)
-                    self.ownership_analyzer.register_for_destruction(name, resolved_type.clone(), self.ownership_analyzer.get_scope_depth());
+                    self.ownership_analyzer.register_for_destruction(
+                        name,
+                        resolved_type.clone(),
+                        self.ownership_analyzer.get_scope_depth(),
+                    );
                     annotated_params.push(AnnotatedParameter {
                         name: name.clone(),
                         param_type: resolved_type,
@@ -203,7 +223,8 @@ impl SemanticAnalyzer {
                     // For now, we'll use a placeholder type
                     let self_type = ResolvedType::Unit; // TODO: Get actual self type from context
                     self.symbol_table.declare_variable("self", &self_type)?;
-                    self.ownership_analyzer.declare_variable("self", self_type.clone(), false)?;
+                    self.ownership_analyzer
+                        .declare_variable("self", self_type.clone(), false)?;
                     annotated_params.push(AnnotatedParameter {
                         name: "self".to_string(),
                         param_type: self_type,
@@ -214,7 +235,11 @@ impl SemanticAnalyzer {
                     let self_type = ResolvedType::Unit; // TODO: Get actual self type from context
                     let self_ref_type = ResolvedType::Reference(Box::new(self_type), false);
                     self.symbol_table.declare_variable("self", &self_ref_type)?;
-                    self.ownership_analyzer.declare_variable("self", self_ref_type.clone(), false)?;
+                    self.ownership_analyzer.declare_variable(
+                        "self",
+                        self_ref_type.clone(),
+                        false,
+                    )?;
                     annotated_params.push(AnnotatedParameter {
                         name: "self".to_string(),
                         param_type: self_ref_type,
@@ -224,8 +249,13 @@ impl SemanticAnalyzer {
                     // &mut self parameter
                     let self_type = ResolvedType::Unit; // TODO: Get actual self type from context
                     let self_mut_ref_type = ResolvedType::Reference(Box::new(self_type), true);
-                    self.symbol_table.declare_variable("self", &self_mut_ref_type)?;
-                    self.ownership_analyzer.declare_variable("self", self_mut_ref_type.clone(), false)?;
+                    self.symbol_table
+                        .declare_variable("self", &self_mut_ref_type)?;
+                    self.ownership_analyzer.declare_variable(
+                        "self",
+                        self_mut_ref_type.clone(),
+                        false,
+                    )?;
                     annotated_params.push(AnnotatedParameter {
                         name: "self".to_string(),
                         param_type: self_mut_ref_type,
@@ -268,7 +298,10 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a struct
-    fn analyze_struct(&mut self, struct_decl: &StructDecl) -> Result<AnnotatedStruct, SemanticError> {
+    fn analyze_struct(
+        &mut self,
+        struct_decl: &StructDecl,
+    ) -> Result<AnnotatedStruct, SemanticError> {
         // Enter struct scope for generic parameters (Expert recommendation: Priority 1)
         self.symbol_table.enter_scope();
 
@@ -298,7 +331,8 @@ impl SemanticAnalyzer {
         }
 
         // Update struct info in symbol table (Expert recommendation: Priority 1)
-        self.symbol_table.update_struct_info(&struct_decl.name, struct_field_infos)?;
+        self.symbol_table
+            .update_struct_info(&struct_decl.name, struct_field_infos)?;
 
         // Exit struct scope
         self.symbol_table.exit_scope();
@@ -344,12 +378,18 @@ impl SemanticAnalyzer {
         self.symbol_table.enter_scope();
 
         // تسجيل السمة في نظام dyn Trait - الأولوية القصوى للخبير
-        if let Err(e) = self.dyn_trait_codegen.process_trait_declaration(&AnnotatedTrait {
-            name: trait_decl.name.clone(),
-            generic_params: None, // سيتم تحديثه لاحقاً
-            methods: Vec::new(),  // سيتم تحديثه لاحقاً
-        }) {
-            return Err(SemanticError::UndefinedType(format!("Failed to process trait: {}", e)));
+        if let Err(e) = self
+            .dyn_trait_codegen
+            .process_trait_declaration(&AnnotatedTrait {
+                name: trait_decl.name.clone(),
+                generic_params: None, // سيتم تحديثه لاحقاً
+                methods: Vec::new(),  // سيتم تحديثه لاحقاً
+            })
+        {
+            return Err(SemanticError::UndefinedType(format!(
+                "Failed to process trait: {}",
+                e
+            )));
         }
 
         // Add generic parameters to scope (Expert recommendation: Priority 1)
@@ -468,8 +508,14 @@ impl SemanticAnalyzer {
 
         // معالجة تنفيذ السمة في نظام dyn Trait - الأولوية القصوى للخبير
         if let Some(ref trait_name) = impl_decl.trait_name {
-            if let Err(e) = self.dyn_trait_codegen.process_impl_declaration(&annotated_impl, trait_name) {
-                return Err(SemanticError::UndefinedType(format!("Failed to process impl: {}", e)));
+            if let Err(e) = self
+                .dyn_trait_codegen
+                .process_impl_declaration(&annotated_impl, trait_name)
+            {
+                return Err(SemanticError::UndefinedType(format!(
+                    "Failed to process impl: {}",
+                    e
+                )));
             }
         }
 
@@ -477,7 +523,10 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze generic parameters (Expert recommendation: Priority 1)
-    fn analyze_generic_params(&mut self, generics: &[GenericParam]) -> Result<Vec<AnnotatedGenericParam>, SemanticError> {
+    fn analyze_generic_params(
+        &mut self,
+        generics: &[GenericParam],
+    ) -> Result<Vec<AnnotatedGenericParam>, SemanticError> {
         let mut annotated_generics = Vec::new();
 
         for generic in generics {
@@ -498,7 +547,10 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a relation declaration (Expert recommendation: Priority 2 - Logic Core)
-    fn analyze_relation(&mut self, relation: &RelationDecl) -> Result<AnnotatedRelation, SemanticError> {
+    fn analyze_relation(
+        &mut self,
+        relation: &RelationDecl,
+    ) -> Result<AnnotatedRelation, SemanticError> {
         let mut resolved_arg_types = Vec::new();
 
         for arg_type in &relation.arg_types {
@@ -507,7 +559,8 @@ impl SemanticAnalyzer {
         }
 
         // Register relation in symbol table for logic programming (Expert recommendation)
-        self.symbol_table.declare_relation(&relation.name, relation)?;
+        self.symbol_table
+            .declare_relation(&relation.name, relation)?;
 
         Ok(AnnotatedRelation {
             name: relation.name.clone(),
@@ -539,7 +592,11 @@ impl SemanticAnalyzer {
     }
 
     /// Validate that all relations in a rule exist (Expert recommendation: Priority 2)
-    fn validate_rule_relations(&self, head: &AnnotatedLogicTerm, body: &[AnnotatedLogicTerm]) -> Result<(), SemanticError> {
+    fn validate_rule_relations(
+        &self,
+        head: &AnnotatedLogicTerm,
+        body: &[AnnotatedLogicTerm],
+    ) -> Result<(), SemanticError> {
         // Check head relation
         if self.symbol_table.lookup_relation(&head.name).is_none() {
             return Err(SemanticError::UndefinedRelation(head.name.clone()));
@@ -556,10 +613,15 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a logic term
-    fn analyze_logic_term(&mut self, term: &LogicTerm) -> Result<AnnotatedLogicTerm, SemanticError> {
+    fn analyze_logic_term(
+        &mut self,
+        term: &LogicTerm,
+    ) -> Result<AnnotatedLogicTerm, SemanticError> {
         // Check if relation exists and get its info
         let relation_info = {
-            let info = self.symbol_table.lookup_relation(&term.name)
+            let info = self
+                .symbol_table
+                .lookup_relation(&term.name)
                 .ok_or_else(|| SemanticError::UndefinedRelation(term.name.clone()))?;
 
             // Check argument count
@@ -588,14 +650,16 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a logic argument
-    fn analyze_logic_arg(&mut self, arg: &LogicArg, expected_type: &ResolvedType) -> Result<AnnotatedLogicArg, SemanticError> {
+    fn analyze_logic_arg(
+        &mut self,
+        arg: &LogicArg,
+        expected_type: &ResolvedType,
+    ) -> Result<AnnotatedLogicArg, SemanticError> {
         match arg {
-            LogicArg::Variable(name) => {
-                Ok(AnnotatedLogicArg::Variable {
-                    name: name.clone(),
-                    var_type: expected_type.clone(),
-                })
-            }
+            LogicArg::Variable(name) => Ok(AnnotatedLogicArg::Variable {
+                name: name.clone(),
+                var_type: expected_type.clone(),
+            }),
             LogicArg::Constant(name) => {
                 // Check if constant exists and has correct type
                 Ok(AnnotatedLogicArg::Constant {
@@ -634,7 +698,11 @@ impl SemanticAnalyzer {
     }
 
     /// Check rule safety (all head variables must be bound in body)
-    fn check_rule_safety(&self, head: &AnnotatedLogicTerm, body: &[AnnotatedLogicTerm]) -> Result<(), SemanticError> {
+    fn check_rule_safety(
+        &self,
+        head: &AnnotatedLogicTerm,
+        body: &[AnnotatedLogicTerm],
+    ) -> Result<(), SemanticError> {
         // Extract variables from head
         let mut head_vars = std::collections::HashSet::new();
         for arg in &head.args {
@@ -717,7 +785,8 @@ impl SemanticAnalyzer {
                 }
 
                 // Analyze if statement with control flow merging in ownership analyzer
-                self.ownership_analyzer.analyze_if_statement_ownership(if_stmt)?;
+                self.ownership_analyzer
+                    .analyze_if_statement_ownership(if_stmt)?;
 
                 // Analyze blocks for semantic correctness
                 let then_block = self.analyze_block(&if_stmt.then_block)?;
@@ -777,7 +846,10 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a let statement
-    fn analyze_let_statement(&mut self, let_stmt: &LetStatement) -> Result<AnnotatedLetStatement, SemanticError> {
+    fn analyze_let_statement(
+        &mut self,
+        let_stmt: &LetStatement,
+    ) -> Result<AnnotatedLetStatement, SemanticError> {
         let var_type = if let Some(type_annotation) = &let_stmt.var_type {
             self.type_checker.resolve_type(type_annotation)?
         } else if let Some(initializer) = &let_stmt.initializer {
@@ -788,14 +860,20 @@ impl SemanticAnalyzer {
         };
 
         // Declare variable in current scope
-        self.symbol_table.declare_variable(&let_stmt.name, &var_type)?;
+        self.symbol_table
+            .declare_variable(&let_stmt.name, &var_type)?;
 
         // Declare in ownership analyzer too (Expert recommendation)
         // For now, assume variables are immutable by default
-        self.ownership_analyzer.declare_variable(&let_stmt.name, var_type.clone(), false)?;
+        self.ownership_analyzer
+            .declare_variable(&let_stmt.name, var_type.clone(), false)?;
 
         // Register for destruction if needed (Expert recommendation: Priority 1)
-        self.ownership_analyzer.register_for_destruction(&let_stmt.name, var_type.clone(), self.ownership_analyzer.get_scope_depth());
+        self.ownership_analyzer.register_for_destruction(
+            &let_stmt.name,
+            var_type.clone(),
+            self.ownership_analyzer.get_scope_depth(),
+        );
 
         let annotated_initializer = if let Some(initializer) = &let_stmt.initializer {
             Some(self.analyze_expression(initializer)?)
@@ -811,7 +889,10 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a return statement (Expert recommendation: Priority 1 - Dangling Reference Prevention)
-    fn analyze_return_statement(&mut self, ret_stmt: &ReturnStatement) -> Result<AnnotatedReturnStatement, SemanticError> {
+    fn analyze_return_statement(
+        &mut self,
+        ret_stmt: &ReturnStatement,
+    ) -> Result<AnnotatedReturnStatement, SemanticError> {
         let value = if let Some(expr) = &ret_stmt.value {
             let annotated_expr = self.analyze_expression(expr)?;
 
@@ -827,7 +908,10 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze an expression
-    fn analyze_expression(&mut self, expr: &Expression) -> Result<AnnotatedExpression, SemanticError> {
+    fn analyze_expression(
+        &mut self,
+        expr: &Expression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
         match expr {
             Expression::Literal(lit) => {
                 let result_type = self.type_checker.infer_literal_type(lit);
@@ -837,10 +921,20 @@ impl SemanticAnalyzer {
                 })
             }
             Expression::Identifier(name) => {
-                let var_info = self.symbol_table.lookup_variable(name)
-                    .ok_or_else(|| {
-                        SemanticError::UndefinedVariable(name.clone())
-                    })?;
+                // Special control-flow pseudo-identifiers produced by the parser
+                // for break/continue statements. Treat them as unit-typed expressions
+                // during semantic analysis to avoid variable lookup errors.
+                if name == "__break__" || name == "__continue__" {
+                    return Ok(AnnotatedExpression {
+                        expr: AnnotatedExpressionKind::Identifier(name.clone()),
+                        result_type: ResolvedType::Unit,
+                    });
+                }
+
+                let var_info = self
+                    .symbol_table
+                    .lookup_variable(name)
+                    .ok_or_else(|| SemanticError::UndefinedVariable(name.clone()))?;
 
                 // Check read access (Expert recommendation)
                 self.ownership_analyzer.check_read_access(name)?;
@@ -850,39 +944,24 @@ impl SemanticAnalyzer {
                     result_type: var_info.var_type.clone(),
                 })
             }
-            Expression::Binary(bin_expr) => {
-                self.analyze_binary_expression(bin_expr)
-            }
-            Expression::Struct(struct_expr) => {
-                self.analyze_struct_literal(struct_expr)
-            }
-            Expression::Enum(enum_expr) => {
-                self.analyze_enum_expression(enum_expr)
-            }
-            Expression::FieldAccess(field_access) => {
-                self.analyze_field_access(field_access)
-            }
-            Expression::Array(array_expr) => {
-                self.analyze_array_literal(array_expr)
-            }
-            Expression::Index(index_expr) => {
-                self.analyze_index_access(index_expr)
-            }
-            Expression::Match(match_expr) => {
-                self.analyze_match_expression(match_expr)
-            }
-            Expression::Call(call_expr) => {
-                self.analyze_call_expression(call_expr)
-            }
-            Expression::Unary(unary_expr) => {
-                self.analyze_unary_expression(unary_expr)
-            }
+            Expression::Binary(bin_expr) => self.analyze_binary_expression(bin_expr),
+            Expression::Struct(struct_expr) => self.analyze_struct_literal(struct_expr),
+            Expression::Enum(enum_expr) => self.analyze_enum_expression(enum_expr),
+            Expression::FieldAccess(field_access) => self.analyze_field_access(field_access),
+            Expression::Array(array_expr) => self.analyze_array_literal(array_expr),
+            Expression::Index(index_expr) => self.analyze_index_access(index_expr),
+            Expression::Match(match_expr) => self.analyze_match_expression(match_expr),
+            Expression::Call(call_expr) => self.analyze_call_expression(call_expr),
+            Expression::Unary(unary_expr) => self.analyze_unary_expression(unary_expr),
             _ => todo!("Analysis for other expression types not yet implemented"),
         }
     }
 
     /// Analyze a binary expression
-    fn analyze_binary_expression(&mut self, bin_expr: &BinaryExpression) -> Result<AnnotatedExpression, SemanticError> {
+    fn analyze_binary_expression(
+        &mut self,
+        bin_expr: &BinaryExpression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
         let left = self.analyze_expression(&bin_expr.left)?;
         let right = self.analyze_expression(&bin_expr.right)?;
 
@@ -903,18 +982,25 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a struct literal expression (as recommended by expert)
-    fn analyze_struct_literal(&mut self, struct_expr: &StructExpression) -> Result<AnnotatedExpression, SemanticError> {
+    fn analyze_struct_literal(
+        &mut self,
+        struct_expr: &StructExpression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
         // Look up struct definition in TypeSystem and clone the fields
         let struct_fields = {
-            let struct_info = self.symbol_table.lookup_type(&struct_expr.name)
+            let struct_info = self
+                .symbol_table
+                .lookup_type(&struct_expr.name)
                 .ok_or_else(|| SemanticError::UndefinedType(struct_expr.name.clone()))?;
 
             match &struct_info.kind {
                 symbol_table::TypeKind::Struct(fields) => fields.clone(),
-                _ => return Err(SemanticError::TypeMismatch {
-                    expected: ResolvedType::Struct(struct_expr.name.clone()),
-                    found: ResolvedType::String, // placeholder
-                }),
+                _ => {
+                    return Err(SemanticError::TypeMismatch {
+                        expected: ResolvedType::Struct(struct_expr.name.clone()),
+                        found: ResolvedType::String, // placeholder
+                    })
+                }
             }
         };
 
@@ -924,7 +1010,8 @@ impl SemanticAnalyzer {
 
         for (field_name, field_expr) in &struct_expr.fields {
             // Check if field exists in struct definition
-            let field_info = struct_fields.iter()
+            let field_info = struct_fields
+                .iter()
                 .find(|f| f.name == *field_name)
                 .ok_or_else(|| SemanticError::UndefinedField {
                     struct_name: struct_expr.name.clone(),
@@ -935,7 +1022,10 @@ impl SemanticAnalyzer {
             let annotated_field_expr = self.analyze_expression(field_expr)?;
 
             // Check type compatibility
-            if !self.type_checker.types_compatible(&field_info.field_type, &annotated_field_expr.result_type) {
+            if !self
+                .type_checker
+                .types_compatible(&field_info.field_type, &annotated_field_expr.result_type)
+            {
                 return Err(SemanticError::TypeMismatch {
                     expected: field_info.field_type.clone(),
                     found: annotated_field_expr.result_type,
@@ -966,23 +1056,31 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze an enum expression (Expert recommendation: Enum support)
-    fn analyze_enum_expression(&mut self, enum_expr: &EnumExpression) -> Result<AnnotatedExpression, SemanticError> {
+    fn analyze_enum_expression(
+        &mut self,
+        enum_expr: &EnumExpression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
         // Look up enum definition in TypeSystem and clone the variants
         let enum_variants = {
-            let enum_info = self.symbol_table.lookup_type(&enum_expr.enum_name)
+            let enum_info = self
+                .symbol_table
+                .lookup_type(&enum_expr.enum_name)
                 .ok_or_else(|| SemanticError::UndefinedType(enum_expr.enum_name.clone()))?;
 
             match &enum_info.kind {
                 symbol_table::TypeKind::Enum(variants) => variants.clone(),
-                _ => return Err(SemanticError::TypeMismatch {
-                    expected: ResolvedType::Enum(enum_expr.enum_name.clone()),
-                    found: ResolvedType::String, // placeholder
-                }),
+                _ => {
+                    return Err(SemanticError::TypeMismatch {
+                        expected: ResolvedType::Enum(enum_expr.enum_name.clone()),
+                        found: ResolvedType::String, // placeholder
+                    })
+                }
             }
         };
 
         // Find the variant
-        let variant_info = enum_variants.iter()
+        let variant_info = enum_variants
+            .iter()
             .find(|v| v.name == enum_expr.variant_name)
             .ok_or_else(|| SemanticError::UndefinedVariant {
                 enum_name: enum_expr.enum_name.clone(),
@@ -1001,10 +1099,15 @@ impl SemanticAnalyzer {
                 }
 
                 let mut annotated_fields = Vec::new();
-                for (expected_type, provided_expr) in expected_types.iter().zip(provided_exprs.iter()) {
+                for (expected_type, provided_expr) in
+                    expected_types.iter().zip(provided_exprs.iter())
+                {
                     let annotated_expr = self.analyze_expression(provided_expr)?;
 
-                    if !self.type_checker.types_compatible(expected_type, &annotated_expr.result_type) {
+                    if !self
+                        .type_checker
+                        .types_compatible(expected_type, &annotated_expr.result_type)
+                    {
                         return Err(SemanticError::TypeMismatch {
                             expected: expected_type.clone(),
                             found: annotated_expr.result_type,
@@ -1040,34 +1143,44 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a field access expression (as recommended by expert)
-    fn analyze_field_access(&mut self, field_access: &FieldAccessExpression) -> Result<AnnotatedExpression, SemanticError> {
+    fn analyze_field_access(
+        &mut self,
+        field_access: &FieldAccessExpression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
         // Analyze the object expression
         let annotated_object = self.analyze_expression(&field_access.object)?;
 
         // Get the struct type
         let struct_name = match &annotated_object.result_type {
             ResolvedType::Struct(name) => name,
-            _ => return Err(SemanticError::TypeMismatch {
-                expected: ResolvedType::Struct("any".to_string()),
-                found: annotated_object.result_type,
-            }),
+            _ => {
+                return Err(SemanticError::TypeMismatch {
+                    expected: ResolvedType::Struct("any".to_string()),
+                    found: annotated_object.result_type,
+                })
+            }
         };
 
         // Look up struct definition
-        let struct_info = self.symbol_table.lookup_type(struct_name)
+        let struct_info = self
+            .symbol_table
+            .lookup_type(struct_name)
             .ok_or_else(|| SemanticError::UndefinedType(struct_name.clone()))?;
 
         // Get struct fields
         let struct_fields = match &struct_info.kind {
             symbol_table::TypeKind::Struct(fields) => fields,
-            _ => return Err(SemanticError::TypeMismatch {
-                expected: ResolvedType::Struct(struct_name.clone()),
-                found: ResolvedType::String, // placeholder
-            }),
+            _ => {
+                return Err(SemanticError::TypeMismatch {
+                    expected: ResolvedType::Struct(struct_name.clone()),
+                    found: ResolvedType::String, // placeholder
+                })
+            }
         };
 
         // Find the field
-        let field_info = struct_fields.iter()
+        let field_info = struct_fields
+            .iter()
             .find(|f| f.name == field_access.field)
             .ok_or_else(|| SemanticError::UndefinedField {
                 struct_name: struct_name.clone(),
@@ -1084,7 +1197,10 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze an array literal expression (Expert recommendation: List<T> support)
-    fn analyze_array_literal(&mut self, array_expr: &ArrayExpression) -> Result<AnnotatedExpression, SemanticError> {
+    fn analyze_array_literal(
+        &mut self,
+        array_expr: &ArrayExpression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
         let mut annotated_elements = Vec::new();
         let mut element_type: Option<ResolvedType> = None;
 
@@ -1098,7 +1214,10 @@ impl SemanticAnalyzer {
                     element_type = Some(annotated_element.result_type.clone());
                 }
                 Some(expected_type) => {
-                    if !self.type_checker.types_compatible(expected_type, &annotated_element.result_type) {
+                    if !self
+                        .type_checker
+                        .types_compatible(expected_type, &annotated_element.result_type)
+                    {
                         return Err(SemanticError::TypeMismatch {
                             expected: expected_type.clone(),
                             found: annotated_element.result_type.clone(),
@@ -1122,7 +1241,10 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze an index access expression (Expert recommendation: List<T> support)
-    fn analyze_index_access(&mut self, index_expr: &IndexExpression) -> Result<AnnotatedExpression, SemanticError> {
+    fn analyze_index_access(
+        &mut self,
+        index_expr: &IndexExpression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
         // Analyze the object being indexed
         let annotated_object = self.analyze_expression(&index_expr.object)?;
 
@@ -1150,7 +1272,8 @@ impl SemanticAnalyzer {
             }
             _ => {
                 return Err(SemanticError::Other(format!(
-                    "Cannot index type: {:?}", annotated_object.result_type
+                    "Cannot index type: {:?}",
+                    annotated_object.result_type
                 )));
             }
         };
@@ -1165,8 +1288,10 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a match expression (Expert recommendation: Priority 1 - Complete match support)
-    fn analyze_match_expression(&mut self, match_expr: &Box<MatchStatement>) -> Result<AnnotatedExpression, SemanticError> {
-
+    fn analyze_match_expression(
+        &mut self,
+        match_expr: &Box<MatchStatement>,
+    ) -> Result<AnnotatedExpression, SemanticError> {
         // Reuse match statement analysis
         let annotated_match = self.analyze_match_statement(match_expr)?;
 
@@ -1183,7 +1308,10 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a call expression (Expert recommendation: Priority 1 - Method Resolution)
-    fn analyze_call_expression(&mut self, call_expr: &CallExpression) -> Result<AnnotatedExpression, SemanticError> {
+    fn analyze_call_expression(
+        &mut self,
+        call_expr: &CallExpression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
         match call_expr.callee.as_ref() {
             // Simple function call: function_name(args)
             Expression::Identifier(function_name) => {
@@ -1201,23 +1329,21 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a simple function call (Expert recommendation: Priority 1)
-    fn analyze_function_call(&mut self, function_name: &str, arguments: &[Expression]) -> Result<AnnotatedExpression, SemanticError> {
-
-
+    fn analyze_function_call(
+        &mut self,
+        function_name: &str,
+        arguments: &[Expression],
+    ) -> Result<AnnotatedExpression, SemanticError> {
         // Look up the function in the symbol table
-        let func_info = self.symbol_table.lookup_function(function_name)
-            .ok_or_else(|| {
-
-                SemanticError::UndefinedVariable(function_name.to_string())
-            })?
+        let func_info = self
+            .symbol_table
+            .lookup_function(function_name)
+            .ok_or_else(|| SemanticError::UndefinedVariable(function_name.to_string()))?
             .clone(); // Clone to avoid borrowing issues
-
-
 
         // Check argument count
 
         if arguments.len() != func_info.parameters.len() {
-
             return Err(SemanticError::TypeMismatch {
                 expected: ResolvedType::Unit, // Placeholder
                 found: ResolvedType::Unit,    // Placeholder
@@ -1243,7 +1369,6 @@ impl SemanticAnalyzer {
 
         let return_type = func_info.return_type.clone().unwrap_or(ResolvedType::Unit);
 
-
         Ok(AnnotatedExpression {
             expr: AnnotatedExpressionKind::Call {
                 function: function_name.to_string(),
@@ -1254,7 +1379,11 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a method call (Expert recommendation: Priority 2 - &self and &mut self support)
-    fn analyze_method_call(&mut self, field_access: &FieldAccessExpression, arguments: &[Expression]) -> Result<AnnotatedExpression, SemanticError> {
+    fn analyze_method_call(
+        &mut self,
+        field_access: &FieldAccessExpression,
+        arguments: &[Expression],
+    ) -> Result<AnnotatedExpression, SemanticError> {
         // Analyze the object expression
         let annotated_object = self.analyze_expression(&field_access.object)?;
         let method_name = &field_access.field;
@@ -1271,13 +1400,23 @@ impl SemanticAnalyzer {
 
         // Check if this is a trait object method call (Expert recommendation: Priority 1 - Dynamic Dispatch)
         if let ResolvedType::TraitObject(trait_names) = &object_type {
-            return self.analyze_trait_object_method_call(trait_names, method_name, arguments, annotated_object);
+            return self.analyze_trait_object_method_call(
+                trait_names,
+                method_name,
+                arguments,
+                annotated_object,
+            );
         }
 
         // Check if this is a reference to trait object method call (Expert recommendation: Priority 1 - &dyn Trait)
         if let ResolvedType::Reference(inner_type, _is_mutable) = &object_type {
             if let ResolvedType::TraitObject(trait_names) = inner_type.as_ref() {
-                return self.analyze_trait_object_method_call(trait_names, method_name, arguments, annotated_object);
+                return self.analyze_trait_object_method_call(
+                    trait_names,
+                    method_name,
+                    arguments,
+                    annotated_object,
+                );
             }
         }
 
@@ -1318,7 +1457,10 @@ impl SemanticAnalyzer {
                 annotated_args.push(annotated_arg);
             }
 
-            let return_type = method_info.return_type.clone().unwrap_or(ResolvedType::Unit);
+            let return_type = method_info
+                .return_type
+                .clone()
+                .unwrap_or(ResolvedType::Unit);
 
             Ok(AnnotatedExpression {
                 expr: AnnotatedExpressionKind::Call {
@@ -1328,12 +1470,19 @@ impl SemanticAnalyzer {
                 result_type: return_type,
             })
         } else {
-            Err(SemanticError::UndefinedVariable(format!("Method {} not found for type {:?}", method_name, object_type)))
+            Err(SemanticError::UndefinedVariable(format!(
+                "Method {} not found for type {:?}",
+                method_name, object_type
+            )))
         }
     }
 
     /// Find method in impl blocks (Expert recommendation: Priority 1)
-    fn find_method_in_impls(&self, object_type: &ResolvedType, method_name: &str) -> Option<FunctionInfo> {
+    fn find_method_in_impls(
+        &self,
+        object_type: &ResolvedType,
+        method_name: &str,
+    ) -> Option<FunctionInfo> {
         let type_name = match object_type {
             ResolvedType::Struct(name) => name,
             _ => return None,
@@ -1370,7 +1519,7 @@ impl SemanticAnalyzer {
         trait_names: &[String],
         method_name: &str,
         arguments: &[Expression],
-        annotated_object: AnnotatedExpression
+        annotated_object: AnnotatedExpression,
     ) -> Result<AnnotatedExpression, SemanticError> {
         // Find the trait that contains this method
         let mut found_trait = None;
@@ -1393,9 +1542,12 @@ impl SemanticAnalyzer {
 
         let (trait_name, method_info) = match (found_trait, method_info) {
             (Some(trait_name), Some(method_info)) => (trait_name, method_info),
-            _ => return Err(SemanticError::UndefinedVariable(
-                format!("Method {} not found in trait object", method_name)
-            )),
+            _ => {
+                return Err(SemanticError::UndefinedVariable(format!(
+                    "Method {} not found in trait object",
+                    method_name
+                )))
+            }
         };
 
         // Check argument count (trait object method calls don't need explicit self)
@@ -1432,7 +1584,10 @@ impl SemanticAnalyzer {
             annotated_args.push(annotated_arg);
         }
 
-        let return_type = method_info.return_type.clone().unwrap_or(ResolvedType::Unit);
+        let return_type = method_info
+            .return_type
+            .clone()
+            .unwrap_or(ResolvedType::Unit);
 
         // Mark this as a dynamic dispatch call (Expert recommendation: Priority 1)
         Ok(AnnotatedExpression {
@@ -1449,7 +1604,7 @@ impl SemanticAnalyzer {
         &mut self,
         method_name: &str,
         arguments: &[Expression],
-        annotated_object: AnnotatedExpression
+        annotated_object: AnnotatedExpression,
     ) -> Result<AnnotatedExpression, SemanticError> {
         match method_name {
             "predict" => {
@@ -1465,7 +1620,8 @@ impl SemanticAnalyzer {
                 let input_arg = self.analyze_expression(&arguments[0])?;
 
                 // Check that input is List<Tensor>
-                let expected_input_type = ResolvedType::List(Box::new(ResolvedType::Tensor(vec![])));
+                let expected_input_type =
+                    ResolvedType::List(Box::new(ResolvedType::Tensor(vec![])));
                 if input_arg.result_type != expected_input_type {
                     return Err(SemanticError::TypeMismatch {
                         expected: expected_input_type,
@@ -1480,7 +1636,7 @@ impl SemanticAnalyzer {
                 // Return type: Result<ModelOutput, string>
                 let return_type = ResolvedType::Result(
                     Box::new(ResolvedType::Model("ModelOutput".to_string())),
-                    Box::new(ResolvedType::String)
+                    Box::new(ResolvedType::String),
                 );
 
                 Ok(AnnotatedExpression {
@@ -1491,32 +1647,41 @@ impl SemanticAnalyzer {
                     result_type: return_type,
                 })
             }
-            _ => Err(SemanticError::UndefinedVariable(
-                format!("Method {} not found for AI Model", method_name)
-            )),
+            _ => Err(SemanticError::UndefinedVariable(format!(
+                "Method {} not found for AI Model",
+                method_name
+            ))),
         }
     }
 
     /// Analyze a unary expression (Expert recommendation: &/&mut support)
-    fn analyze_unary_expression(&mut self, unary_expr: &UnaryExpression) -> Result<AnnotatedExpression, SemanticError> {
+    fn analyze_unary_expression(
+        &mut self,
+        unary_expr: &UnaryExpression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
         match &unary_expr.operator {
             UnaryOperator::Reference => {
                 // For &var, we need to check that var exists and create an immutable borrow
                 if let Expression::Identifier(var_name) = &*unary_expr.operand {
                     // Check that variable exists
-                    let var_info = self.symbol_table.lookup_variable(var_name)
+                    let var_info = self
+                        .symbol_table
+                        .lookup_variable(var_name)
                         .ok_or_else(|| SemanticError::UndefinedVariable(var_name.clone()))?;
 
                     // Add immutable borrow (Expert recommendation)
                     let scope_depth = self.ownership_analyzer.get_scope_depth();
-                    self.ownership_analyzer.get_borrow_check_state_mut().add_borrow(
-                        var_name,
-                        crate::semantic::ownership::BorrowKind::Immutable,
-                        scope_depth
-                    )?;
+                    self.ownership_analyzer
+                        .get_borrow_check_state_mut()
+                        .add_borrow(
+                            var_name,
+                            crate::semantic::ownership::BorrowKind::Immutable,
+                            scope_depth,
+                        )?;
 
                     // Return reference type
-                    let ref_type = ResolvedType::Reference(Box::new(var_info.var_type.clone()), false);
+                    let ref_type =
+                        ResolvedType::Reference(Box::new(var_info.var_type.clone()), false);
                     Ok(AnnotatedExpression {
                         expr: AnnotatedExpressionKind::Unary(AnnotatedUnaryExpression {
                             operator: unary_expr.operator.clone(),
@@ -1528,14 +1693,18 @@ impl SemanticAnalyzer {
                         result_type: ref_type,
                     })
                 } else {
-                    return Err(SemanticError::Other("Reference operator can only be applied to variables".to_string()));
+                    return Err(SemanticError::Other(
+                        "Reference operator can only be applied to variables".to_string(),
+                    ));
                 }
             }
             UnaryOperator::MutableReference => {
                 // For &mut var, we need to check that var is mutable and create a mutable borrow
                 if let Expression::Identifier(var_name) = &*unary_expr.operand {
                     // Check that variable exists
-                    let var_info = self.symbol_table.lookup_variable(var_name)
+                    let var_info = self
+                        .symbol_table
+                        .lookup_variable(var_name)
                         .ok_or_else(|| SemanticError::UndefinedVariable(var_name.clone()))?;
 
                     // Check that variable is mutable (Expert recommendation)
@@ -1546,14 +1715,17 @@ impl SemanticAnalyzer {
 
                     // Add mutable borrow (Expert recommendation)
                     let scope_depth = self.ownership_analyzer.get_scope_depth();
-                    self.ownership_analyzer.get_borrow_check_state_mut().add_borrow(
-                        var_name,
-                        crate::semantic::ownership::BorrowKind::Mutable,
-                        scope_depth
-                    )?;
+                    self.ownership_analyzer
+                        .get_borrow_check_state_mut()
+                        .add_borrow(
+                            var_name,
+                            crate::semantic::ownership::BorrowKind::Mutable,
+                            scope_depth,
+                        )?;
 
                     // Return mutable reference type
-                    let ref_type = ResolvedType::Reference(Box::new(var_info.var_type.clone()), true);
+                    let ref_type =
+                        ResolvedType::Reference(Box::new(var_info.var_type.clone()), true);
                     Ok(AnnotatedExpression {
                         expr: AnnotatedExpressionKind::Unary(AnnotatedUnaryExpression {
                             operator: unary_expr.operator.clone(),
@@ -1565,13 +1737,17 @@ impl SemanticAnalyzer {
                         result_type: ref_type,
                     })
                 } else {
-                    return Err(SemanticError::Other("Mutable reference operator can only be applied to variables".to_string()));
+                    return Err(SemanticError::Other(
+                        "Mutable reference operator can only be applied to variables".to_string(),
+                    ));
                 }
             }
             _ => {
                 // Handle other unary operators (Not, Negate, etc.)
                 let annotated_operand = self.analyze_expression(&unary_expr.operand)?;
-                let result_type = self.type_checker.check_unary_operation(&unary_expr.operator, &annotated_operand.result_type)?;
+                let result_type = self
+                    .type_checker
+                    .check_unary_operation(&unary_expr.operator, &annotated_operand.result_type)?;
 
                 Ok(AnnotatedExpression {
                     expr: AnnotatedExpressionKind::Unary(AnnotatedUnaryExpression {
@@ -1585,7 +1761,10 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze a match statement (Expert recommendation: Priority 1 - Complete match support)
-    fn analyze_match_statement(&mut self, match_stmt: &MatchStatement) -> Result<AnnotatedMatchStatement, SemanticError> {
+    fn analyze_match_statement(
+        &mut self,
+        match_stmt: &MatchStatement,
+    ) -> Result<AnnotatedMatchStatement, SemanticError> {
         // Analyze the expression being matched
         let annotated_expr = self.analyze_expression(&match_stmt.expression)?;
         let match_type = annotated_expr.result_type.clone();
@@ -1660,7 +1839,9 @@ impl SemanticAnalyzer {
             // Multiple arms - find common super type
             let mut common_type = arm_types[0].clone();
             for arm_type in &arm_types[1..] {
-                if let Some(super_type) = self.type_checker.common_super_type(&common_type, arm_type) {
+                if let Some(super_type) =
+                    self.type_checker.common_super_type(&common_type, arm_type)
+                {
                     common_type = super_type;
                 } else {
                     // No common type found - report detailed error
@@ -1685,7 +1866,11 @@ impl SemanticAnalyzer {
 
     /// Analyze return path in a block (improved as recommended by expert)
     /// Returns true if the block guarantees a return on ALL possible execution paths
-    fn analyze_block_for_return(&mut self, block: &Block, func_ret_type: &ResolvedType) -> Result<bool, SemanticError> {
+    fn analyze_block_for_return(
+        &mut self,
+        block: &Block,
+        func_ret_type: &ResolvedType,
+    ) -> Result<bool, SemanticError> {
         let mut guarantees_return = false;
         let mut found_unreachable = false;
 
@@ -1693,7 +1878,8 @@ impl SemanticAnalyzer {
             if guarantees_return && !found_unreachable {
                 // Code after guaranteed return is unreachable
                 self.errors.push(SemanticError::UnreachableCode(format!(
-                    "Statement at position {} after guaranteed return is unreachable", i
+                    "Statement at position {} after guaranteed return is unreachable",
+                    i
                 )));
                 found_unreachable = true;
                 // Continue analysis to find more errors, but don't change return status
@@ -1712,7 +1898,11 @@ impl SemanticAnalyzer {
 
     /// Analyze if a statement guarantees a return (improved as recommended by expert)
     /// Returns true only if ALL possible execution paths through this statement end with return
-    fn analyze_statement_for_return(&mut self, stmt: &Statement, func_ret_type: &ResolvedType) -> Result<bool, SemanticError> {
+    fn analyze_statement_for_return(
+        &mut self,
+        stmt: &Statement,
+        func_ret_type: &ResolvedType,
+    ) -> Result<bool, SemanticError> {
         match stmt {
             Statement::Return(_) => {
                 // Direct return statement always guarantees return
@@ -1722,10 +1912,12 @@ impl SemanticAnalyzer {
                 // If statement guarantees return ONLY if:
                 // 1. Both then and else branches exist
                 // 2. Both branches guarantee return
-                let then_guarantees = self.analyze_block_for_return(&if_stmt.then_block, func_ret_type)?;
+                let then_guarantees =
+                    self.analyze_block_for_return(&if_stmt.then_block, func_ret_type)?;
 
                 if let Some(else_block) = &if_stmt.else_block {
-                    let else_guarantees = self.analyze_block_for_return(else_block, func_ret_type)?;
+                    let else_guarantees =
+                        self.analyze_block_for_return(else_block, func_ret_type)?;
 
                     // Both branches must guarantee return
                     Ok(then_guarantees && else_guarantees)
@@ -1755,13 +1947,13 @@ impl SemanticAnalyzer {
                 // 1. All patterns are covered (exhaustive) - already checked in analyze_match_statement
                 // 2. All arms guarantee return
                 let all_arms_return = annotated_match.arms.iter().all(|arm| {
-                    self.analyze_annotated_block_for_return(&arm.body, func_ret_type).unwrap_or(false)
+                    self.analyze_annotated_block_for_return(&arm.body, func_ret_type)
+                        .unwrap_or(false)
                 });
 
                 Ok(all_arms_return)
             }
-            Statement::Expression(_) |
-            Statement::Let(_) => {
+            Statement::Expression(_) | Statement::Let(_) => {
                 // These statements never guarantee return
                 Ok(false)
             }
@@ -1773,7 +1965,11 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze an annotated block for return guarantee (helper for match statements)
-    fn analyze_annotated_block_for_return(&mut self, block: &AnnotatedBlock, func_ret_type: &ResolvedType) -> Result<bool, SemanticError> {
+    fn analyze_annotated_block_for_return(
+        &mut self,
+        block: &AnnotatedBlock,
+        func_ret_type: &ResolvedType,
+    ) -> Result<bool, SemanticError> {
         let mut guarantees_return = false;
 
         for stmt in &block.statements {
@@ -1785,7 +1981,8 @@ impl SemanticAnalyzer {
                 AnnotatedStatement::Match(match_stmt) => {
                     // Check if this match guarantees return
                     let all_arms_return = match_stmt.arms.iter().all(|arm| {
-                        self.analyze_annotated_block_for_return(&arm.body, func_ret_type).unwrap_or(false)
+                        self.analyze_annotated_block_for_return(&arm.body, func_ret_type)
+                            .unwrap_or(false)
                     });
                     if all_arms_return {
                         guarantees_return = true;
@@ -1815,17 +2012,17 @@ pub enum AnnotatedItem {
     Function(AnnotatedFunction),
     Struct(AnnotatedStruct),
     Enum(AnnotatedEnum),
-    Trait(AnnotatedTrait),      // NEWLY ADDED: Expert recommendation
-    Impl(AnnotatedImpl),        // NEWLY ADDED: Expert recommendation
+    Trait(AnnotatedTrait), // NEWLY ADDED: Expert recommendation
+    Impl(AnnotatedImpl),   // NEWLY ADDED: Expert recommendation
     Relation(AnnotatedRelation),
     Rule(AnnotatedRule),
-    Using(AnnotatedUsing),      // NEWLY ADDED: Expert fix for using statements
+    Using(AnnotatedUsing), // NEWLY ADDED: Expert fix for using statements
 }
 
 #[derive(Debug, Clone)]
 pub struct AnnotatedFunction {
     pub name: String,
-    pub generic_params: Option<Vec<AnnotatedGenericParam>>,  // Expert recommendation: Priority 1
+    pub generic_params: Option<Vec<AnnotatedGenericParam>>, // Expert recommendation: Priority 1
     pub parameters: Vec<AnnotatedParameter>,
     pub return_type: Option<ResolvedType>,
     pub body: AnnotatedBlock,
@@ -1840,7 +2037,7 @@ pub struct AnnotatedParameter {
 #[derive(Debug, Clone)]
 pub struct AnnotatedStruct {
     pub name: String,
-    pub generic_params: Option<Vec<AnnotatedGenericParam>>,  // Expert recommendation: Priority 1
+    pub generic_params: Option<Vec<AnnotatedGenericParam>>, // Expert recommendation: Priority 1
     pub fields: Vec<AnnotatedStructField>,
 }
 
@@ -1876,13 +2073,13 @@ pub struct AnnotatedTraitMethod {
     pub name: String,
     pub parameters: Vec<AnnotatedParameter>,
     pub return_type: Option<ResolvedType>,
-    pub body: Option<AnnotatedBlock>,  // None for required methods
+    pub body: Option<AnnotatedBlock>, // None for required methods
 }
 
 /// Annotated impl declaration (Expert recommendation: Priority 1)
 #[derive(Debug, Clone)]
 pub struct AnnotatedImpl {
-    pub trait_name: Option<String>,  // None for inherent impl
+    pub trait_name: Option<String>, // None for inherent impl
     pub type_name: String,
     pub generic_params: Option<Vec<AnnotatedGenericParam>>,
     pub methods: Vec<AnnotatedFunction>,
@@ -1916,7 +2113,7 @@ pub struct AnnotatedRule {
 #[derive(Debug, Clone)]
 pub struct AnnotatedUsing {
     pub module_path: String,
-    pub imports: Vec<String>,  // List of imported items
+    pub imports: Vec<String>, // List of imported items
 }
 
 #[derive(Debug, Clone)]
@@ -1928,8 +2125,14 @@ pub struct AnnotatedLogicTerm {
 
 #[derive(Debug, Clone)]
 pub enum AnnotatedLogicArg {
-    Variable { name: String, var_type: ResolvedType },
-    Constant { name: String, const_type: ResolvedType },
+    Variable {
+        name: String,
+        var_type: ResolvedType,
+    },
+    Constant {
+        name: String,
+        const_type: ResolvedType,
+    },
     StringConstant(String),
     IntConstant(i64),
     FloatConstant(f64),
@@ -2098,8 +2301,6 @@ pub enum ResolvedType {
     Optional(Box<ResolvedType>),
     Result(Box<ResolvedType>, Box<ResolvedType>),
 
-
-
     // Concurrent types
     Channel(Box<ResolvedType>),
     Mutex(Box<ResolvedType>),
@@ -2166,10 +2367,7 @@ pub enum SemanticError {
     },
 
     #[error("Arity mismatch: expected {expected} arguments, found {found}")]
-    ArityMismatch {
-        expected: usize,
-        found: usize,
-    },
+    ArityMismatch { expected: usize, found: usize },
 
     #[error("Unbound variable in rule head: {0}")]
     UnboundVariable(String),
@@ -2199,9 +2397,7 @@ pub enum SemanticError {
     },
 
     #[error("Non-exhaustive match: missing patterns for {missing_patterns:?}")]
-    NonExhaustiveMatch {
-        missing_patterns: Vec<String>,
-    },
+    NonExhaustiveMatch { missing_patterns: Vec<String> },
 
     #[error("Variable in fact: {0}")]
     VariableInFact(String),
@@ -2237,7 +2433,11 @@ pub enum SemanticError {
 
 impl SemanticAnalyzer {
     /// Check pattern compatibility with match type (Expert recommendation: Pattern checking)
-    fn check_pattern(&mut self, pattern: &Pattern, match_type: &ResolvedType) -> Result<AnnotatedPattern, SemanticError> {
+    fn check_pattern(
+        &mut self,
+        pattern: &Pattern,
+        match_type: &ResolvedType,
+    ) -> Result<AnnotatedPattern, SemanticError> {
         match pattern {
             Pattern::Wildcard => {
                 // Wildcard matches any type
@@ -2246,7 +2446,10 @@ impl SemanticAnalyzer {
             Pattern::Literal(literal) => {
                 // Check that literal type matches the match type
                 let literal_type = self.type_checker.infer_literal_type(literal);
-                if !self.type_checker.types_compatible(match_type, &literal_type) {
+                if !self
+                    .type_checker
+                    .types_compatible(match_type, &literal_type)
+                {
                     return Err(SemanticError::PatternTypeMismatch {
                         expected: match_type.clone(),
                         found: literal_type,
@@ -2258,8 +2461,15 @@ impl SemanticAnalyzer {
                 // Bind the identifier to the match type in current scope
                 self.symbol_table.declare_variable(name, match_type)?;
                 // Register for destruction if needed (Expert recommendation: Priority 1)
-                self.ownership_analyzer.register_for_destruction(name, match_type.clone(), self.ownership_analyzer.get_scope_depth());
-                Ok(AnnotatedPattern::Identifier(name.clone(), match_type.clone()))
+                self.ownership_analyzer.register_for_destruction(
+                    name,
+                    match_type.clone(),
+                    self.ownership_analyzer.get_scope_depth(),
+                );
+                Ok(AnnotatedPattern::Identifier(
+                    name.clone(),
+                    match_type.clone(),
+                ))
             }
             Pattern::Tuple(patterns) => {
                 // Match type must be a tuple with same arity
@@ -2268,7 +2478,10 @@ impl SemanticAnalyzer {
                         if patterns.len() != element_types.len() {
                             return Err(SemanticError::PatternTypeMismatch {
                                 expected: match_type.clone(),
-                                found: ResolvedType::Tuple(vec![ResolvedType::Unit; patterns.len()]),
+                                found: ResolvedType::Tuple(vec![
+                                    ResolvedType::Unit;
+                                    patterns.len()
+                                ]),
                             });
                         }
 
@@ -2278,7 +2491,10 @@ impl SemanticAnalyzer {
                             annotated_patterns.push(annotated_pattern);
                         }
 
-                        Ok(AnnotatedPattern::Tuple(annotated_patterns, match_type.clone()))
+                        Ok(AnnotatedPattern::Tuple(
+                            annotated_patterns,
+                            match_type.clone(),
+                        ))
                     }
                     _ => Err(SemanticError::PatternTypeMismatch {
                         expected: match_type.clone(),
@@ -2299,16 +2515,22 @@ impl SemanticAnalyzer {
 
                         // TODO: Check field patterns against struct definition
                         // For now, just return the pattern as-is
-                        let annotated_field_patterns = field_patterns.iter()
+                        let annotated_field_patterns = field_patterns
+                            .iter()
                             .map(|(field_name, pattern)| {
                                 // For simplicity, assume field type is the same as match type
                                 // In a real implementation, we'd look up the struct definition
-                                let field_pattern = self.check_pattern(pattern, &ResolvedType::Int)?;
+                                let field_pattern =
+                                    self.check_pattern(pattern, &ResolvedType::Int)?;
                                 Ok((field_name.clone(), field_pattern))
                             })
                             .collect::<Result<Vec<_>, SemanticError>>()?;
 
-                        Ok(AnnotatedPattern::Struct(struct_name.clone(), annotated_field_patterns, match_type.clone()))
+                        Ok(AnnotatedPattern::Struct(
+                            struct_name.clone(),
+                            annotated_field_patterns,
+                            match_type.clone(),
+                        ))
                     }
                     _ => Err(SemanticError::PatternTypeMismatch {
                         expected: match_type.clone(),
@@ -2318,7 +2540,8 @@ impl SemanticAnalyzer {
             }
             Pattern::Enum(enum_variant_full, variant_patterns) => {
                 // Parse "EnumName::VariantName" format
-                let (enum_name, variant_name) = enum_variant_full.split_once("::")
+                let (enum_name, variant_name) = enum_variant_full
+                    .split_once("::")
                     .ok_or_else(|| SemanticError::UndefinedType(enum_variant_full.clone()))?;
 
                 // Check if we're matching against an enum type
@@ -2332,19 +2555,24 @@ impl SemanticAnalyzer {
                         }
 
                         // Look up enum definition
-                        let enum_info = self.symbol_table.lookup_type(enum_name)
+                        let enum_info = self
+                            .symbol_table
+                            .lookup_type(enum_name)
                             .ok_or_else(|| SemanticError::UndefinedType(enum_name.to_string()))?;
 
                         let enum_variants = match &enum_info.kind {
                             symbol_table::TypeKind::Enum(variants) => variants,
-                            _ => return Err(SemanticError::TypeMismatch {
-                                expected: ResolvedType::Enum(enum_name.to_string()),
-                                found: ResolvedType::String, // placeholder
-                            }),
+                            _ => {
+                                return Err(SemanticError::TypeMismatch {
+                                    expected: ResolvedType::Enum(enum_name.to_string()),
+                                    found: ResolvedType::String, // placeholder
+                                })
+                            }
                         };
 
                         // Check if variant exists
-                        let variant_info = enum_variants.iter()
+                        let variant_info = enum_variants
+                            .iter()
                             .find(|v| v.name == variant_name)
                             .ok_or_else(|| SemanticError::UndefinedVariant {
                                 enum_name: enum_name.to_string(),
@@ -2353,7 +2581,8 @@ impl SemanticAnalyzer {
 
                         // Check variant patterns
                         let annotated_variant_patterns = if let Some(patterns) = variant_patterns {
-                            let annotated_patterns = patterns.iter()
+                            let annotated_patterns = patterns
+                                .iter()
                                 .map(|pattern| self.check_pattern(pattern, &ResolvedType::Int)) // placeholder
                                 .collect::<Result<Vec<_>, SemanticError>>()?;
                             Some(annotated_patterns)
@@ -2361,7 +2590,11 @@ impl SemanticAnalyzer {
                             None
                         };
 
-                        Ok(AnnotatedPattern::Enum(enum_variant_full.clone(), annotated_variant_patterns, match_type.clone()))
+                        Ok(AnnotatedPattern::Enum(
+                            enum_variant_full.clone(),
+                            annotated_variant_patterns,
+                            match_type.clone(),
+                        ))
                     }
                     _ => Err(SemanticError::PatternTypeMismatch {
                         expected: match_type.clone(),
@@ -2374,7 +2607,10 @@ impl SemanticAnalyzer {
 
     /// Check return value for dangling references (Expert recommendation: Priority 1)
     /// Enhanced implementation with comprehensive reference analysis
-    fn check_return_value_for_dangling_references(&self, return_expr: &AnnotatedExpression) -> Result<(), SemanticError> {
+    fn check_return_value_for_dangling_references(
+        &self,
+        return_expr: &AnnotatedExpression,
+    ) -> Result<(), SemanticError> {
         // Check if the return type is a reference
         if let ResolvedType::Reference(referenced_type, _is_mutable) = &return_expr.result_type {
             // Analyze the expression to find what it references
@@ -2385,11 +2621,17 @@ impl SemanticAnalyzer {
     }
 
     /// Analyze an expression for dangling references (Expert recommendation: Priority 1)
-    fn analyze_expression_for_dangling_references(&self, expr: &AnnotatedExpression) -> Result<(), SemanticError> {
+    fn analyze_expression_for_dangling_references(
+        &self,
+        expr: &AnnotatedExpression,
+    ) -> Result<(), SemanticError> {
         match &expr.expr {
             // Direct reference to a variable (&var or &mut var)
             AnnotatedExpressionKind::Unary(unary_expr) => {
-                if matches!(unary_expr.operator, UnaryOperator::Reference | UnaryOperator::MutableReference) {
+                if matches!(
+                    unary_expr.operator,
+                    UnaryOperator::Reference | UnaryOperator::MutableReference
+                ) {
                     self.check_reference_target_for_dangling(&unary_expr.operand)?;
                 }
             }
@@ -2407,7 +2649,10 @@ impl SemanticAnalyzer {
             }
 
             // Function call that returns a reference
-            AnnotatedExpressionKind::Call { function: _, arguments: _ } => {
+            AnnotatedExpressionKind::Call {
+                function: _,
+                arguments: _,
+            } => {
                 // For now, we'll be conservative and allow function calls
                 // In a more advanced implementation, we'd analyze the function's lifetime annotations
                 // TODO: Implement lifetime analysis for function return types
@@ -2418,7 +2663,10 @@ impl SemanticAnalyzer {
                 if self.is_local_variable(var_name) {
                     return Err(SemanticError::DanglingReference {
                         variable_name: var_name.clone(),
-                        message: format!("Cannot return reference to local variable '{}'", var_name),
+                        message: format!(
+                            "Cannot return reference to local variable '{}'",
+                            var_name
+                        ),
                     });
                 }
             }
@@ -2432,13 +2680,19 @@ impl SemanticAnalyzer {
     }
 
     /// Check if a reference target would create a dangling reference (Expert recommendation: Priority 1)
-    fn check_reference_target_for_dangling(&self, target_expr: &AnnotatedExpression) -> Result<(), SemanticError> {
+    fn check_reference_target_for_dangling(
+        &self,
+        target_expr: &AnnotatedExpression,
+    ) -> Result<(), SemanticError> {
         match &target_expr.expr {
             AnnotatedExpressionKind::Identifier(var_name) => {
                 if self.is_local_variable(var_name) {
                     return Err(SemanticError::DanglingReference {
                         variable_name: var_name.clone(),
-                        message: format!("Cannot return reference to local variable '{}'", var_name),
+                        message: format!(
+                            "Cannot return reference to local variable '{}'",
+                            var_name
+                        ),
                     });
                 }
             }
@@ -2485,7 +2739,12 @@ impl SemanticAnalyzer {
     }
 
     /// Check method call borrowing requirements (Expert recommendation: Priority 2)
-    fn check_method_call_borrowing(&mut self, var_name: &str, method_name: &str, object_type: &ResolvedType) -> Result<(), SemanticError> {
+    fn check_method_call_borrowing(
+        &mut self,
+        var_name: &str,
+        method_name: &str,
+        object_type: &ResolvedType,
+    ) -> Result<(), SemanticError> {
         // Find the method in impl blocks to determine self parameter type
         if let Some(method_info) = self.find_method_in_impls(object_type, method_name) {
             // Check the first parameter to see if it's a self parameter
@@ -2499,7 +2758,7 @@ impl SemanticAnalyzer {
                         self.ownership_analyzer.add_method_borrow(
                             var_name,
                             crate::semantic::ownership::BorrowKind::Immutable,
-                            scope_depth
+                            scope_depth,
                         )?;
                     }
                     // &mut self - create mutable borrow
@@ -2508,7 +2767,7 @@ impl SemanticAnalyzer {
                         self.ownership_analyzer.add_method_borrow(
                             var_name,
                             crate::semantic::ownership::BorrowKind::Mutable,
-                            scope_depth
+                            scope_depth,
                         )?;
                     }
                     // self (by value) - create move
@@ -2524,7 +2783,11 @@ impl SemanticAnalyzer {
     }
 
     /// Check match exhaustiveness (Expert recommendation: Enhanced exhaustiveness checking)
-    fn check_match_exhaustiveness(&self, match_type: &ResolvedType, arms: &[AnnotatedMatchArm]) -> Result<(), SemanticError> {
+    fn check_match_exhaustiveness(
+        &self,
+        match_type: &ResolvedType,
+        arms: &[AnnotatedMatchArm],
+    ) -> Result<(), SemanticError> {
         // Enhanced exhaustiveness checking for simple types as recommended by expert
         match match_type {
             ResolvedType::Bool => {
@@ -2545,65 +2808,75 @@ impl SemanticAnalyzer {
 
                 if !has_catch_all && (!has_true || !has_false) {
                     let mut missing = Vec::new();
-                    if !has_true { missing.push("true".to_string()); }
-                    if !has_false { missing.push("false".to_string()); }
-                    return Err(SemanticError::NonExhaustiveMatch { missing_patterns: missing });
+                    if !has_true {
+                        missing.push("true".to_string());
+                    }
+                    if !has_false {
+                        missing.push("false".to_string());
+                    }
+                    return Err(SemanticError::NonExhaustiveMatch {
+                        missing_patterns: missing,
+                    });
                 }
             }
             ResolvedType::Int => {
                 // For integers, we require a catch-all pattern since we can't enumerate all values
                 let has_catch_all = arms.iter().any(|arm| {
-                    matches!(arm.pattern,
-                        AnnotatedPattern::Wildcard |
-                        AnnotatedPattern::Identifier(_, _)
+                    matches!(
+                        arm.pattern,
+                        AnnotatedPattern::Wildcard | AnnotatedPattern::Identifier(_, _)
                     )
                 });
                 if !has_catch_all {
                     return Err(SemanticError::NonExhaustiveMatch {
-                        missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()]
+                        missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()],
                     });
                 }
             }
             ResolvedType::Float => {
                 // For floats, we require a catch-all pattern
                 let has_catch_all = arms.iter().any(|arm| {
-                    matches!(arm.pattern,
-                        AnnotatedPattern::Wildcard |
-                        AnnotatedPattern::Identifier(_, _)
+                    matches!(
+                        arm.pattern,
+                        AnnotatedPattern::Wildcard | AnnotatedPattern::Identifier(_, _)
                     )
                 });
                 if !has_catch_all {
                     return Err(SemanticError::NonExhaustiveMatch {
-                        missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()]
+                        missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()],
                     });
                 }
             }
             ResolvedType::String => {
                 // For strings, we require a catch-all pattern
                 let has_catch_all = arms.iter().any(|arm| {
-                    matches!(arm.pattern,
-                        AnnotatedPattern::Wildcard |
-                        AnnotatedPattern::Identifier(_, _)
+                    matches!(
+                        arm.pattern,
+                        AnnotatedPattern::Wildcard | AnnotatedPattern::Identifier(_, _)
                     )
                 });
                 if !has_catch_all {
                     return Err(SemanticError::NonExhaustiveMatch {
-                        missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()]
+                        missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()],
                     });
                 }
             }
             ResolvedType::Enum(enum_name) => {
                 // Expert recommendation: Exhaustiveness checking for Enum types
                 // Get all variants from the enum definition
-                let enum_info = self.symbol_table.lookup_type(enum_name)
+                let enum_info = self
+                    .symbol_table
+                    .lookup_type(enum_name)
                     .ok_or_else(|| SemanticError::UndefinedType(enum_name.clone()))?;
 
                 let enum_variants = match &enum_info.kind {
                     symbol_table::TypeKind::Enum(variants) => variants,
-                    _ => return Err(SemanticError::TypeMismatch {
-                        expected: ResolvedType::Enum(enum_name.clone()),
-                        found: ResolvedType::String, // placeholder
-                    }),
+                    _ => {
+                        return Err(SemanticError::TypeMismatch {
+                            expected: ResolvedType::Enum(enum_name.clone()),
+                            found: ResolvedType::String, // placeholder
+                        })
+                    }
                 };
 
                 // Track which variants are covered
@@ -2614,7 +2887,9 @@ impl SemanticAnalyzer {
                     match &arm.pattern {
                         AnnotatedPattern::Enum(enum_variant_full, _, _) => {
                             // Parse "EnumName::VariantName" format
-                            if let Some((pattern_enum_name, variant_name)) = enum_variant_full.split_once("::") {
+                            if let Some((pattern_enum_name, variant_name)) =
+                                enum_variant_full.split_once("::")
+                            {
                                 if pattern_enum_name == enum_name {
                                     covered_variants.insert(variant_name.to_string());
                                 }
@@ -2638,7 +2913,7 @@ impl SemanticAnalyzer {
 
                     if !missing_variants.is_empty() {
                         return Err(SemanticError::NonExhaustiveMatch {
-                            missing_patterns: missing_variants
+                            missing_patterns: missing_variants,
                         });
                     }
                 }
@@ -2646,14 +2921,14 @@ impl SemanticAnalyzer {
             _ => {
                 // For other types (List, Struct, etc.), require a catch-all pattern for now
                 let has_catch_all = arms.iter().any(|arm| {
-                    matches!(arm.pattern,
-                        AnnotatedPattern::Wildcard |
-                        AnnotatedPattern::Identifier(_, _)
+                    matches!(
+                        arm.pattern,
+                        AnnotatedPattern::Wildcard | AnnotatedPattern::Identifier(_, _)
                     )
                 });
                 if !has_catch_all {
                     return Err(SemanticError::NonExhaustiveMatch {
-                        missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()]
+                        missing_patterns: vec!["_ (wildcard) or identifier pattern".to_string()],
                     });
                 }
             }
@@ -2682,55 +2957,70 @@ impl SemanticAnalyzer {
         use crate::semantic::FunctionInfo;
 
         // ai::init() -> Result<(), string>
-        self.symbol_table.add_function_info("ai::init", FunctionInfo {
-            name: "ai::init".to_string(),
-            parameters: vec![],
-            return_type: Some(ResolvedType::Result(
-                Box::new(ResolvedType::Unit),
-                Box::new(ResolvedType::String)
-            )),
-        });
+        self.symbol_table.add_function_info(
+            "ai::init",
+            FunctionInfo {
+                name: "ai::init".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Result(
+                    Box::new(ResolvedType::Unit),
+                    Box::new(ResolvedType::String),
+                )),
+            },
+        );
 
         // ai::load_model(path: string) -> Result<Model, string>
-        self.symbol_table.add_function_info("ai::load_model", FunctionInfo {
-            name: "ai::load_model".to_string(),
-            parameters: vec![ResolvedType::String],
-            return_type: Some(ResolvedType::Result(
-                Box::new(ResolvedType::Model("Model".to_string())),
-                Box::new(ResolvedType::String)
-            )),
-        });
+        self.symbol_table.add_function_info(
+            "ai::load_model",
+            FunctionInfo {
+                name: "ai::load_model".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Result(
+                    Box::new(ResolvedType::Model("Model".to_string())),
+                    Box::new(ResolvedType::String),
+                )),
+            },
+        );
 
         // ai::tensor(data: List<float>, shape: List<int>, name: string) -> Tensor
-        self.symbol_table.add_function_info("ai::tensor", FunctionInfo {
-            name: "ai::tensor".to_string(),
-            parameters: vec![
-                ResolvedType::List(Box::new(ResolvedType::Float)),
-                ResolvedType::List(Box::new(ResolvedType::Int)),
-                ResolvedType::String,
-            ],
-            return_type: Some(ResolvedType::Tensor(vec![])), // Shape will be determined at runtime
-        });
+        self.symbol_table.add_function_info(
+            "ai::tensor",
+            FunctionInfo {
+                name: "ai::tensor".to_string(),
+                parameters: vec![
+                    ResolvedType::List(Box::new(ResolvedType::Float)),
+                    ResolvedType::List(Box::new(ResolvedType::Int)),
+                    ResolvedType::String,
+                ],
+                return_type: Some(ResolvedType::Tensor(vec![])), // Shape will be determined at runtime
+            },
+        );
 
         // ai::tensor_1d(data: List<float>, name: string) -> Tensor
-        self.symbol_table.add_function_info("ai::tensor_1d", FunctionInfo {
-            name: "ai::tensor_1d".to_string(),
-            parameters: vec![
-                ResolvedType::List(Box::new(ResolvedType::Float)),
-                ResolvedType::String,
-            ],
-            return_type: Some(ResolvedType::Tensor(vec![])),
-        });
+        self.symbol_table.add_function_info(
+            "ai::tensor_1d",
+            FunctionInfo {
+                name: "ai::tensor_1d".to_string(),
+                parameters: vec![
+                    ResolvedType::List(Box::new(ResolvedType::Float)),
+                    ResolvedType::String,
+                ],
+                return_type: Some(ResolvedType::Tensor(vec![])),
+            },
+        );
 
         // ai::tensor_2d(data: List<List<float>>, name: string) -> Tensor
-        self.symbol_table.add_function_info("ai::tensor_2d", FunctionInfo {
-            name: "ai::tensor_2d".to_string(),
-            parameters: vec![
-                ResolvedType::List(Box::new(ResolvedType::List(Box::new(ResolvedType::Float)))),
-                ResolvedType::String,
-            ],
-            return_type: Some(ResolvedType::Tensor(vec![])),
-        });
+        self.symbol_table.add_function_info(
+            "ai::tensor_2d",
+            FunctionInfo {
+                name: "ai::tensor_2d".to_string(),
+                parameters: vec![
+                    ResolvedType::List(Box::new(ResolvedType::List(Box::new(ResolvedType::Float)))),
+                    ResolvedType::String,
+                ],
+                return_type: Some(ResolvedType::Tensor(vec![])),
+            },
+        );
     }
 
     /// Register std::torch functions (Expert recommendation: Priority 2)
@@ -2738,95 +3028,122 @@ impl SemanticAnalyzer {
         use crate::semantic::FunctionInfo;
 
         // torch_create_model(name: string, input_size: int, hidden_size: int, output_size: int) -> TorchModel
-        self.symbol_table.add_function_info("torch_create_model", FunctionInfo {
-            name: "torch_create_model".to_string(),
-            parameters: vec![
-                ResolvedType::String,
-                ResolvedType::Int,
-                ResolvedType::Int,
-                ResolvedType::Int,
-            ],
-            return_type: Some(ResolvedType::TorchModel),
-        });
+        self.symbol_table.add_function_info(
+            "torch_create_model",
+            FunctionInfo {
+                name: "torch_create_model".to_string(),
+                parameters: vec![
+                    ResolvedType::String,
+                    ResolvedType::Int,
+                    ResolvedType::Int,
+                    ResolvedType::Int,
+                ],
+                return_type: Some(ResolvedType::TorchModel),
+            },
+        );
 
         // torch_destroy_model(model: TorchModel)
-        self.symbol_table.add_function_info("torch_destroy_model", FunctionInfo {
-            name: "torch_destroy_model".to_string(),
-            parameters: vec![ResolvedType::TorchModel],
-            return_type: Some(ResolvedType::Unit),
-        });
+        self.symbol_table.add_function_info(
+            "torch_destroy_model",
+            FunctionInfo {
+                name: "torch_destroy_model".to_string(),
+                parameters: vec![ResolvedType::TorchModel],
+                return_type: Some(ResolvedType::Unit),
+            },
+        );
 
         // torch_create_optimizer(model: TorchModel, optimizer_type: string, learning_rate: float) -> TorchOptimizer
-        self.symbol_table.add_function_info("torch_create_optimizer", FunctionInfo {
-            name: "torch_create_optimizer".to_string(),
-            parameters: vec![
-                ResolvedType::TorchModel,
-                ResolvedType::String,
-                ResolvedType::Float,
-            ],
-            return_type: Some(ResolvedType::TorchOptimizer),
-        });
+        self.symbol_table.add_function_info(
+            "torch_create_optimizer",
+            FunctionInfo {
+                name: "torch_create_optimizer".to_string(),
+                parameters: vec![
+                    ResolvedType::TorchModel,
+                    ResolvedType::String,
+                    ResolvedType::Float,
+                ],
+                return_type: Some(ResolvedType::TorchOptimizer),
+            },
+        );
 
         // torch_destroy_optimizer(optimizer: TorchOptimizer)
-        self.symbol_table.add_function_info("torch_destroy_optimizer", FunctionInfo {
-            name: "torch_destroy_optimizer".to_string(),
-            parameters: vec![ResolvedType::TorchOptimizer],
-            return_type: Some(ResolvedType::Unit),
-        });
+        self.symbol_table.add_function_info(
+            "torch_destroy_optimizer",
+            FunctionInfo {
+                name: "torch_destroy_optimizer".to_string(),
+                parameters: vec![ResolvedType::TorchOptimizer],
+                return_type: Some(ResolvedType::Unit),
+            },
+        );
 
         // torch_create_tensor(name: string, data: [float], shape: [int]) -> TorchTensor
-        self.symbol_table.add_function_info("torch_create_tensor", FunctionInfo {
-            name: "torch_create_tensor".to_string(),
-            parameters: vec![
-                ResolvedType::String,
-                ResolvedType::List(Box::new(ResolvedType::Float)),
-                ResolvedType::List(Box::new(ResolvedType::Int)),
-            ],
-            return_type: Some(ResolvedType::TorchTensor),
-        });
+        self.symbol_table.add_function_info(
+            "torch_create_tensor",
+            FunctionInfo {
+                name: "torch_create_tensor".to_string(),
+                parameters: vec![
+                    ResolvedType::String,
+                    ResolvedType::List(Box::new(ResolvedType::Float)),
+                    ResolvedType::List(Box::new(ResolvedType::Int)),
+                ],
+                return_type: Some(ResolvedType::TorchTensor),
+            },
+        );
 
         // torch_destroy_tensor(tensor: TorchTensor)
-        self.symbol_table.add_function_info("torch_destroy_tensor", FunctionInfo {
-            name: "torch_destroy_tensor".to_string(),
-            parameters: vec![ResolvedType::TorchTensor],
-            return_type: Some(ResolvedType::Unit),
-        });
+        self.symbol_table.add_function_info(
+            "torch_destroy_tensor",
+            FunctionInfo {
+                name: "torch_destroy_tensor".to_string(),
+                parameters: vec![ResolvedType::TorchTensor],
+                return_type: Some(ResolvedType::Unit),
+            },
+        );
 
         // torch_train_step(model: TorchModel, optimizer: TorchOptimizer, input: TorchTensor, target: TorchTensor) -> TrainingResult
-        self.symbol_table.add_function_info("torch_train_step", FunctionInfo {
-            name: "torch_train_step".to_string(),
-            parameters: vec![
-                ResolvedType::TorchModel,
-                ResolvedType::TorchOptimizer,
-                ResolvedType::TorchTensor,
-                ResolvedType::TorchTensor,
-            ],
-            return_type: Some(ResolvedType::TrainingResult),
-        });
+        self.symbol_table.add_function_info(
+            "torch_train_step",
+            FunctionInfo {
+                name: "torch_train_step".to_string(),
+                parameters: vec![
+                    ResolvedType::TorchModel,
+                    ResolvedType::TorchOptimizer,
+                    ResolvedType::TorchTensor,
+                    ResolvedType::TorchTensor,
+                ],
+                return_type: Some(ResolvedType::TrainingResult),
+            },
+        );
 
         // torch_forward(model: TorchModel, input: TorchTensor) -> TorchTensor
-        self.symbol_table.add_function_info("torch_forward", FunctionInfo {
-            name: "torch_forward".to_string(),
-            parameters: vec![
-                ResolvedType::TorchModel,
-                ResolvedType::TorchTensor,
-            ],
-            return_type: Some(ResolvedType::TorchTensor),
-        });
+        self.symbol_table.add_function_info(
+            "torch_forward",
+            FunctionInfo {
+                name: "torch_forward".to_string(),
+                parameters: vec![ResolvedType::TorchModel, ResolvedType::TorchTensor],
+                return_type: Some(ResolvedType::TorchTensor),
+            },
+        );
 
         // torch_cuda_available() -> bool
-        self.symbol_table.add_function_info("torch_cuda_available", FunctionInfo {
-            name: "torch_cuda_available".to_string(),
-            parameters: vec![],
-            return_type: Some(ResolvedType::Bool),
-        });
+        self.symbol_table.add_function_info(
+            "torch_cuda_available",
+            FunctionInfo {
+                name: "torch_cuda_available".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
 
         // torch_get_device() -> string
-        self.symbol_table.add_function_info("torch_get_device", FunctionInfo {
-            name: "torch_get_device".to_string(),
-            parameters: vec![],
-            return_type: Some(ResolvedType::String),
-        });
+        self.symbol_table.add_function_info(
+            "torch_get_device",
+            FunctionInfo {
+                name: "torch_get_device".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::String),
+            },
+        );
     }
 
     /// Register std::math_ai functions (Expert specification: Priority 1)
@@ -2834,124 +3151,166 @@ impl SemanticAnalyzer {
         use crate::semantic::FunctionInfo;
 
         // math_ai::shape::init() -> Result<(), string>
-        self.symbol_table.add_function_info("math_ai::shape::init", FunctionInfo {
-            name: "math_ai::shape::init".to_string(),
-            parameters: vec![],
-            return_type: Some(ResolvedType::Result(
-                Box::new(ResolvedType::Unit),
-                Box::new(ResolvedType::String)
-            )),
-        });
+        self.symbol_table.add_function_info(
+            "math_ai::shape::init",
+            FunctionInfo {
+                name: "math_ai::shape::init".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Result(
+                    Box::new(ResolvedType::Unit),
+                    Box::new(ResolvedType::String),
+                )),
+            },
+        );
 
         // math_ai::shape::from_equation(equation: string) -> Result<Shape, string>
-        self.symbol_table.add_function_info("math_ai::shape::from_equation", FunctionInfo {
-            name: "math_ai::shape::from_equation".to_string(),
-            parameters: vec![ResolvedType::String],
-            return_type: Some(ResolvedType::Result(
-                Box::new(ResolvedType::Shape),
-                Box::new(ResolvedType::String)
-            )),
-        });
+        self.symbol_table.add_function_info(
+            "math_ai::shape::from_equation",
+            FunctionInfo {
+                name: "math_ai::shape::from_equation".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Result(
+                    Box::new(ResolvedType::Shape),
+                    Box::new(ResolvedType::String),
+                )),
+            },
+        );
 
         // math_ai::shape::shape_from_equation(equation: string) -> Result<Shape, string>
-        self.symbol_table.add_function_info("math_ai::shape::shape_from_equation", FunctionInfo {
-            name: "math_ai::shape::shape_from_equation".to_string(),
-            parameters: vec![ResolvedType::String],
-            return_type: Some(ResolvedType::Result(
-                Box::new(ResolvedType::Shape),
-                Box::new(ResolvedType::String)
-            )),
-        });
+        self.symbol_table.add_function_info(
+            "math_ai::shape::shape_from_equation",
+            FunctionInfo {
+                name: "math_ai::shape::shape_from_equation".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Result(
+                    Box::new(ResolvedType::Shape),
+                    Box::new(ResolvedType::String),
+                )),
+            },
+        );
 
         // math_ai::shape::equation_from_shape(shape: Shape) -> Result<string, string>
-        self.symbol_table.add_function_info("math_ai::shape::equation_from_shape", FunctionInfo {
-            name: "math_ai::shape::equation_from_shape".to_string(),
-            parameters: vec![ResolvedType::Shape],
-            return_type: Some(ResolvedType::Result(
-                Box::new(ResolvedType::String),
-                Box::new(ResolvedType::String)
-            )),
-        });
+        self.symbol_table.add_function_info(
+            "math_ai::shape::equation_from_shape",
+            FunctionInfo {
+                name: "math_ai::shape::equation_from_shape".to_string(),
+                parameters: vec![ResolvedType::Shape],
+                return_type: Some(ResolvedType::Result(
+                    Box::new(ResolvedType::String),
+                    Box::new(ResolvedType::String),
+                )),
+            },
+        );
 
         // math_ai::shape::example_circle() -> Result<Shape, string>
-        self.symbol_table.add_function_info("math_ai::shape::example_circle", FunctionInfo {
-            name: "math_ai::shape::example_circle".to_string(),
-            parameters: vec![],
-            return_type: Some(ResolvedType::Result(
-                Box::new(ResolvedType::Shape),
-                Box::new(ResolvedType::String)
-            )),
-        });
+        self.symbol_table.add_function_info(
+            "math_ai::shape::example_circle",
+            FunctionInfo {
+                name: "math_ai::shape::example_circle".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Result(
+                    Box::new(ResolvedType::Shape),
+                    Box::new(ResolvedType::String),
+                )),
+            },
+        );
 
         // math_ai::shape::example_line() -> Result<Shape, string>
-        self.symbol_table.add_function_info("math_ai::shape::example_line", FunctionInfo {
-            name: "math_ai::shape::example_line".to_string(),
-            parameters: vec![],
-            return_type: Some(ResolvedType::Result(
-                Box::new(ResolvedType::Shape),
-                Box::new(ResolvedType::String)
-            )),
-        });
+        self.symbol_table.add_function_info(
+            "math_ai::shape::example_line",
+            FunctionInfo {
+                name: "math_ai::shape::example_line".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Result(
+                    Box::new(ResolvedType::Shape),
+                    Box::new(ResolvedType::String),
+                )),
+            },
+        );
 
         // math_ai::shape::example_parabola() -> Result<Shape, string>
-        self.symbol_table.add_function_info("math_ai::shape::example_parabola", FunctionInfo {
-            name: "math_ai::shape::example_parabola".to_string(),
-            parameters: vec![],
-            return_type: Some(ResolvedType::Result(
-                Box::new(ResolvedType::Shape),
-                Box::new(ResolvedType::String)
-            )),
-        });
+        self.symbol_table.add_function_info(
+            "math_ai::shape::example_parabola",
+            FunctionInfo {
+                name: "math_ai::shape::example_parabola".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Result(
+                    Box::new(ResolvedType::Shape),
+                    Box::new(ResolvedType::String),
+                )),
+            },
+        );
 
         // Add std::math_ai_engine functions (Expert Priority 4)
         // init_math_ai_engine() -> bool
-        self.symbol_table.add_function_info("init_math_ai_engine", FunctionInfo {
-            name: "init_math_ai_engine".to_string(),
-            parameters: vec![],
-            return_type: Some(ResolvedType::Bool),
-        });
+        self.symbol_table.add_function_info(
+            "init_math_ai_engine",
+            FunctionInfo {
+                name: "init_math_ai_engine".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
 
         // equation_to_shape(equation: string) -> bool
-        self.symbol_table.add_function_info("equation_to_shape", FunctionInfo {
-            name: "equation_to_shape".to_string(),
-            parameters: vec![ResolvedType::String],
-            return_type: Some(ResolvedType::Bool),
-        });
+        self.symbol_table.add_function_info(
+            "equation_to_shape",
+            FunctionInfo {
+                name: "equation_to_shape".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
 
         // get_performance_stats() -> i32
-        self.symbol_table.add_function_info("get_performance_stats", FunctionInfo {
-            name: "get_performance_stats".to_string(),
-            parameters: vec![],
-            return_type: Some(ResolvedType::Int),
-        });
+        self.symbol_table.add_function_info(
+            "get_performance_stats",
+            FunctionInfo {
+                name: "get_performance_stats".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Int),
+            },
+        );
 
         // analyze_circle_equation(equation: string) -> bool
-        self.symbol_table.add_function_info("analyze_circle_equation", FunctionInfo {
-            name: "analyze_circle_equation".to_string(),
-            parameters: vec![ResolvedType::String],
-            return_type: Some(ResolvedType::Bool),
-        });
+        self.symbol_table.add_function_info(
+            "analyze_circle_equation",
+            FunctionInfo {
+                name: "analyze_circle_equation".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
 
         // analyze_line_equation(equation: string) -> bool
-        self.symbol_table.add_function_info("analyze_line_equation", FunctionInfo {
-            name: "analyze_line_equation".to_string(),
-            parameters: vec![ResolvedType::String],
-            return_type: Some(ResolvedType::Bool),
-        });
+        self.symbol_table.add_function_info(
+            "analyze_line_equation",
+            FunctionInfo {
+                name: "analyze_line_equation".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
 
         // analyze_parabola_equation(equation: string) -> bool
-        self.symbol_table.add_function_info("analyze_parabola_equation", FunctionInfo {
-            name: "analyze_parabola_equation".to_string(),
-            parameters: vec![ResolvedType::String],
-            return_type: Some(ResolvedType::Bool),
-        });
+        self.symbol_table.add_function_info(
+            "analyze_parabola_equation",
+            FunctionInfo {
+                name: "analyze_parabola_equation".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
 
         // detect_equation_type(equation: string) -> string
-        self.symbol_table.add_function_info("detect_equation_type", FunctionInfo {
-            name: "detect_equation_type".to_string(),
-            parameters: vec![ResolvedType::String],
-            return_type: Some(ResolvedType::String),
-        });
+        self.symbol_table.add_function_info(
+            "detect_equation_type",
+            FunctionInfo {
+                name: "detect_equation_type".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::String),
+            },
+        );
     }
 
     /// Analyze a using declaration (Expert fix: using statements)
@@ -2981,9 +3340,10 @@ impl SemanticAnalyzer {
             (ResolvedType::GenericParam(_), _) => true,
 
             // Reference types compatibility
-            (ResolvedType::Reference(inner1, mutable1), ResolvedType::Reference(inner2, mutable2)) => {
-                mutable1 == mutable2 && self.is_type_compatible(inner1, inner2)
-            }
+            (
+                ResolvedType::Reference(inner1, mutable1),
+                ResolvedType::Reference(inner2, mutable2),
+            ) => mutable1 == mutable2 && self.is_type_compatible(inner1, inner2),
 
             // Collection types compatibility
             (ResolvedType::List(inner1), ResolvedType::List(inner2)) => {
@@ -2997,21 +3357,31 @@ impl SemanticAnalyzer {
 
             // Generic types compatibility
             (ResolvedType::Generic(name1, params1), ResolvedType::Generic(name2, params2)) => {
-                name1 == name2 && params1.len() == params2.len() &&
-                params1.iter().zip(params2.iter()).all(|(p1, p2)| self.is_type_compatible(p1, p2))
+                name1 == name2
+                    && params1.len() == params2.len()
+                    && params1
+                        .iter()
+                        .zip(params2.iter())
+                        .all(|(p1, p2)| self.is_type_compatible(p1, p2))
             }
 
             // Function types compatibility
             (ResolvedType::Function(params1, ret1), ResolvedType::Function(params2, ret2)) => {
-                params1.len() == params2.len() &&
-                params1.iter().zip(params2.iter()).all(|(p1, p2)| self.is_type_compatible(p1, p2)) &&
-                self.is_type_compatible(ret1, ret2)
+                params1.len() == params2.len()
+                    && params1
+                        .iter()
+                        .zip(params2.iter())
+                        .all(|(p1, p2)| self.is_type_compatible(p1, p2))
+                    && self.is_type_compatible(ret1, ret2)
             }
 
             // Tuple types compatibility
             (ResolvedType::Tuple(types1), ResolvedType::Tuple(types2)) => {
-                types1.len() == types2.len() &&
-                types1.iter().zip(types2.iter()).all(|(t1, t2)| self.is_type_compatible(t1, t2))
+                types1.len() == types2.len()
+                    && types1
+                        .iter()
+                        .zip(types2.iter())
+                        .all(|(t1, t2)| self.is_type_compatible(t1, t2))
             }
 
             // No match
@@ -3023,38 +3393,307 @@ impl SemanticAnalyzer {
     fn register_builtin_functions(&mut self) {
         // print<T: Display>(value: T) -> ()
         // Generic print function that accepts any type that implements Display
-        self.symbol_table.add_function_info("print", FunctionInfo {
-            name: "print".to_string(),
-            parameters: vec![ResolvedType::GenericParam("T".to_string())], // T
-            return_type: Some(ResolvedType::Unit),
-        });
+        self.symbol_table.add_function_info(
+            "print",
+            FunctionInfo {
+                name: "print".to_string(),
+                parameters: vec![ResolvedType::GenericParam("T".to_string())], // T
+                return_type: Some(ResolvedType::Unit),
+            },
+        );
 
         // format(template: string, args: ...) -> string
-        self.symbol_table.add_function_info("format", FunctionInfo {
-            name: "format".to_string(),
-            parameters: vec![ResolvedType::String], // Simplified for now
-            return_type: Some(ResolvedType::String),
-        });
+        self.symbol_table.add_function_info(
+            "format",
+            FunctionInfo {
+                name: "format".to_string(),
+                parameters: vec![ResolvedType::String], // Simplified for now
+                return_type: Some(ResolvedType::String),
+            },
+        );
 
         // len<T>(collection: T) -> int
-        self.symbol_table.add_function_info("len", FunctionInfo {
-            name: "len".to_string(),
-            parameters: vec![ResolvedType::GenericParam("T".to_string())], // T
-            return_type: Some(ResolvedType::Int),
-        });
+        self.symbol_table.add_function_info(
+            "len",
+            FunctionInfo {
+                name: "len".to_string(),
+                parameters: vec![ResolvedType::GenericParam("T".to_string())], // T
+                return_type: Some(ResolvedType::Int),
+            },
+        );
 
         // clone<T: Clone>(value: &T) -> T
-        self.symbol_table.add_function_info("clone", FunctionInfo {
-            name: "clone".to_string(),
-            parameters: vec![ResolvedType::Reference(Box::new(ResolvedType::GenericParam("T".to_string())), false)], // &T
-            return_type: Some(ResolvedType::GenericParam("T".to_string())), // T
-        });
+        self.symbol_table.add_function_info(
+            "clone",
+            FunctionInfo {
+                name: "clone".to_string(),
+                parameters: vec![ResolvedType::Reference(
+                    Box::new(ResolvedType::GenericParam("T".to_string())),
+                    false,
+                )], // &T
+                return_type: Some(ResolvedType::GenericParam("T".to_string())), // T
+            },
+        );
 
         // drop<T>(value: T) -> ()
-        self.symbol_table.add_function_info("drop", FunctionInfo {
-            name: "drop".to_string(),
-            parameters: vec![ResolvedType::GenericParam("T".to_string())], // T
-            return_type: Some(ResolvedType::Unit),
-        });
+        self.symbol_table.add_function_info(
+            "drop",
+            FunctionInfo {
+                name: "drop".to_string(),
+                parameters: vec![ResolvedType::GenericParam("T".to_string())], // T
+                return_type: Some(ResolvedType::Unit),
+            },
+        );
+    }
+
+    /// Register std::math_ai::shape_inference functions (Expert Priority 4)
+    fn register_shape_inference_functions(&mut self) {
+        use crate::semantic::FunctionInfo;
+
+        // init_shape_inference() -> bool
+        self.symbol_table.add_function_info(
+            "init_shape_inference",
+            FunctionInfo {
+                name: "init_shape_inference".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // equation_to_shape(equation: string) -> bool
+        self.symbol_table.add_function_info(
+            "equation_to_shape",
+            FunctionInfo {
+                name: "equation_to_shape".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // analyze_circle_equation(equation: string) -> bool
+        self.symbol_table.add_function_info(
+            "analyze_circle_equation",
+            FunctionInfo {
+                name: "analyze_circle_equation".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // analyze_line_equation(equation: string) -> bool
+        self.symbol_table.add_function_info(
+            "analyze_line_equation",
+            FunctionInfo {
+                name: "analyze_line_equation".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // analyze_parabola_equation(equation: string) -> bool
+        self.symbol_table.add_function_info(
+            "analyze_parabola_equation",
+            FunctionInfo {
+                name: "analyze_parabola_equation".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // detect_equation_type(equation: string) -> string
+        self.symbol_table.add_function_info(
+            "detect_equation_type",
+            FunctionInfo {
+                name: "detect_equation_type".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::String),
+            },
+        );
+
+        // get_performance_stats() -> i32
+        self.symbol_table.add_function_info(
+            "get_performance_stats",
+            FunctionInfo {
+                name: "get_performance_stats".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Int),
+            },
+        );
+
+        // example_comprehensive_analysis() -> bool
+        self.symbol_table.add_function_info(
+            "example_comprehensive_analysis",
+            FunctionInfo {
+                name: "example_comprehensive_analysis".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // diagnostic_check() -> string
+        self.symbol_table.add_function_info(
+            "diagnostic_check",
+            FunctionInfo {
+                name: "diagnostic_check".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::String),
+            },
+        );
+
+        // compare_equations(equation1: string, equation2: string) -> bool
+        self.symbol_table.add_function_info(
+            "compare_equations",
+            FunctionInfo {
+                name: "compare_equations".to_string(),
+                parameters: vec![ResolvedType::String, ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // extract_shape_properties(equation: string) -> string
+        self.symbol_table.add_function_info(
+            "extract_shape_properties",
+            FunctionInfo {
+                name: "extract_shape_properties".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::String),
+            },
+        );
+    }
+
+    /// Register std::thinking functions (Expert Priority 3: ThinkingCore)
+    /// Expert Request: Create tests for ThinkingCore that call find_semantically_similar_words
+    fn register_thinking_core_functions(&mut self) {
+        use crate::semantic::FunctionInfo;
+
+        // find_semantically_similar_words(word: string) -> bool
+        self.symbol_table.add_function_info(
+            "find_semantically_similar_words",
+            FunctionInfo {
+                name: "find_semantically_similar_words".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // test_thinking_core_comprehensive() -> bool
+        self.symbol_table.add_function_info(
+            "test_thinking_core_comprehensive",
+            FunctionInfo {
+                name: "test_thinking_core_comprehensive".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // test_advanced_thinking_analysis() -> bool
+        self.symbol_table.add_function_info(
+            "test_advanced_thinking_analysis",
+            FunctionInfo {
+                name: "test_advanced_thinking_analysis".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // demonstrate_thinking_core_power() -> bool
+        self.symbol_table.add_function_info(
+            "demonstrate_thinking_core_power",
+            FunctionInfo {
+                name: "demonstrate_thinking_core_power".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // analyze_letter_semantics(letter: string) -> bool
+        self.symbol_table.add_function_info(
+            "analyze_letter_semantics",
+            FunctionInfo {
+                name: "analyze_letter_semantics".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // analyze_phonetic_meaning(word: string) -> bool
+        self.symbol_table.add_function_info(
+            "analyze_phonetic_meaning",
+            FunctionInfo {
+                name: "analyze_phonetic_meaning".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // analyze_visual_meaning(word: string) -> bool
+        self.symbol_table.add_function_info(
+            "analyze_visual_meaning",
+            FunctionInfo {
+                name: "analyze_visual_meaning".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // analyze_linguistic_root(word: string) -> bool
+        self.symbol_table.add_function_info(
+            "analyze_linguistic_root",
+            FunctionInfo {
+                name: "analyze_linguistic_root".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // generate_semantic_words(base_word: string) -> bool
+        self.symbol_table.add_function_info(
+            "generate_semantic_words",
+            FunctionInfo {
+                name: "generate_semantic_words".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // calculate_semantic_similarity(word1: string, word2: string) -> bool
+        self.symbol_table.add_function_info(
+            "calculate_semantic_similarity",
+            FunctionInfo {
+                name: "calculate_semantic_similarity".to_string(),
+                parameters: vec![ResolvedType::String, ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // classify_word_semantically(word: string) -> bool
+        self.symbol_table.add_function_info(
+            "classify_word_semantically",
+            FunctionInfo {
+                name: "classify_word_semantically".to_string(),
+                parameters: vec![ResolvedType::String],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // comprehensive_thinking_test() -> bool
+        self.symbol_table.add_function_info(
+            "comprehensive_thinking_test",
+            FunctionInfo {
+                name: "comprehensive_thinking_test".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
+
+        // thinking_core_diagnostic() -> bool
+        self.symbol_table.add_function_info(
+            "thinking_core_diagnostic",
+            FunctionInfo {
+                name: "thinking_core_diagnostic".to_string(),
+                parameters: vec![],
+                return_type: Some(ResolvedType::Bool),
+            },
+        );
     }
 }

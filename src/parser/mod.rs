@@ -19,10 +19,7 @@ pub struct Parser {
 impl Parser {
     /// Create a new parser with the given tokens
     pub fn new(tokens: Vec<Token>) -> Self {
-        Self {
-            tokens,
-            current: 0,
-        }
+        Self { tokens, current: 0 }
     }
 
     /// Parse the tokens into an AST
@@ -49,8 +46,8 @@ impl Parser {
             TokenType::Enum => self.parse_enum(),
             TokenType::Class => self.parse_class(),
             TokenType::Interface => self.parse_interface(),
-            TokenType::Trait => self.parse_trait(),      // NEWLY ADDED: Expert recommendation
-            TokenType::Impl => self.parse_impl(),        // NEWLY ADDED: Expert recommendation
+            TokenType::Trait => self.parse_trait(), // NEWLY ADDED: Expert recommendation
+            TokenType::Impl => self.parse_impl(),   // NEWLY ADDED: Expert recommendation
             TokenType::Relation => self.parse_relation(),
             TokenType::Rule => self.parse_rule(),
             TokenType::Fact => self.parse_fact(),
@@ -59,7 +56,7 @@ impl Parser {
             TokenType::Semantic => {
                 let semantic_block = self.parse_semantic_block()?;
                 Ok(Item::Semantic(semantic_block))
-            }, // NEWLY ADDED: NLU support
+            } // NEWLY ADDED: NLU support
             _ => Err(ParseError::UnexpectedToken {
                 expected: "item declaration".to_string(),
                 found: self.peek().clone(),
@@ -161,7 +158,7 @@ impl Parser {
         Ok(Item::Struct(StructDecl {
             name,
             generic_params,
-            fields
+            fields,
         }))
     }
 
@@ -184,8 +181,14 @@ impl Parser {
             }
         }
 
-        self.consume(&TokenType::RightParen, "Expected ')' after relation arguments")?;
-        self.consume(&TokenType::Semicolon, "Expected ';' after relation declaration")?;
+        self.consume(
+            &TokenType::RightParen,
+            "Expected ')' after relation arguments",
+        )?;
+        self.consume(
+            &TokenType::Semicolon,
+            "Expected ';' after relation declaration",
+        )?;
 
         Ok(Item::Relation(RelationDecl { name, arg_types }))
     }
@@ -339,7 +342,10 @@ impl Parser {
                         }
                     }
 
-                    self.consume(&TokenType::Greater, "Expected '>' after generic type parameters")?;
+                    self.consume(
+                        &TokenType::Greater,
+                        "Expected '>' after generic type parameters",
+                    )?;
 
                     Ok(Type::Generic(Path::single(name), type_params))
                 } else {
@@ -364,11 +370,11 @@ impl Parser {
                 Ok(Type::Named(Path::single("TrainingResult".to_string())))
             }
 
-        // Tensor Literal (Expert recommendation: Priority 3)
-        TokenType::TensorLiteral => {
-            self.advance();
-            Ok(Type::Named(Path::single("TensorLiteral".to_string())))
-        }
+            // Tensor Literal (Expert recommendation: Priority 3)
+            TokenType::TensorLiteral => {
+                self.advance();
+                Ok(Type::Named(Path::single("TensorLiteral".to_string())))
+            }
             _ => Err(ParseError::UnexpectedToken {
                 expected: "type".to_string(),
                 found: self.peek().clone(),
@@ -398,7 +404,8 @@ impl Parser {
 
                     // Parse additional trait bounds separated by '+'
                     while self.match_token(&TokenType::Plus) {
-                        let trait_name = self.consume_identifier("Expected trait name after '+'")?;
+                        let trait_name =
+                            self.consume_identifier("Expected trait name after '+'")?;
                         bounds.push(TraitBound { trait_name });
                     }
                 }
@@ -440,11 +447,14 @@ impl Parser {
             TokenType::Return => self.parse_return_statement(),
             TokenType::If => self.parse_if_statement(),
             TokenType::Match => self.parse_match_statement(),
+            TokenType::While => self.parse_while_statement(),
+            TokenType::Break => self.parse_break_statement(),
+            TokenType::Continue => self.parse_continue_statement(),
             TokenType::Semantic => {
                 let semantic_block = self.parse_semantic_block()?;
                 self.consume(&TokenType::Semicolon, "Expected ';' after semantic block")?;
                 Ok(Statement::Semantic(semantic_block))
-            },
+            }
             _ => {
                 // Check if this is an assignment
                 if self.check_assignment() {
@@ -465,8 +475,11 @@ impl Parser {
             self.advance(); // Skip identifier
             let is_assignment = matches!(
                 &self.peek().token_type,
-                TokenType::Assign | TokenType::PlusAssign | TokenType::MinusAssign |
-                TokenType::MultiplyAssign | TokenType::DivideAssign
+                TokenType::Assign
+                    | TokenType::PlusAssign
+                    | TokenType::MinusAssign
+                    | TokenType::MultiplyAssign
+                    | TokenType::DivideAssign
             );
             self.current = saved_pos; // Restore position
             is_assignment
@@ -500,25 +513,33 @@ impl Parser {
                 self.advance();
                 BinaryOperator::DivideAssign
             }
-            _ => return Err(ParseError::UnexpectedToken {
-                expected: "assignment operator".to_string(),
-                found: self.peek().clone(),
-            }),
+            _ => {
+                return Err(ParseError::UnexpectedToken {
+                    expected: "assignment operator".to_string(),
+                    found: self.peek().clone(),
+                })
+            }
         };
 
         let value = self.parse_expression()?;
         self.consume(&TokenType::Semicolon, "Expected ';' after assignment")?;
 
-        Ok(Statement::Expression(Expression::Binary(BinaryExpression {
-            left: Box::new(Expression::Identifier(name)),
-            operator,
-            right: Box::new(value),
-        })))
+        Ok(Statement::Expression(Expression::Binary(
+            BinaryExpression {
+                left: Box::new(Expression::Identifier(name)),
+                operator,
+                right: Box::new(value),
+            },
+        )))
     }
 
     /// Parse a let statement
     fn parse_let_statement(&mut self) -> Result<Statement, ParseError> {
         self.consume(&TokenType::Let, "Expected 'let'")?;
+
+        // Optional 'mut' keyword (currently ignored by the AST/semantics)
+        let _is_mutable = self.match_token(&TokenType::Mut);
+
         let name = self.consume_identifier("Expected variable name")?;
 
         let var_type = if self.match_token(&TokenType::Colon) {
@@ -597,13 +618,36 @@ impl Parser {
 
         self.consume(&TokenType::RightBrace, "Expected '}' after match arms")?;
 
-        Ok(Statement::Match(MatchStatement {
-            expression,
-            arms,
-        }))
+        Ok(Statement::Match(MatchStatement { expression, arms }))
     }
 
     /// Parse a match arm (Expert recommendation: Pattern parsing)
+    /// Parse a while statement
+    fn parse_while_statement(&mut self) -> Result<Statement, ParseError> {
+        self.consume(&TokenType::While, "Expected 'while'")?;
+        let condition = self.parse_expression()?;
+        let body = self.parse_block()?;
+        Ok(Statement::While(WhileStatement { condition, body }))
+    }
+
+    /// Parse a break statement (represented as a special identifier expression)
+    fn parse_break_statement(&mut self) -> Result<Statement, ParseError> {
+        self.consume(&TokenType::Break, "Expected 'break'")?;
+        self.consume(&TokenType::Semicolon, "Expected ';' after break")?;
+        Ok(Statement::Expression(Expression::Identifier(
+            "__break__".to_string(),
+        )))
+    }
+
+    /// Parse a continue statement (represented as a special identifier expression)
+    fn parse_continue_statement(&mut self) -> Result<Statement, ParseError> {
+        self.consume(&TokenType::Continue, "Expected 'continue'")?;
+        self.consume(&TokenType::Semicolon, "Expected ';' after continue")?;
+        Ok(Statement::Expression(Expression::Identifier(
+            "__continue__".to_string(),
+        )))
+    }
+
     fn parse_match_arm(&mut self) -> Result<MatchArm, ParseError> {
         let pattern = self.parse_pattern()?;
 
@@ -723,7 +767,10 @@ impl Parser {
                             }
                         }
 
-                        self.consume(&TokenType::RightParen, "Expected ')' after enum variant fields")?;
+                        self.consume(
+                            &TokenType::RightParen,
+                            "Expected ')' after enum variant fields",
+                        )?;
                         Some(field_patterns)
                     } else {
                         None
@@ -804,7 +851,12 @@ impl Parser {
     fn parse_comparison(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.parse_term()?;
 
-        while self.match_tokens(&[TokenType::Greater, TokenType::GreaterEqual, TokenType::Less, TokenType::LessEqual]) {
+        while self.match_tokens(&[
+            TokenType::Greater,
+            TokenType::GreaterEqual,
+            TokenType::Less,
+            TokenType::LessEqual,
+        ]) {
             let operator = self.previous().token_type.clone();
             let right = self.parse_term()?;
             expr = Expression::Binary(BinaryExpression {
@@ -960,7 +1012,10 @@ impl Parser {
                             }
                         }
 
-                        self.consume(&TokenType::RightParen, "Expected ')' after enum variant fields")?;
+                        self.consume(
+                            &TokenType::RightParen,
+                            "Expected ')' after enum variant fields",
+                        )?;
                         Some(field_exprs)
                     } else {
                         None
@@ -1016,7 +1071,10 @@ impl Parser {
                     }
                 }
 
-                self.consume(&TokenType::RightBracket, "Expected ']' after array elements")?;
+                self.consume(
+                    &TokenType::RightBracket,
+                    "Expected ']' after array elements",
+                )?;
                 Expression::Array(ArrayExpression { elements })
             }
             TokenType::Match => {
@@ -1040,15 +1098,14 @@ impl Parser {
 
                 self.consume(&TokenType::RightBrace, "Expected '}' after match arms")?;
 
-                Expression::Match(Box::new(MatchStatement {
-                    expression,
-                    arms,
-                }))
+                Expression::Match(Box::new(MatchStatement { expression, arms }))
             }
-            _ => return Err(ParseError::UnexpectedToken {
-                expected: "expression".to_string(),
-                found: self.peek().clone(),
-            }),
+            _ => {
+                return Err(ParseError::UnexpectedToken {
+                    expected: "expression".to_string(),
+                    found: self.peek().clone(),
+                })
+            }
         };
 
         // Handle postfix operations (function calls, field access, indexing)
@@ -1068,7 +1125,10 @@ impl Parser {
                         }
                     }
 
-                    self.consume(&TokenType::RightParen, "Expected ')' after function arguments")?;
+                    self.consume(
+                        &TokenType::RightParen,
+                        "Expected ')' after function arguments",
+                    )?;
                     expr = Expression::Call(CallExpression {
                         callee: Box::new(expr),
                         arguments,
@@ -1248,7 +1308,11 @@ impl Parser {
 
         self.consume(&TokenType::RightBrace, "Expected '}' after class body")?;
 
-        Ok(Item::Class(ClassDecl { name, fields, methods }))
+        Ok(Item::Class(ClassDecl {
+            name,
+            fields,
+            methods,
+        }))
     }
 
     fn parse_interface(&mut self) -> Result<Item, ParseError> {
@@ -1299,7 +1363,10 @@ impl Parser {
             });
         }
 
-        self.consume(&TokenType::RightBrace, "Expected '}' after interface methods")?;
+        self.consume(
+            &TokenType::RightBrace,
+            "Expected '}' after interface methods",
+        )?;
 
         Ok(Item::Interface(InterfaceDecl { name, methods }))
     }
@@ -1349,7 +1416,10 @@ impl Parser {
             None
         };
 
-        self.consume(&TokenType::Semicolon, "Expected ';' after using declaration")?;
+        self.consume(
+            &TokenType::Semicolon,
+            "Expected ';' after using declaration",
+        )?;
 
         Ok(Item::Using(UsingDecl { path, alias }))
     }
@@ -1454,10 +1524,12 @@ impl Parser {
         let first_name = match &first_type {
             Type::Named(path) => path.segments.last().unwrap().clone(),
             Type::Generic(path, _) => path.segments.last().unwrap().clone(),
-            _ => return Err(ParseError::UnexpectedToken {
-                expected: "type or trait name".to_string(),
-                found: self.peek().clone(),
-            }),
+            _ => {
+                return Err(ParseError::UnexpectedToken {
+                    expected: "type or trait name".to_string(),
+                    found: self.peek().clone(),
+                })
+            }
         };
 
         let (trait_name, type_name) = if self.match_token(&TokenType::For) {
@@ -1529,9 +1601,11 @@ impl Parser {
                                 self.advance();
                                 i as f64
                             }
-                            _ => return Err(ParseError::InvalidSyntax {
-                                message: "Expected number in tensor literal".to_string()
-                            })
+                            _ => {
+                                return Err(ParseError::InvalidSyntax {
+                                    message: "Expected number in tensor literal".to_string(),
+                                })
+                            }
                         };
 
                         row.push(value);
@@ -1551,7 +1625,10 @@ impl Parser {
             }
         }
 
-        self.consume(&TokenType::RightBracket, "Expected ']' after tensor literal")?;
+        self.consume(
+            &TokenType::RightBracket,
+            "Expected ']' after tensor literal",
+        )?;
 
         Ok(Expression::Literal(Literal::Tensor(rows)))
     }
@@ -1598,10 +1675,7 @@ impl Parser {
 #[derive(Debug, thiserror::Error)]
 pub enum ParseError {
     #[error("Unexpected token: expected {expected}, found {found}")]
-    UnexpectedToken {
-        expected: String,
-        found: Token,
-    },
+    UnexpectedToken { expected: String, found: Token },
 
     #[error("Unexpected end of input")]
     UnexpectedEof,
@@ -1609,8 +1683,6 @@ pub enum ParseError {
     #[error("Invalid syntax: {message}")]
     InvalidSyntax { message: String },
 }
-
-
 
 #[cfg(test)]
 mod tests {

@@ -1,0 +1,266 @@
+// std/math_ai/shape_inference.ab
+// واجهة محرك استنتاج الأشكال الهندسية
+// Expert Priority 4: Build First Mathematical AI Engine - ShapeInferenceEngine
+// 
+// الهدف: توفير واجهة عالية المستوى لمحرك استنتاج الأشكال
+
+/// استيراد الأنواع الأساسية
+using std::collections::List;
+
+// ===== FFI Functions للتفاعل مع Runtime =====
+
+/// تهيئة محرك استنتاج الأشكال
+extern fn albayan_rt_shape_inference_init() -> i32;
+
+/// تحويل معادلة إلى شكل
+extern fn albayan_rt_equation_to_shape(equation: string) -> i32;
+
+/// الحصول على إحصائيات الأداء
+extern fn albayan_rt_shape_inference_get_stats() -> i32;
+
+// ===== Core Functions =====
+
+/// تهيئة محرك استنتاج الأشكال
+/// Expert specification: "دالة FFI واحدة تثبت المفهوم"
+fn init_shape_inference() -> bool {
+    let result = albayan_rt_shape_inference_init();
+    return result == 1;
+}
+
+/// تحويل معادلة رياضية إلى شكل هندسي
+/// Expert specification: "albayan_rt_adaptive_equation_solve(equation_handle) -> SolutionHandle"
+fn equation_to_shape(equation: string) -> bool {
+    let result = albayan_rt_equation_to_shape(equation);
+    return result == 1;
+}
+
+/// الحصول على إحصائيات أداء المحرك
+fn get_performance_stats() -> i32 {
+    return albayan_rt_shape_inference_get_stats();
+}
+
+// ===== High-Level Helper Functions =====
+
+/// تحليل معادلة دائرة
+fn analyze_circle_equation(equation: string) -> bool {
+    // التحقق من أن المعادلة تحتوي على عناصر الدائرة
+    if !equation.contains("x") || !equation.contains("y") {
+        return false;
+    }
+    
+    // استدعاء المحرك الأساسي
+    return equation_to_shape(equation);
+}
+
+/// تحليل معادلة خط مستقيم
+fn analyze_line_equation(equation: string) -> bool {
+    // التحقق من أن المعادلة خطية
+    if equation.contains("x^2") || equation.contains("y^2") {
+        return false;
+    }
+    
+    // استدعاء المحرك الأساسي
+    return equation_to_shape(equation);
+}
+
+/// تحليل معادلة قطع مكافئ
+fn analyze_parabola_equation(equation: string) -> bool {
+    // التحقق من وجود المربع في المعادلة
+    if !equation.contains("x^2") && !equation.contains("y^2") {
+        return false;
+    }
+    
+    // استدعاء المحرك الأساسي
+    return equation_to_shape(equation);
+}
+
+/// كشف نوع المعادلة تلقائياً
+fn detect_equation_type(equation: string) -> string {
+    if equation.contains("x^2") && equation.contains("y^2") && equation.contains("=") {
+        if equation.contains("+") {
+            return "Circle";
+        } else {
+            return "Hyperbola";
+        }
+    } else if equation.contains("y=") && equation.contains("x^2") {
+        return "Parabola";
+    } else if equation.contains("=") && !equation.contains("^") {
+        return "Line";
+    } else if equation.contains("x^2") && equation.contains("y^2") {
+        return "Ellipse";
+    } else {
+        return "Unknown";
+    }
+}
+
+// ===== Batch Processing Functions =====
+
+/// معالجة مجموعة من المعادلات
+fn process_equations_batch(equations: List<string>) -> List<bool> {
+    let mut results: List<bool> = [];
+    
+    for equation in equations {
+        let result = equation_to_shape(equation);
+        results.push(result);
+    }
+    
+    return results;
+}
+
+/// تحليل مجموعة من المعادلات وإرجاع أنواعها
+fn analyze_equations_batch(equations: List<string>) -> List<string> {
+    let mut types: List<string> = [];
+    
+    for equation in equations {
+        let equation_type = detect_equation_type(equation);
+        types.push(equation_type);
+    }
+    
+    return types;
+}
+
+// ===== Example and Test Functions =====
+
+/// مثال: تحليل دائرة بسيطة
+fn example_simple_circle() -> bool {
+    return analyze_circle_equation("x^2 + y^2 = 25");
+}
+
+/// مثال: تحليل خط مستقيم
+fn example_simple_line() -> bool {
+    return analyze_line_equation("y = 2x + 3");
+}
+
+/// مثال: تحليل قطع مكافئ
+fn example_simple_parabola() -> bool {
+    return analyze_parabola_equation("y = x^2 + 2x + 1");
+}
+
+/// مثال شامل: تحليل مجموعة متنوعة من المعادلات
+fn example_comprehensive_analysis() -> bool {
+    // تهيئة المحرك
+    if !init_shape_inference() {
+        return false;
+    }
+    
+    // قائمة معادلات متنوعة
+    let equations: List<string> = [
+        "x^2 + y^2 = 16",      // دائرة
+        "y = 2x + 3",          // خط مستقيم
+        "y = x^2",             // قطع مكافئ
+        "x^2/4 + y^2/9 = 1"    // قطع ناقص
+    ];
+    
+    // معالجة المعادلات
+    let results = process_equations_batch(equations);
+    
+    // التحقق من النجاح
+    for result in results {
+        if !result {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+/// اختبار الأداء: قياس سرعة المعالجة
+fn performance_test() -> i32 {
+    // تهيئة المحرك
+    if !init_shape_inference() {
+        return -1;
+    }
+    
+    // معالجة عدة معادلات
+    let test_equations: List<string> = [
+        "x^2 + y^2 = 1",
+        "x^2 + y^2 = 4",
+        "x^2 + y^2 = 9",
+        "x^2 + y^2 = 16",
+        "x^2 + y^2 = 25"
+    ];
+    
+    // معالجة المعادلات
+    let results = process_equations_batch(test_equations);
+    
+    // إرجاع إحصائيات الأداء
+    return get_performance_stats();
+}
+
+// ===== Advanced Functions =====
+
+/// مقارنة معادلتين لتحديد إذا كانتا تمثلان نفس الشكل
+fn compare_equations(equation1: string, equation2: string) -> bool {
+    let type1 = detect_equation_type(equation1);
+    let type2 = detect_equation_type(equation2);
+    
+    return type1 == type2;
+}
+
+/// تحليل معقد: استخراج خصائص الشكل من المعادلة
+fn extract_shape_properties(equation: string) -> string {
+    let shape_type = detect_equation_type(equation);
+    
+    if shape_type == "Circle" {
+        return "Shape: Circle, Properties: Center, Radius";
+    } else if shape_type == "Line" {
+        return "Shape: Line, Properties: Slope, Y-intercept";
+    } else if shape_type == "Parabola" {
+        return "Shape: Parabola, Properties: Vertex, Focus, Directrix";
+    } else if shape_type == "Ellipse" {
+        return "Shape: Ellipse, Properties: Center, Semi-major axis, Semi-minor axis";
+    } else {
+        return "Shape: Unknown, Properties: None";
+    }
+}
+
+/// دالة تشخيص شاملة للمحرك
+fn diagnostic_check() -> string {
+    // تهيئة المحرك
+    if !init_shape_inference() {
+        return "ERROR: Failed to initialize shape inference engine";
+    }
+    
+    // اختبار معادلات مختلفة
+    let circle_test = analyze_circle_equation("x^2 + y^2 = 25");
+    let line_test = analyze_line_equation("y = 2x + 3");
+    let parabola_test = analyze_parabola_equation("y = x^2");
+    
+    if circle_test && line_test && parabola_test {
+        let stats = get_performance_stats();
+        return "SUCCESS: All tests passed, Equations processed: " + stats.to_string();
+    } else {
+        return "ERROR: Some tests failed";
+    }
+}
+
+// ===== Public API Summary =====
+
+/// الدوال الأساسية المتاحة للمستخدم:
+/// 
+/// 1. init_shape_inference() -> bool
+///    تهيئة محرك استنتاج الأشكال
+/// 
+/// 2. equation_to_shape(equation: string) -> bool
+///    تحويل معادلة إلى شكل هندسي
+/// 
+/// 3. analyze_circle_equation(equation: string) -> bool
+///    تحليل معادلة دائرة
+/// 
+/// 4. analyze_line_equation(equation: string) -> bool
+///    تحليل معادلة خط مستقيم
+/// 
+/// 5. analyze_parabola_equation(equation: string) -> bool
+///    تحليل معادلة قطع مكافئ
+/// 
+/// 6. detect_equation_type(equation: string) -> string
+///    كشف نوع المعادلة تلقائياً
+/// 
+/// 7. get_performance_stats() -> i32
+///    الحصول على إحصائيات الأداء
+/// 
+/// 8. example_comprehensive_analysis() -> bool
+///    مثال شامل للاستخدام
+/// 
+/// 9. diagnostic_check() -> string
+///    فحص تشخيصي للمحرك
