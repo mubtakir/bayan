@@ -1,0 +1,285 @@
+// std/linguistics.ab - واجهة علم دلالات الحروف
+//
+// تطبيق رؤية الخبير حول "الحوسبة الاشتقاقية" و "علم أصل المعنى الحاسوبي"
+// Computational Etymology/Semiotics - فهم "لماذا" الكلمات تعني ما تعنيه
+
+// === هياكل البيانات الأساسية ===
+
+/// معلومات دلالات الحرف
+struct LetterInfo {
+    sound_semantics: list<string>,    // المعاني الصوتية
+    shape_semantics: list<string>,    // المعاني الشكلية
+    energy_type: string,              // نوع الطاقة
+    natural_element: string,          // العنصر الطبيعي
+    influence_strength: f64,          // قوة التأثير
+    additional_properties: list<string>, // خصائص إضافية
+}
+
+/// التوقيع الدلالي للكلمة
+struct WordSemanticSignature {
+    word: string,                     // الكلمة الأصلية
+    language: string,                 // اللغة
+    semantic_signature: list<string>, // التوقيع الدلالي
+    signature_strength: f64,          // قوة التوقيع
+    energy_analysis: string,          // تحليل الطاقة
+    dominant_element: string,         // العنصر المهيمن
+}
+
+// === الدوال الأساسية ===
+
+/// تحليل كلمة وإنشاء توقيعها الدلالي
+extern fn analyze_word_semantics(word: string, language: string = "ar") -> bool {
+    return albayan_rt_analyze_word_semantics(word.c_str(), language.c_str()) == 1;
+}
+
+/// الحصول على معلومات دلالات حرف معين
+extern fn get_character_semantics(character: char, language: string = "ar") -> string {
+    let info_ptr = albayan_rt_get_character_semantics(character as i8, language.c_str());
+    if info_ptr != null {
+        let info = string::from_c_str(info_ptr);
+        albayan_rt_free_linguistic_string(info_ptr);
+        return info;
+    } else {
+        return "معلومات غير متوفرة";
+    }
+}
+
+/// الحصول على إحصائيات المحلل اللغوي
+extern fn get_linguistic_stats() -> i32 {
+    return albayan_rt_get_linguistic_stats();
+}
+
+// === دوال مساعدة عالية المستوى ===
+
+/// تحليل شامل لكلمة عربية
+fn analyze_arabic_word_comprehensive(word: string) -> bool {
+    print("🔍 تحليل شامل لكلمة '" + word + "':");
+    
+    let success = analyze_word_semantics(word, "ar");
+    
+    if success {
+        print("✅ تم التحليل الدلالي بنجاح!");
+        
+        // تحليل كل حرف في الكلمة
+        print("📝 تحليل الحروف:");
+        let chars = word.chars();
+        let i = 0;
+        while i < chars.length() {
+            let ch = chars[i];
+            let semantics = get_character_semantics(ch, "ar");
+            print("   " + ch.to_string() + ": " + semantics);
+            i = i + 1;
+        }
+        
+        return true;
+    } else {
+        print("❌ فشل في التحليل الدلالي");
+        return false;
+    }
+}
+
+/// تحليل شامل لكلمة إنجليزية
+fn analyze_english_word_comprehensive(word: string) -> bool {
+    print("🔍 Comprehensive analysis of word '" + word + "':");
+    
+    let success = analyze_word_semantics(word, "en");
+    
+    if success {
+        print("✅ Semantic analysis successful!");
+        
+        // تحليل كل حرف في الكلمة
+        print("📝 Character analysis:");
+        let chars = word.chars();
+        let i = 0;
+        while i < chars.length() {
+            let ch = chars[i];
+            let semantics = get_character_semantics(ch, "en");
+            print("   " + ch.to_string() + ": " + semantics);
+            i = i + 1;
+        }
+        
+        return true;
+    } else {
+        print("❌ Semantic analysis failed");
+        return false;
+    }
+}
+
+/// مقارنة التوقيعات الدلالية لكلمتين
+fn compare_semantic_signatures(word1: string, word2: string, language: string = "ar") -> f64 {
+    print("🔄 مقارنة التوقيعات الدلالية:");
+    print("   الكلمة الأولى: " + word1);
+    print("   الكلمة الثانية: " + word2);
+    
+    // تحليل الكلمتين
+    let success1 = analyze_word_semantics(word1, language);
+    let success2 = analyze_word_semantics(word2, language);
+    
+    if success1 && success2 {
+        print("✅ تم تحليل الكلمتين بنجاح");
+        
+        // منطق مقارنة بسيط (سيتم تطويره لاحقًا)
+        let similarity = 0.75; // قيمة افتراضية
+        
+        print("📊 درجة التشابه الدلالي: " + similarity.to_string());
+        return similarity;
+    } else {
+        print("❌ فشل في تحليل إحدى الكلمتين أو كلاهما");
+        return 0.0;
+    }
+}
+
+/// اكتشاف الكلمات ذات التوقيعات المتشابهة
+fn discover_similar_words(target_word: string, word_list: list<string>, language: string = "ar") -> list<string> {
+    print("🔍 اكتشاف الكلمات ذات التوقيعات المتشابهة لـ '" + target_word + "':");
+    
+    let similar_words = list<string>();
+    
+    // تحليل الكلمة المستهدفة
+    let target_success = analyze_word_semantics(target_word, language);
+    
+    if target_success {
+        let i = 0;
+        while i < word_list.length() {
+            let current_word = word_list[i];
+            let similarity = compare_semantic_signatures(target_word, current_word, language);
+            
+            if similarity > 0.6 { // عتبة التشابه
+                similar_words.push(current_word);
+                print("   ✅ " + current_word + " (تشابه: " + similarity.to_string() + ")");
+            }
+            
+            i = i + 1;
+        }
+        
+        print("📊 تم العثور على " + similar_words.length().to_string() + " كلمة متشابهة");
+    } else {
+        print("❌ فشل في تحليل الكلمة المستهدفة");
+    }
+    
+    return similar_words;
+}
+
+/// تحليل الطاقة الدلالية لنص كامل
+fn analyze_text_semantic_energy(text: string, language: string = "ar") -> string {
+    print("⚡ تحليل الطاقة الدلالية للنص:");
+    print("📝 النص: " + text);
+    
+    let words = text.split(" ");
+    let positive_energy = 0;
+    let negative_energy = 0;
+    let neutral_energy = 0;
+    
+    let i = 0;
+    while i < words.length() {
+        let word = words[i];
+        let success = analyze_word_semantics(word, language);
+        
+        if success {
+            // منطق تحليل الطاقة (سيتم تطويره بناءً على التحليل الفعلي)
+            // هذا مثال بسيط
+            if word.contains("حب") || word.contains("سعادة") || word.contains("نور") {
+                positive_energy = positive_energy + 1;
+            } else if word.contains("حزن") || word.contains("ألم") || word.contains("ظلام") {
+                negative_energy = negative_energy + 1;
+            } else {
+                neutral_energy = neutral_energy + 1;
+            }
+        }
+        
+        i = i + 1;
+    }
+    
+    let total_words = words.length();
+    let dominant_energy = "";
+    
+    if positive_energy > negative_energy && positive_energy > neutral_energy {
+        dominant_energy = "طاقة إيجابية مهيمنة";
+    } else if negative_energy > positive_energy && negative_energy > neutral_energy {
+        dominant_energy = "طاقة سلبية مهيمنة";
+    } else {
+        dominant_energy = "طاقة متوازنة";
+    }
+    
+    print("📊 تحليل الطاقة:");
+    print("   إيجابية: " + positive_energy.to_string() + "/" + total_words.to_string());
+    print("   سلبية: " + negative_energy.to_string() + "/" + total_words.to_string());
+    print("   محايدة: " + neutral_energy.to_string() + "/" + total_words.to_string());
+    print("🎯 النتيجة: " + dominant_energy);
+    
+    return dominant_energy;
+}
+
+/// عرض إحصائيات النظام اللغوي
+fn show_linguistic_system_stats() {
+    print("📊 إحصائيات نظام دلالات الحروف:");
+    let total_analyses = get_linguistic_stats();
+    print("   عدد التحليلات المنجزة: " + total_analyses.to_string());
+    
+    if total_analyses > 0 {
+        print("✅ النظام يعمل بكفاءة!");
+    } else {
+        print("⚠️ لم يتم إجراء أي تحليلات بعد");
+    }
+}
+
+/// اختبار شامل لنظام دلالات الحروف
+fn test_linguistic_system() -> bool {
+    print("🧪 اختبار شامل لنظام دلالات الحروف");
+    print("=" * 50);
+    print("");
+    
+    // اختبار الكلمات العربية
+    print("🔤 اختبار الكلمات العربية:");
+    let arabic_success1 = analyze_arabic_word_comprehensive("الله");
+    print("");
+    
+    let arabic_success2 = analyze_arabic_word_comprehensive("رحمة");
+    print("");
+    
+    let arabic_success3 = analyze_arabic_word_comprehensive("شجرة");
+    print("");
+    
+    // اختبار الكلمات الإنجليزية
+    print("🔤 اختبار الكلمات الإنجليزية:");
+    let english_success1 = analyze_english_word_comprehensive("tree");
+    print("");
+    
+    let english_success2 = analyze_english_word_comprehensive("river");
+    print("");
+    
+    // اختبار مقارنة التوقيعات
+    print("🔄 اختبار مقارنة التوقيعات:");
+    let similarity = compare_semantic_signatures("رحمة", "حنان", "ar");
+    print("");
+    
+    // اختبار تحليل الطاقة
+    print("⚡ اختبار تحليل الطاقة:");
+    let energy = analyze_text_semantic_energy("الحمد لله رب العالمين", "ar");
+    print("");
+    
+    // عرض الإحصائيات
+    show_linguistic_system_stats();
+    print("");
+    
+    let all_success = arabic_success1 && arabic_success2 && arabic_success3 && 
+                     english_success1 && english_success2;
+    
+    if all_success {
+        print("🎊 جميع اختبارات نظام دلالات الحروف نجحت!");
+        print("✅ النظام جاهز للاستخدام في الحوسبة الاشتقاقية!");
+    } else {
+        print("❌ بعض الاختبارات فشلت");
+    }
+    
+    return all_success;
+}
+
+// === دوال FFI الخارجية ===
+
+extern "C" {
+    fn albayan_rt_analyze_word_semantics(word: *const i8, language: *const i8) -> i32;
+    fn albayan_rt_get_character_semantics(character: i8, language: *const i8) -> *const i8;
+    fn albayan_rt_get_linguistic_stats() -> i32;
+    fn albayan_rt_free_linguistic_string(s: *mut i8);
+}

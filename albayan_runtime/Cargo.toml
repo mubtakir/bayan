@@ -11,6 +11,9 @@ serde_json = "1.0"
 # For unification and backtracking
 indexmap = "2.0"
 
+# For linguistic database
+lazy_static = "1.4"
+
 # AI and Machine Learning (Expert recommendation: Priority 1)
 ort = "1.16"  # ONNX Runtime for AI model inference
 ndarray = "0.15"  # For tensor operations

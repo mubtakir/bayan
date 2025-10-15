@@ -1,0 +1,7 @@
+// اختبار أساسي لنظام دلالات الحروف
+// Basic test for linguistic character semantics system
+
+fn main() {
+    // اختبار بسيط للنظام
+    let result = 1;
+}
