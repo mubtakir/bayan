@@ -145,82 +145,91 @@ impl LinguisticIntelligenceDB {
         // إضافة الحروف العربية مع دلالاتها (حسب الحدس المدروس)
 
         // حرف الجيم - شكل رأس الشجرة
-        arabic_letters.insert('ج', LetterIntelligence {
-            letter: 'ج',
-            language: "عربي".to_string(),
-            phonetic_meaning: PhoneticMeaning {
-                core_meaning: "التجمع والاجتماع".to_string(),
-                secondary_meanings: vec!["القوة".to_string(), "الصلابة".to_string()],
-                strength: 0.8,
-                contexts: vec!["طبيعة".to_string(), "نبات".to_string()],
+        arabic_letters.insert(
+            'ج',
+            LetterIntelligence {
+                letter: 'ج',
+                language: "عربي".to_string(),
+                phonetic_meaning: PhoneticMeaning {
+                    core_meaning: "التجمع والاجتماع".to_string(),
+                    secondary_meanings: vec!["القوة".to_string(), "الصلابة".to_string()],
+                    strength: 0.8,
+                    contexts: vec!["طبيعة".to_string(), "نبات".to_string()],
+                },
+                visual_meaning: VisualMeaning {
+                    shape_description: "شكل منحني يشبه رأس الشجرة".to_string(),
+                    shape_meaning: "التاج والقمة".to_string(),
+                    direction_flow: "من الأسفل إلى الأعلى".to_string(),
+                    natural_resemblance: vec!["رأس الشجرة".to_string(), "القبة".to_string()],
+                },
+                position_effects: {
+                    let mut effects = HashMap::new();
+                    effects.insert("بداية".to_string(), 0.9);
+                    effects.insert("وسط".to_string(), 0.6);
+                    effects.insert("نهاية".to_string(), 0.7);
+                    effects
+                },
+                letter_interactions: HashMap::new(),
             },
-            visual_meaning: VisualMeaning {
-                shape_description: "شكل منحني يشبه رأس الشجرة".to_string(),
-                shape_meaning: "التاج والقمة".to_string(),
-                direction_flow: "من الأسفل إلى الأعلى".to_string(),
-                natural_resemblance: vec!["رأس الشجرة".to_string(), "القبة".to_string()],
-            },
-            position_effects: {
-                let mut effects = HashMap::new();
-                effects.insert("بداية".to_string(), 0.9);
-                effects.insert("وسط".to_string(), 0.6);
-                effects.insert("نهاية".to_string(), 0.7);
-                effects
-            },
-            letter_interactions: HashMap::new(),
-        });
+        );
 
         // حرف الراء - التفرع والانسياب
-        arabic_letters.insert('ر', LetterIntelligence {
-            letter: 'ر',
-            language: "عربي".to_string(),
-            phonetic_meaning: PhoneticMeaning {
-                core_meaning: "التفرع والانسياب".to_string(),
-                secondary_meanings: vec!["الحركة".to_string(), "التدفق".to_string()],
-                strength: 0.85,
-                contexts: vec!["حركة".to_string(), "ماء".to_string()],
+        arabic_letters.insert(
+            'ر',
+            LetterIntelligence {
+                letter: 'ر',
+                language: "عربي".to_string(),
+                phonetic_meaning: PhoneticMeaning {
+                    core_meaning: "التفرع والانسياب".to_string(),
+                    secondary_meanings: vec!["الحركة".to_string(), "التدفق".to_string()],
+                    strength: 0.85,
+                    contexts: vec!["حركة".to_string(), "ماء".to_string()],
+                },
+                visual_meaning: VisualMeaning {
+                    shape_description: "خط منحني يوحي بالتدفق".to_string(),
+                    shape_meaning: "الانسياب والتفرع".to_string(),
+                    direction_flow: "انسيابي متدفق".to_string(),
+                    natural_resemblance: vec!["تفرع الأغصان".to_string(), "تدفق الماء".to_string()],
+                },
+                position_effects: {
+                    let mut effects = HashMap::new();
+                    effects.insert("بداية".to_string(), 0.7);
+                    effects.insert("وسط".to_string(), 0.9);
+                    effects.insert("نهاية".to_string(), 0.8);
+                    effects
+                },
+                letter_interactions: HashMap::new(),
             },
-            visual_meaning: VisualMeaning {
-                shape_description: "خط منحني يوحي بالتدفق".to_string(),
-                shape_meaning: "الانسياب والتفرع".to_string(),
-                direction_flow: "انسيابي متدفق".to_string(),
-                natural_resemblance: vec!["تفرع الأغصان".to_string(), "تدفق الماء".to_string()],
-            },
-            position_effects: {
-                let mut effects = HashMap::new();
-                effects.insert("بداية".to_string(), 0.7);
-                effects.insert("وسط".to_string(), 0.9);
-                effects.insert("نهاية".to_string(), 0.8);
-                effects
-            },
-            letter_interactions: HashMap::new(),
-        });
+        );
 
         // حرف الشين - التشتت والتشعب
-        arabic_letters.insert('ش', LetterIntelligence {
-            letter: 'ش',
-            language: "عربي".to_string(),
-            phonetic_meaning: PhoneticMeaning {
-                core_meaning: "التشتت والتشعب".to_string(),
-                secondary_meanings: vec!["الانتشار".to_string(), "التوزع".to_string()],
-                strength: 0.8,
-                contexts: vec!["انتشار".to_string(), "تشعب".to_string()],
+        arabic_letters.insert(
+            'ش',
+            LetterIntelligence {
+                letter: 'ش',
+                language: "عربي".to_string(),
+                phonetic_meaning: PhoneticMeaning {
+                    core_meaning: "التشتت والتشعب".to_string(),
+                    secondary_meanings: vec!["الانتشار".to_string(), "التوزع".to_string()],
+                    strength: 0.8,
+                    contexts: vec!["انتشار".to_string(), "تشعب".to_string()],
+                },
+                visual_meaning: VisualMeaning {
+                    shape_description: "نقاط متعددة تشير للتشعب".to_string(),
+                    shape_meaning: "التشتت والانتشار".to_string(),
+                    direction_flow: "متعدد الاتجاهات".to_string(),
+                    natural_resemblance: vec!["أوراق الشجر".to_string(), "الأشعة".to_string()],
+                },
+                position_effects: {
+                    let mut effects = HashMap::new();
+                    effects.insert("بداية".to_string(), 0.8);
+                    effects.insert("وسط".to_string(), 0.7);
+                    effects.insert("نهاية".to_string(), 0.9);
+                    effects
+                },
+                letter_interactions: HashMap::new(),
             },
-            visual_meaning: VisualMeaning {
-                shape_description: "نقاط متعددة تشير للتشعب".to_string(),
-                shape_meaning: "التشتت والانتشار".to_string(),
-                direction_flow: "متعدد الاتجاهات".to_string(),
-                natural_resemblance: vec!["أوراق الشجر".to_string(), "الأشعة".to_string()],
-            },
-            position_effects: {
-                let mut effects = HashMap::new();
-                effects.insert("بداية".to_string(), 0.8);
-                effects.insert("وسط".to_string(), 0.7);
-                effects.insert("نهاية".to_string(), 0.9);
-                effects
-            },
-            letter_interactions: HashMap::new(),
-        });
+        );
 
         // إضافة المزيد من الحروف العربية...
         // (سيتم إكمالها تدريجياً)
@@ -272,9 +281,7 @@ impl LinguisticIntelligenceDB {
 
                 detailed_analysis.push_str(&format!(
                     "حرف '{}': {} (قوة: {:.2})\n",
-                    ch,
-                    letter_info.phonetic_meaning.core_meaning,
-                    letter_contribution
+                    ch, letter_info.phonetic_meaning.core_meaning, letter_contribution
                 ));
             }
         }
@@ -456,4 +463,217 @@ pub extern "C" fn albayan_rt_get_analysis_stats() -> u64 {
         return db.analysis_stats.words_analyzed;
     }
     0
+}
+
+// ========== Letter Semantics (سيماء الحروف) ==========
+// تصميم مرن قائم على ميزات مسماة قابلة للتوسعة لاحقاً
+use std::sync::OnceLock;
+
+#[derive(Debug, Clone, Default)]
+pub struct LetterSemanticEntry {
+    pub features: HashMap<String, f32>, // مثال مفاتيح: "shape:enclosure", "sound:friction", "polarity:pull"
+}
+
+static LETTER_SEM_DB: OnceLock<HashMap<char, LetterSemanticEntry>> = OnceLock::new();
+
+/// تهيئة افتراضية وفق القواعد المقدّمة (قابلة للتوسعة)
+pub fn ls_init_default() {
+    let mut db: HashMap<char, LetterSemanticEntry> = HashMap::new();
+
+    // سين: زحف/احتكاك + سور/التفاف
+    db.insert(
+        'س',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("sound:friction".to_string(), 0.9),
+                ("sound:crawl".to_string(), 0.8),
+                ("shape:wall".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    // ص/ض/ظ: إطار/بيضاوي وصيوان أذن
+    for ch in ['ص', 'ض', 'ظ'] {
+        db.insert(
+            ch,
+            LetterSemanticEntry {
+                features: HashMap::from([
+                    ("shape:oval".to_string(), 0.8),
+                    ("shape:enclosure".to_string(), 0.7),
+                ]),
+            },
+        );
+    }
+
+    // ق: دقة/استدقاق + بعد
+    db.insert(
+        'ق',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("polarity:precision".to_string(), 0.85),
+                ("concept:distance".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    // ل: سحب/لمّ/التفاف
+    db.insert(
+        'ل',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("polarity:pull".to_string(), 0.9),
+                ("shape:wrap".to_string(), 0.5),
+            ]),
+        },
+    );
+
+    // م: شفوي/فم/ضمّ
+    db.insert(
+        'م',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("place:labial".to_string(), 0.9),
+                ("concept:mouth".to_string(), 0.8),
+                ("polarity:contain".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    // ب: تشبّع/انتقال
+    db.insert(
+        'ب',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:saturation".to_string(), 0.75),
+                ("concept:transfer".to_string(), 0.75),
+            ]),
+        },
+    );
+
+    // خ: خير/خبث (قطبية)، نتركها كقطبية عامة
+    db.insert(
+        'خ',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("polarity:good".to_string(), 0.5),
+                ("polarity:bad".to_string(), 0.5),
+            ]),
+        },
+    );
+
+    // ش: انتشار/تشعّب
+    db.insert(
+        'ش',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:spread".to_string(), 0.9),
+                ("concept:branch".to_string(), 0.7),
+            ]),
+        },
+    );
+
+    // ر: تدفق/انسياب
+    db.insert(
+        'ر',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("sound:flow".to_string(), 0.9),
+                ("concept:branch".to_string(), 0.5),
+            ]),
+        },
+    );
+
+    // الإنجليزية: s (التواء/تموّج)، o (عجلة/اندفاع), p/b/d (كأدوات/مجرفة)
+    db.insert(
+        's',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("shape:snake".to_string(), 0.6),
+                ("sound:friction".to_string(), 0.7),
+                ("concept:wavy".to_string(), 0.6),
+            ]),
+        },
+    );
+    db.insert(
+        'o',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("shape:circle".to_string(), 0.9),
+                ("concept:roll".to_string(), 0.8),
+                ("concept:impulse".to_string(), 0.6),
+            ]),
+        },
+    );
+    for ch in ['p', 'b', 'd'] {
+        db.insert(
+            ch,
+            LetterSemanticEntry {
+                features: HashMap::from([
+                    ("shape:tool".to_string(), 0.6),
+                    ("concept:scoop".to_string(), 0.6),
+                ]),
+            },
+        );
+    }
+
+    let _ = LETTER_SEM_DB.set(db);
+}
+
+/// إضافة/تحديث حرف بميزات مسماة (مرن لتوسعة لاحقة)
+pub fn ls_register_letter(ch: char, features: Vec<(impl Into<String>, f32)>) {
+    let map = LETTER_SEM_DB.get_or_init(|| HashMap::new());
+    let mut entry = map.get(&ch).cloned().unwrap_or_default();
+    for (k, v) in features {
+        entry.features.insert(k.into(), v);
+    }
+    // OnceLock لا يتيح تعديل المكان مباشرة؛ ننسخ ثم نعيد البناء
+    let mut cloned = map.clone();
+    cloned.insert(ch, entry);
+    LETTER_SEM_DB.set(cloned).ok();
+}
+
+/// إنتاج متجه دلالي للكلمة + تقرير تفسير مساهمة كل حرف
+pub fn ls_word_vector(word: &str) -> (HashMap<String, f32>, Vec<(char, HashMap<String, f32>)>) {
+    let db = LETTER_SEM_DB.get_or_init(|| HashMap::new());
+    let mut acc: HashMap<String, f32> = HashMap::new();
+    let mut explain: Vec<(char, HashMap<String, f32>)> = Vec::new();
+
+    let chars: Vec<char> = word.chars().collect();
+    for (i, ch) in chars.iter().enumerate() {
+        if let Some(entry) = db.get(ch) {
+            let mut contrib = HashMap::new();
+            // وزن موضعي بسيط: أول/وسط/آخر
+            let w = if i == 0 {
+                1.0
+            } else if i == chars.len() - 1 {
+                0.9
+            } else {
+                0.8
+            } as f32;
+            for (k, v) in &entry.features {
+                let val = acc.get(k).cloned().unwrap_or(0.0) + v * w;
+                acc.insert(k.clone(), val);
+                contrib.insert(k.clone(), v * w);
+            }
+            explain.push((*ch, contrib));
+        }
+    }
+    (acc, explain)
+}
+
+#[cfg(test)]
+mod tests_letter_semantics {
+    use super::*;
+
+    #[test]
+    fn test_word_vector_qalam() {
+        ls_init_default();
+        let (vec, explain) = ls_word_vector("قلم");
+        // إشارات أساسية مستخلصة من وصفك: ق=دقة/بعد، ل=سحب، م=فم/ضم
+        assert!(vec.get("polarity:precision").copied().unwrap_or(0.0) > 0.5);
+        assert!(vec.get("polarity:pull").copied().unwrap_or(0.0) > 0.5);
+        assert!(vec.get("concept:mouth").copied().unwrap_or(0.0) > 0.5);
+        // تقرير تفسيري يحتوي على 3 أحرف على الأقل
+        assert!(explain.len() >= 3);
+    }
 }
