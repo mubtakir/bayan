@@ -835,7 +835,7 @@ pub fn initialize_linguistic_analyzer() {
 }
 
 /// الحصول على مرجع للمحلل اللغوي
-fn get_linguistic_analyzer() -> Option<std::sync::MutexGuard<'static, LinguisticWordAnalyzer>> {
+pub fn get_linguistic_analyzer() -> Option<std::sync::MutexGuard<'static, LinguisticWordAnalyzer>> {
     GLOBAL_LINGUISTIC_ANALYZER.get().map(|m| m.lock().unwrap())
 }
 

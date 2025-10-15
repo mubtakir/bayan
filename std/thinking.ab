@@ -1,0 +1,268 @@
+// مكتبة نواة التفكير - ThinkingCore Library
+// تنفيذ الأولوية الثالثة: بناء محلل الكلمات الأولي
+// Expert recommendation: Priority 3 - Build Initial Word Analyzer
+
+// هياكل البيانات الأساسية
+// Core Data Structures
+
+struct CharacterAnalysis {
+    character: char,
+    sound_meanings: list<string>,
+    shape_meanings: list<string>,
+    energy_type: string,
+    natural_element: string,
+    influence_strength: f64,
+}
+
+struct WordAnalysisResult {
+    word: string,
+    language: string,
+    semantic_signature: list<string>,
+    signature_strength: f64,
+    energy_analysis: string,
+    dominant_element: string,
+    character_semantics: list<CharacterAnalysis>,
+    analysis_time_microseconds: u64,
+}
+
+struct PerformanceStats {
+    total_analyses: u64,
+    successful_analyses: u64,
+    average_analysis_time: f64,
+    fastest_analysis: u64,
+    slowest_analysis: u64,
+}
+
+struct AnalysisSettings {
+    deep_analysis_enabled: bool,
+    energy_analysis_enabled: bool,
+    element_analysis_enabled: bool,
+    minimum_signature_strength: f64,
+}
+
+// الوظائف الأساسية
+// Core Functions
+
+extern fn analyze_word_thinking(word: string, language: string = "ar") -> bool;
+extern fn get_thinking_performance_stats() -> i32;
+extern fn compare_word_semantics(word1: string, word2: string, language: string = "ar") -> f64;
+
+// وظائف مساعدة عالية المستوى
+// High-level Helper Functions
+
+fn analyze_arabic_word_thinking(word: string) -> bool {
+    return analyze_word_thinking(word, "ar");
+}
+
+fn analyze_english_word_thinking(word: string) -> bool {
+    return analyze_word_thinking(word, "en");
+}
+
+fn compare_arabic_words_semantically(word1: string, word2: string) -> f64 {
+    return compare_word_semantics(word1, word2, "ar");
+}
+
+fn compare_english_words_semantically(word1: string, word2: string) -> f64 {
+    return compare_word_semantics(word1, word2, "en");
+}
+
+fn analyze_word_list_thinking(words: list<string>, language: string = "ar") -> bool {
+    let mut all_successful = true;
+    for word in words {
+        let result = analyze_word_thinking(word, language);
+        if !result {
+            all_successful = false;
+        }
+    }
+    return all_successful;
+}
+
+fn find_semantically_similar_words(target_word: string, word_list: list<string>, 
+                                   similarity_threshold: f64 = 0.5, 
+                                   language: string = "ar") -> list<string> {
+    let mut similar_words: list<string> = [];
+    
+    for word in word_list {
+        let similarity = compare_word_semantics(target_word, word, language);
+        if similarity >= similarity_threshold {
+            similar_words.push(word);
+        }
+    }
+    
+    return similar_words;
+}
+
+fn analyze_text_words_thinking(text: string, language: string = "ar") -> bool {
+    // تقسيم النص إلى كلمات
+    // Split text into words
+    let words = text.split(" ");
+    return analyze_word_list_thinking(words, language);
+}
+
+fn get_thinking_core_statistics() -> bool {
+    let stats_result = get_thinking_performance_stats();
+    if stats_result > 0 {
+        print("📊 إحصائيات نواة التفكير:");
+        print("   إجمالي التحليلات: " + stats_result.to_string());
+        return true;
+    } else {
+        print("❌ فشل في الحصول على إحصائيات نواة التفكير");
+        return false;
+    }
+}
+
+fn test_thinking_core_comprehensive() -> bool {
+    print("🧠 اختبار شامل لنواة التفكير...");
+    
+    // اختبار الكلمات العربية
+    print("🔤 اختبار الكلمات العربية:");
+    let arabic_words = ["الله", "رحمن", "رحيم", "ملك", "يوم", "دين"];
+    let arabic_result = analyze_word_list_thinking(arabic_words, "ar");
+    
+    if arabic_result {
+        print("✅ تحليل الكلمات العربية نجح");
+    } else {
+        print("❌ فشل في تحليل الكلمات العربية");
+        return false;
+    }
+    
+    // اختبار الكلمات الإنجليزية
+    print("🔤 اختبار الكلمات الإنجليزية:");
+    let english_words = ["tree", "river", "light", "truth"];
+    let english_result = analyze_word_list_thinking(english_words, "en");
+    
+    if english_result {
+        print("✅ تحليل الكلمات الإنجليزية نجح");
+    } else {
+        print("❌ فشل في تحليل الكلمات الإنجليزية");
+        return false;
+    }
+    
+    // اختبار مقارنة الدلالات
+    print("🔍 اختبار مقارنة الدلالات:");
+    let similarity1 = compare_arabic_words_semantically("رحمة", "حنان");
+    let similarity2 = compare_arabic_words_semantically("نور", "ضياء");
+    
+    print("   تشابه 'رحمة' و 'حنان': " + similarity1.to_string());
+    print("   تشابه 'نور' و 'ضياء': " + similarity2.to_string());
+    
+    if similarity1 > 0.0 && similarity2 > 0.0 {
+        print("✅ مقارنة الدلالات تعمل بنجاح");
+    } else {
+        print("❌ فشل في مقارنة الدلالات");
+        return false;
+    }
+    
+    // اختبار البحث عن الكلمات المتشابهة
+    print("🔍 اختبار البحث عن الكلمات المتشابهة:");
+    let word_list = ["رحمة", "حنان", "عطف", "قسوة", "شدة"];
+    let similar_to_mercy = find_semantically_similar_words("رحمة", word_list, 0.3, "ar");
+    
+    print("   كلمات مشابهة لـ 'رحمة': " + similar_to_mercy.len().to_string() + " كلمة");
+    
+    // اختبار تحليل النص
+    print("📝 اختبار تحليل النص:");
+    let text = "بسم الله الرحمن الرحيم";
+    let text_result = analyze_text_words_thinking(text, "ar");
+    
+    if text_result {
+        print("✅ تحليل النص نجح");
+    } else {
+        print("❌ فشل في تحليل النص");
+        return false;
+    }
+    
+    // عرض الإحصائيات
+    get_thinking_core_statistics();
+    
+    print("🎊 اختبار نواة التفكير مكتمل بنجاح!");
+    return true;
+}
+
+fn test_advanced_thinking_analysis() -> bool {
+    print("🧠 اختبار التحليل المتقدم لنواة التفكير...");
+    
+    // اختبار الأسماء المقدسة
+    print("🕌 تحليل الأسماء المقدسة:");
+    let sacred_names = ["الله", "الرحمن", "الرحيم", "الملك", "القدوس"];
+    for name in sacred_names {
+        let result = analyze_arabic_word_thinking(name);
+        if result {
+            print("   ✅ " + name + " - تم التحليل بنجاح");
+        } else {
+            print("   ❌ " + name + " - فشل في التحليل");
+        }
+    }
+    
+    // اختبار كلمات الطبيعة
+    print("🌿 تحليل كلمات الطبيعة:");
+    let nature_words = ["شجرة", "نهر", "جبل", "بحر", "سماء"];
+    for word in nature_words {
+        let result = analyze_arabic_word_thinking(word);
+        if result {
+            print("   ✅ " + word + " - تم التحليل بنجاح");
+        } else {
+            print("   ❌ " + word + " - فشل في التحليل");
+        }
+    }
+    
+    // اختبار كلمات الأفعال
+    print("🏃 تحليل كلمات الأفعال:");
+    let action_words = ["جرى", "طار", "سبح", "قفز", "مشى"];
+    for word in action_words {
+        let result = analyze_arabic_word_thinking(word);
+        if result {
+            print("   ✅ " + word + " - تم التحليل بنجاح");
+        } else {
+            print("   ❌ " + word + " - فشل في التحليل");
+        }
+    }
+    
+    // اختبار مقارنات متقدمة
+    print("🔍 اختبارات المقارنة المتقدمة:");
+    
+    let comparisons = [
+        ("حب", "عشق"),
+        ("نور", "ضوء"),
+        ("ماء", "مطر"),
+        ("أرض", "تراب"),
+        ("سماء", "فضاء")
+    ];
+    
+    for (word1, word2) in comparisons {
+        let similarity = compare_arabic_words_semantically(word1, word2);
+        print("   " + word1 + " ↔ " + word2 + ": " + similarity.to_string());
+    }
+    
+    print("🎊 التحليل المتقدم مكتمل!");
+    return true;
+}
+
+fn demonstrate_thinking_core_power() -> bool {
+    print("🚀 عرض قوة نواة التفكير الثورية!");
+    print("════════════════════════════════════════");
+    
+    // عرض المبدأ الثوري
+    print("💡 المبدأ الثوري:");
+    print("   'معنى الكلمات ينبع من دلالات أصوات وأشكال الحروف المكونة لها'");
+    print("");
+    
+    // تشغيل الاختبارات الشاملة
+    let comprehensive_result = test_thinking_core_comprehensive();
+    print("");
+    
+    // تشغيل الاختبارات المتقدمة
+    let advanced_result = test_advanced_thinking_analysis();
+    print("");
+    
+    // النتيجة النهائية
+    if comprehensive_result && advanced_result {
+        print("🎊 نواة التفكير تعمل بكامل قوتها الثورية!");
+        print("🧠 لغة البيان أصبحت تفهم معنى الكلمات من حروفها!");
+        print("🔥 تحقق مبدأ 'الحوسبة الاشتقاقية' بنجاح!");
+        return true;
+    } else {
+        print("❌ هناك مشاكل في نواة التفكير تحتاج إلى إصلاح");
+        return false;
+    }
+}

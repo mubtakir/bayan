@@ -13,6 +13,7 @@ pub mod linguistic_intelligence;  // User specification: Letter-based word analy
 pub mod nlu_engine;  // Expert recommendation: Priority 4 - Natural Language Understanding
 pub mod baserah_semantic_system;
 pub mod linguistic_db;  // User specification: Baserah Revolutionary Semantic System
+pub mod thinking_core;  // Expert recommendation: Priority 3 - Build Initial Word Analyzer
 
 pub use knowledge_base::*;
 pub use unification::*;
@@ -25,6 +26,7 @@ pub use linguistic_intelligence::*;
 pub use nlu_engine::*;
 pub use baserah_semantic_system::*;
 pub use linguistic_db::*;
+pub use thinking_core::*;
 
 /// Runtime initialization
 pub fn init_runtime() {
@@ -37,6 +39,8 @@ pub fn init_runtime() {
     // Initialize Baserah Revolutionary Semantic System
     initialize_baserah_semantic_system();
     initialize_linguistic_analyzer();
+    // Initialize ThinkingCore - Priority 3
+    initialize_thinking_core();
     // This will be called from generated LLVM code
 }
 
