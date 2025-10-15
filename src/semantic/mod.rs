@@ -49,6 +49,9 @@ impl SemanticAnalyzer {
         // Register std::torch functions (Expert recommendation: Priority 2)
         analyzer.register_std_torch_functions();
 
+        // Register std::math_ai functions (Expert specification: Priority 1)
+        analyzer.register_std_math_ai_functions();
+
         analyzer
     }
 
@@ -2086,6 +2089,11 @@ pub enum ResolvedType {
     TorchOptimizer,
     TorchTensor,
     TrainingResult,
+
+    // Math AI types (Expert specification: Priority 1)
+    Shape,
+    ShapeHandle,
+    GeometricShapeType,
 }
 
 /// Information about a relation
@@ -2792,6 +2800,81 @@ impl SemanticAnalyzer {
             name: "torch_get_device".to_string(),
             parameters: vec![],
             return_type: Some(ResolvedType::String),
+        });
+    }
+
+    /// Register std::math_ai functions (Expert specification: Priority 1)
+    fn register_std_math_ai_functions(&mut self) {
+        use crate::semantic::FunctionInfo;
+
+        // math_ai::shape::init() -> Result<(), string>
+        self.symbol_table.add_function_info("math_ai::shape::init", FunctionInfo {
+            name: "math_ai::shape::init".to_string(),
+            parameters: vec![],
+            return_type: Some(ResolvedType::Result(
+                Box::new(ResolvedType::Unit),
+                Box::new(ResolvedType::String)
+            )),
+        });
+
+        // math_ai::shape::from_equation(equation: string) -> Result<Shape, string>
+        self.symbol_table.add_function_info("math_ai::shape::from_equation", FunctionInfo {
+            name: "math_ai::shape::from_equation".to_string(),
+            parameters: vec![ResolvedType::String],
+            return_type: Some(ResolvedType::Result(
+                Box::new(ResolvedType::Shape),
+                Box::new(ResolvedType::String)
+            )),
+        });
+
+        // math_ai::shape::shape_from_equation(equation: string) -> Result<Shape, string>
+        self.symbol_table.add_function_info("math_ai::shape::shape_from_equation", FunctionInfo {
+            name: "math_ai::shape::shape_from_equation".to_string(),
+            parameters: vec![ResolvedType::String],
+            return_type: Some(ResolvedType::Result(
+                Box::new(ResolvedType::Shape),
+                Box::new(ResolvedType::String)
+            )),
+        });
+
+        // math_ai::shape::equation_from_shape(shape: Shape) -> Result<string, string>
+        self.symbol_table.add_function_info("math_ai::shape::equation_from_shape", FunctionInfo {
+            name: "math_ai::shape::equation_from_shape".to_string(),
+            parameters: vec![ResolvedType::Shape],
+            return_type: Some(ResolvedType::Result(
+                Box::new(ResolvedType::String),
+                Box::new(ResolvedType::String)
+            )),
+        });
+
+        // math_ai::shape::example_circle() -> Result<Shape, string>
+        self.symbol_table.add_function_info("math_ai::shape::example_circle", FunctionInfo {
+            name: "math_ai::shape::example_circle".to_string(),
+            parameters: vec![],
+            return_type: Some(ResolvedType::Result(
+                Box::new(ResolvedType::Shape),
+                Box::new(ResolvedType::String)
+            )),
+        });
+
+        // math_ai::shape::example_line() -> Result<Shape, string>
+        self.symbol_table.add_function_info("math_ai::shape::example_line", FunctionInfo {
+            name: "math_ai::shape::example_line".to_string(),
+            parameters: vec![],
+            return_type: Some(ResolvedType::Result(
+                Box::new(ResolvedType::Shape),
+                Box::new(ResolvedType::String)
+            )),
+        });
+
+        // math_ai::shape::example_parabola() -> Result<Shape, string>
+        self.symbol_table.add_function_info("math_ai::shape::example_parabola", FunctionInfo {
+            name: "math_ai::shape::example_parabola".to_string(),
+            parameters: vec![],
+            return_type: Some(ResolvedType::Result(
+                Box::new(ResolvedType::Shape),
+                Box::new(ResolvedType::String)
+            )),
         });
     }
 }

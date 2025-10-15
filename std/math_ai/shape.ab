@@ -1,0 +1,182 @@
+//! Shape Inference Module - وحدة استنتاج الأشكال
+//! 
+//! أول وحدة ذكاء رياضي في لغة البيان (Expert specification)
+//! تحويل المعادلات الرياضية إلى أشكال هندسية والعكس
+
+// Handle للشكل الهندسي
+type ShapeHandle = int;
+
+// FFI declarations للتفاعل مع Runtime
+extern fn albayan_rt_shape_engine_init() -> int;
+extern fn albayan_rt_shape_from_equation(equation: *const char) -> ShapeHandle;
+extern fn albayan_rt_equation_from_shape(handle: ShapeHandle) -> *const char;
+extern fn albayan_rt_free_equation_string(ptr: *mut char);
+extern fn albayan_rt_shape_destroy(handle: ShapeHandle) -> int;
+
+/// أنواع الأشكال الهندسية المدعومة
+enum GeometricShapeType {
+    Circle,
+    Rectangle, 
+    Line,
+    Parabola,
+    Ellipse,
+}
+
+/// شكل هندسي
+struct Shape {
+    handle: ShapeHandle;
+    shape_type: GeometricShapeType;
+    equation: string;
+}
+
+impl Shape {
+    /// إنشاء شكل من معادلة رياضية (Expert specification)
+    fn from_equation(equation: string) -> Result<Shape, string> {
+        // تهيئة المحرك إذا لم يكن مهيأ
+        let init_result = albayan_rt_shape_engine_init();
+        if init_result != 1 {
+            return Err("فشل في تهيئة محرك الأشكال");
+        }
+        
+        // تحويل السلسلة إلى مؤشر C
+        let equation_ptr = equation.as_ptr();
+        
+        // استدعاء دالة Runtime
+        let handle = albayan_rt_shape_from_equation(equation_ptr);
+        if handle == 0 {
+            return Err("فشل في تحليل المعادلة");
+        }
+        
+        // تحديد نوع الشكل بناءً على المعادلة
+        let shape_type = determine_shape_type(equation);
+        
+        Ok(Shape {
+            handle,
+            shape_type,
+            equation,
+        })
+    }
+    
+    /// تحويل الشكل إلى معادلة رياضية (Expert specification)
+    fn to_equation(self) -> Result<string, string> {
+        let equation_ptr = albayan_rt_equation_from_shape(self.handle);
+        if equation_ptr.is_null() {
+            return Err("فشل في تحويل الشكل إلى معادلة");
+        }
+        
+        // تحويل المؤشر إلى سلسلة
+        let equation = unsafe { string::from_ptr(equation_ptr) };
+        
+        // تحرير الذاكرة
+        albayan_rt_free_equation_string(equation_ptr as *mut char);
+        
+        Ok(equation)
+    }
+    
+    /// الحصول على نوع الشكل
+    fn shape_type(self) -> GeometricShapeType {
+        self.shape_type
+    }
+    
+    /// الحصول على المعادلة الأصلية
+    fn equation(self) -> string {
+        self.equation.clone()
+    }
+    
+    /// الحصول على المعرف
+    fn handle(self) -> ShapeHandle {
+        self.handle
+    }
+}
+
+impl Drop for Shape {
+    fn drop(self) {
+        albayan_rt_shape_destroy(self.handle);
+    }
+}
+
+/// تحديد نوع الشكل بناءً على المعادلة
+fn determine_shape_type(equation: string) -> GeometricShapeType {
+    if equation.contains("x²") && equation.contains("y²") && equation.contains("=") {
+        GeometricShapeType::Circle
+    } else if equation.contains("y=") && equation.contains("x²") {
+        GeometricShapeType::Parabola
+    } else if equation.contains("=") && !equation.contains("²") {
+        GeometricShapeType::Line
+    } else if equation.contains("≤") {
+        GeometricShapeType::Rectangle
+    } else {
+        GeometricShapeType::Ellipse
+    }
+}
+
+// ===== Public API Functions (Expert specification) =====
+
+/// تهيئة محرك استنتاج الأشكال
+fn init() -> Result<(), string> {
+    let result = albayan_rt_shape_engine_init();
+    if result == 1 {
+        Ok(())
+    } else {
+        Err("فشل في تهيئة محرك الأشكال")
+    }
+}
+
+/// إنشاء شكل من معادلة (دالة مساعدة)
+fn shape_from_equation(equation: string) -> Result<Shape, string> {
+    Shape::from_equation(equation)
+}
+
+/// تحويل شكل إلى معادلة (دالة مساعدة)
+fn equation_from_shape(shape: Shape) -> Result<string, string> {
+    shape.to_equation()
+}
+
+// ===== Example Usage Functions (Expert validation) =====
+
+/// مثال: إنشاء دائرة من معادلة
+fn example_circle() -> Result<Shape, string> {
+    shape_from_equation("x² + y² = 25")
+}
+
+/// مثال: إنشاء خط مستقيم من معادلة
+fn example_line() -> Result<Shape, string> {
+    shape_from_equation("y = 2x + 3")
+}
+
+/// مثال: إنشاء قطع مكافئ من معادلة
+fn example_parabola() -> Result<Shape, string> {
+    shape_from_equation("y = x²")
+}
+
+/// مثال: تحويل شكل إلى معادلة والعكس
+fn example_round_trip(equation: string) -> Result<string, string> {
+    // إنشاء شكل من المعادلة
+    let shape = shape_from_equation(equation)?;
+    
+    // تحويل الشكل إلى معادلة
+    let result_equation = equation_from_shape(shape)?;
+    
+    Ok(result_equation)
+}
+
+/// مثال: مقارنة شكلين
+fn example_compare_shapes(equation1: string, equation2: string) -> Result<bool, string> {
+    let shape1 = shape_from_equation(equation1)?;
+    let shape2 = shape_from_equation(equation2)?;
+    
+    // مقارنة بسيطة بناءً على النوع
+    Ok(shape1.shape_type() == shape2.shape_type())
+}
+
+/// مثال شامل: تحليل مجموعة من المعادلات
+fn example_analyze_equations(equations: List<string>) -> Result<List<GeometricShapeType>, string> {
+    let mut shape_types: List<GeometricShapeType> = [];
+    
+    for equation in equations {
+        let shape = shape_from_equation(equation)?;
+        shape_types.push(shape.shape_type());
+    }
+    
+    Ok(shape_types)
+}

@@ -9,6 +9,7 @@ pub use outcomes::*;
 pub use adaptive_equations::*;
 pub use core::*;
 pub use api::*;
+pub use shape::*;
 
 /// الوحدات الفرعية
 pub mod objects;
@@ -17,6 +18,7 @@ pub mod outcomes;
 pub mod adaptive_equations;
 pub mod core;
 pub mod api;
+pub mod shape;
 
 /// دوال الواجهة الرئيسية للاستخدام السريع
 /// Expert insight: "نقاط دخول بسيطة للمطورين"
@@ -68,25 +70,25 @@ pub const DESCRIPTION: string = "نظام الذكاء الاصطناعي الر
 /// أمثلة للاستخدام
 pub mod examples {
     use super::*;
-    
+
     /// مثال على حل معادلة تربيعية
     pub fn quadratic_equation_example() -> Result<MathematicalSolution, string> {
         let mut ai = create_math_ai();
         ai.solve_problem("حل المعادلة التربيعية: x² + 2x - 3 = 0".to_string())
     }
-    
+
     /// مثال على تحليل دالة
     pub fn function_analysis_example() -> Result<EquationAnalysis, string> {
         let mut ai = create_math_ai();
         ai.analyze_equation("f(x) = sin(x) + cos(x)".to_string())
     }
-    
+
     /// مثال على تحويل معادلة دائرة إلى شكل
     pub fn circle_equation_to_shape_example() -> Result<GeometricShape, string> {
         let mut ai = create_math_ai();
         ai.equation_to_shape("x² + y² = 25".to_string())
     }
-    
+
     /// مثال على إنشاء تصور فني لمعادلة
     pub fn artistic_visualization_example() -> Result<ImageData, string> {
         let mut ai = create_math_ai();
@@ -100,11 +102,11 @@ pub mod examples {
         };
         ai.create_artistic_visualization("y = x²".to_string(), style)
     }
-    
+
     /// مثال على تدريب معادلة تكيفية
     pub fn adaptive_equation_training_example() -> Result<AdaptationResult, string> {
         let mut ai = create_math_ai();
-        
+
         // إنشاء بيانات تدريب تجريبية
         let training_data = TrainingData {
             inputs: vec![
@@ -127,7 +129,7 @@ pub mod examples {
                 diversity: 0.8,
             },
         };
-        
+
         ai.train_adaptive_equation("linear_model_1".to_string(), training_data)
     }
 }
@@ -135,13 +137,13 @@ pub mod examples {
 /// اختبارات النظام
 pub mod tests {
     use super::*;
-    
+
     /// اختبار إنشاء النظام
     pub fn test_system_creation() -> bool {
         let ai = create_math_ai();
         ai.initialized
     }
-    
+
     /// اختبار حل مشكلة بسيطة
     pub fn test_simple_problem_solving() -> bool {
         match solve("2 + 2".to_string()) {
@@ -149,7 +151,7 @@ pub mod tests {
             Err(_) => false,
         }
     }
-    
+
     /// اختبار تحليل معادلة
     pub fn test_equation_analysis() -> bool {
         match analyze("y = mx + b".to_string()) {
@@ -157,7 +159,7 @@ pub mod tests {
             Err(_) => false,
         }
     }
-    
+
     /// اختبار تحويل معادلة إلى شكل
     pub fn test_equation_to_shape_conversion() -> bool {
         match equation_to_shape("x² + y² = 1".to_string()) {
@@ -165,7 +167,7 @@ pub mod tests {
             Err(_) => false,
         }
     }
-    
+
     /// تشغيل جميع الاختبارات
     pub fn run_all_tests() -> TestResults {
         TestResults {
@@ -188,12 +190,12 @@ pub struct TestResults {
 impl TestResults {
     /// هل جميع الاختبارات نجحت؟
     pub fn all_passed(&self) -> bool {
-        self.system_creation && 
-        self.simple_solving && 
-        self.equation_analysis && 
+        self.system_creation &&
+        self.simple_solving &&
+        self.equation_analysis &&
         self.shape_conversion
     }
-    
+
     /// عدد الاختبارات الناجحة
     pub fn passed_count(&self) -> int {
         let mut count = 0;
@@ -203,7 +205,7 @@ impl TestResults {
         if self.shape_conversion { count += 1; }
         count
     }
-    
+
     /// النسبة المئوية للنجاح
     pub fn success_rate(&self) -> float {
         self.passed_count() as float / 4.0

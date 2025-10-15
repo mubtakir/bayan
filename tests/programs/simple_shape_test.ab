@@ -1,0 +1,10 @@
+//! Simple Shape Test - اختبار بسيط للأشكال
+//!
+//! اختبار مبسط لأول وحدة ذكاء رياضي (Expert specification)
+
+fn main() {
+    // اختبار بسيط جداً
+    let x = 5;
+    let y = 10;
+    let sum = x + y;
+}

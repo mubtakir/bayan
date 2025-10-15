@@ -6,7 +6,8 @@ pub mod unification;
 pub mod solver;
 pub mod api;
 pub mod ai;  // Expert recommendation: Priority 1 - AI Module
-pub mod torch;  // Expert recommendation: Priority 2 - PyTorch Training
+pub mod torch;
+pub mod shape_inference;  // Expert recommendation: Priority 2 - PyTorch Training
 
 pub use knowledge_base::*;
 pub use unification::*;

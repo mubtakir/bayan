@@ -521,3 +521,7 @@ pub extern "C" fn albayan_rt_solution_cleanup(solution_handle: u64) -> c_int {
 
     -1 // Error
 }
+
+// ===== Shape Inference Engine API (Expert specification) =====
+
+// Shape Inference functions are now directly exported from shape_inference module

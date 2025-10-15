@@ -86,6 +86,9 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         // Declare PyTorch runtime FFI functions (Expert recommendation: Priority 2)
         generator.declare_torch_runtime_functions()?;
 
+        // Declare Shape Inference runtime FFI functions (Expert specification: Priority 1)
+        generator.declare_shape_runtime_functions()?;
+
         Ok(generator)
     }
 
@@ -799,6 +802,142 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                     get_stats_fn,
                     &[],
                     "stats_ptr"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            // New Shape Inference functions (Expert specification: Priority 1)
+            "math_ai::shape::init" => {
+                if !arguments.is_empty() {
+                    return Err(anyhow!("math_ai::shape::init() expects no arguments"));
+                }
+
+                // Call albayan_rt_shape_engine_init
+                let init_fn = self.module.get_function("albayan_rt_shape_engine_init")
+                    .ok_or_else(|| anyhow!("Shape engine init function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    init_fn,
+                    &[],
+                    "shape_init_result"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "math_ai::shape::from_equation" | "math_ai::shape::shape_from_equation" => {
+                if arguments.len() != 1 {
+                    return Err(anyhow!("shape_from_equation() expects exactly one argument"));
+                }
+
+                // Generate equation string argument
+                let equation_arg = self.generate_expression(&arguments[0])?;
+
+                // Convert to C string if needed
+                let equation_ptr = if equation_arg.is_pointer_value() {
+                    equation_arg.into_pointer_value()
+                } else {
+                    // Create string literal and get pointer
+                    let string_global = self.builder.build_global_string_ptr(
+                        &format!("{}", equation_arg),
+                        "equation_str"
+                    )?;
+                    string_global.as_pointer_value()
+                };
+
+                // Call albayan_rt_shape_from_equation
+                let shape_from_equation_fn = self.module.get_function("albayan_rt_shape_from_equation")
+                    .ok_or_else(|| anyhow!("Shape from equation function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    shape_from_equation_fn,
+                    &[equation_ptr.into()],
+                    "shape_handle"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "math_ai::shape::equation_from_shape" => {
+                if arguments.len() != 1 {
+                    return Err(anyhow!("equation_from_shape() expects exactly one argument"));
+                }
+
+                // Generate shape handle argument
+                let shape_handle = self.generate_expression(&arguments[0])?;
+
+                // Call albayan_rt_equation_from_shape
+                let equation_from_shape_fn = self.module.get_function("albayan_rt_equation_from_shape")
+                    .ok_or_else(|| anyhow!("Equation from shape function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    equation_from_shape_fn,
+                    &[shape_handle.into()],
+                    "equation_ptr"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "math_ai::shape::example_circle" => {
+                if !arguments.is_empty() {
+                    return Err(anyhow!("example_circle() expects no arguments"));
+                }
+
+                // Create "x² + y² = 25" string
+                let equation_str = self.builder.build_global_string_ptr("x² + y² = 25", "circle_eq")?;
+
+                // Call albayan_rt_shape_from_equation
+                let shape_from_equation_fn = self.module.get_function("albayan_rt_shape_from_equation")
+                    .ok_or_else(|| anyhow!("Shape from equation function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    shape_from_equation_fn,
+                    &[equation_str.as_pointer_value().into()],
+                    "circle_shape"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "math_ai::shape::example_line" => {
+                if !arguments.is_empty() {
+                    return Err(anyhow!("example_line() expects no arguments"));
+                }
+
+                // Create "y = 2x + 3" string
+                let equation_str = self.builder.build_global_string_ptr("y = 2x + 3", "line_eq")?;
+
+                // Call albayan_rt_shape_from_equation
+                let shape_from_equation_fn = self.module.get_function("albayan_rt_shape_from_equation")
+                    .ok_or_else(|| anyhow!("Shape from equation function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    shape_from_equation_fn,
+                    &[equation_str.as_pointer_value().into()],
+                    "line_shape"
+                )?;
+
+                Ok(call_result.try_as_basic_value().left().unwrap())
+            },
+
+            "math_ai::shape::example_parabola" => {
+                if !arguments.is_empty() {
+                    return Err(anyhow!("example_parabola() expects no arguments"));
+                }
+
+                // Create "y = x²" string
+                let equation_str = self.builder.build_global_string_ptr("y = x²", "parabola_eq")?;
+
+                // Call albayan_rt_shape_from_equation
+                let shape_from_equation_fn = self.module.get_function("albayan_rt_shape_from_equation")
+                    .ok_or_else(|| anyhow!("Shape from equation function not declared"))?;
+
+                let call_result = self.builder.build_call(
+                    shape_from_equation_fn,
+                    &[equation_str.as_pointer_value().into()],
+                    "parabola_shape"
                 )?;
 
                 Ok(call_result.try_as_basic_value().left().unwrap())
@@ -3248,5 +3387,35 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         )?;
 
         Ok(result_handle.try_as_basic_value().left().unwrap())
+    }
+
+    /// Declare Shape Inference runtime FFI functions (Expert specification: Priority 1)
+    fn declare_shape_runtime_functions(&mut self) -> Result<()> {
+        let i32_type = self.context.i32_type();
+        let i64_type = self.context.i64_type();
+        let ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+        let mut_ptr_type = self.context.i8_type().ptr_type(AddressSpace::default());
+
+        // albayan_rt_shape_engine_init() -> i32
+        let init_fn_type = i32_type.fn_type(&[], false);
+        self.module.add_function("albayan_rt_shape_engine_init", init_fn_type, None);
+
+        // albayan_rt_shape_from_equation(equation: *const char) -> usize
+        let from_equation_fn_type = i64_type.fn_type(&[ptr_type.into()], false);
+        self.module.add_function("albayan_rt_shape_from_equation", from_equation_fn_type, None);
+
+        // albayan_rt_equation_from_shape(handle: usize) -> *const char
+        let to_equation_fn_type = ptr_type.fn_type(&[i64_type.into()], false);
+        self.module.add_function("albayan_rt_equation_from_shape", to_equation_fn_type, None);
+
+        // albayan_rt_free_equation_string(ptr: *mut char)
+        let free_string_fn_type = self.context.void_type().fn_type(&[mut_ptr_type.into()], false);
+        self.module.add_function("albayan_rt_free_equation_string", free_string_fn_type, None);
+
+        // albayan_rt_shape_destroy(handle: usize) -> i32
+        let destroy_fn_type = i32_type.fn_type(&[i64_type.into()], false);
+        self.module.add_function("albayan_rt_shape_destroy", destroy_fn_type, None);
+
+        Ok(())
     }
 }
