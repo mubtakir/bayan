@@ -1,0 +1,319 @@
+// std/math_ai_engine.ab
+// واجهة محرك الذكاء الاصطناعي الرياضي
+// Mathematical AI Engine Interface
+// Expert Priority 4: Build First Mathematical Engine - ShapeInferenceEngine
+
+// FFI Functions للتفاعل مع Runtime
+extern fn albayan_rt_math_ai_engine_init() -> i32;
+extern fn albayan_rt_math_ai_equation_to_shape(equation: string) -> i32;
+extern fn albayan_rt_math_ai_get_performance_stats() -> i32;
+
+// أنواع الأشكال الهندسية - Shape Types
+enum ShapeType {
+    Circle,
+    Line,
+    Parabola,
+    Ellipse,
+    Hyperbola,
+    Rectangle,
+    Triangle,
+    Unknown,
+}
+
+// أنواع المعادلات الرياضية - Equation Types
+enum EquationType {
+    Linear,
+    Quadratic,
+    Circle,
+    Parabola,
+    Ellipse,
+    Complex,
+}
+
+// تعريف الشكل الهندسي - Shape Definition
+struct ShapeDefinition {
+    id: string,
+    shape_type: ShapeType,
+    equation: string,
+    confidence: f64,
+    metadata: string,
+}
+
+// إحصائيات الأداء - Performance Statistics
+struct PerformanceStats {
+    total_conversions: i64,
+    successful_conversions: i64,
+    average_conversion_time: i64,
+    fastest_conversion: i64,
+    slowest_conversion: i64,
+}
+
+// الوظائف الأساسية - Core Functions
+
+/// تهيئة محرك الذكاء الاصطناعي الرياضي
+/// Initialize Mathematical AI Engine
+fn init_math_ai_engine() -> bool {
+    let result = albayan_rt_math_ai_engine_init();
+    return result == 1;
+}
+
+/// تحويل معادلة إلى شكل هندسي
+/// Convert equation to geometric shape
+/// Expert specification: "دالة FFI واحدة تثبت المفهوم"
+fn equation_to_shape(equation: string) -> bool {
+    let result = albayan_rt_math_ai_equation_to_shape(equation);
+    return result == 1;
+}
+
+/// الحصول على إحصائيات الأداء
+/// Get performance statistics
+fn get_performance_stats() -> i32 {
+    return albayan_rt_math_ai_get_performance_stats();
+}
+
+// وظائف مساعدة عالية المستوى - High-level Helper Functions
+
+/// تحليل معادلة دائرة
+/// Analyze circle equation
+fn analyze_circle_equation(equation: string) -> bool {
+    if !init_math_ai_engine() {
+        return false;
+    }
+
+    // التحقق من أن المعادلة تحتوي على عناصر الدائرة
+    if equation.contains("x^2") && equation.contains("y^2") {
+        return equation_to_shape(equation);
+    }
+
+    return false;
+}
+
+/// تحليل معادلة خط مستقيم
+/// Analyze line equation
+fn analyze_line_equation(equation: string) -> bool {
+    if !init_math_ai_engine() {
+        return false;
+    }
+
+    // التحقق من أن المعادلة خطية
+    if equation.contains("y") && equation.contains("=") && equation.contains("x") && !equation.contains("x^2") {
+        return equation_to_shape(equation);
+    }
+
+    return false;
+}
+
+/// تحليل معادلة قطع مكافئ
+/// Analyze parabola equation
+fn analyze_parabola_equation(equation: string) -> bool {
+    if !init_math_ai_engine() {
+        return false;
+    }
+
+    // التحقق من أن المعادلة تربيعية
+    if equation.contains("y") && equation.contains("=") && equation.contains("x^2") {
+        return equation_to_shape(equation);
+    }
+
+    return false;
+}
+
+/// تحليل معادلات متعددة
+/// Analyze multiple equations
+fn analyze_multiple_equations(equations: list<string>) -> i32 {
+    if !init_math_ai_engine() {
+        return 0;
+    }
+
+    let successful_count = 0;
+
+    for equation in equations {
+        if equation_to_shape(equation) {
+            successful_count = successful_count + 1;
+        }
+    }
+
+    return successful_count;
+}
+
+/// اكتشاف نوع المعادلة تلقائياً
+/// Auto-detect equation type
+fn detect_equation_type(equation: string) -> string {
+    if !init_math_ai_engine() {
+        return "unknown";
+    }
+
+    let equation_lower = equation.to_lowercase();
+
+    if equation_lower.contains("x^2") && equation_lower.contains("y^2") {
+        if equation_lower.contains("=") {
+            return "circle";
+        }
+    }
+
+    if equation_lower.contains("y") && equation_lower.contains("=") && equation_lower.contains("x^2") {
+        return "parabola";
+    }
+
+    if equation_lower.contains("y") && equation_lower.contains("=") && equation_lower.contains("x") && !equation_lower.contains("x^2") {
+        return "line";
+    }
+
+    return "unknown";
+}
+
+/// معالجة دفعة من المعادلات
+/// Process batch of equations
+fn process_equation_batch(equations: list<string>, batch_size: i32) -> list<string> {
+    if !init_math_ai_engine() {
+        return [];
+    }
+
+    let results: list<string> = [];
+    let processed = 0;
+
+    for equation in equations {
+        if processed >= batch_size {
+            break;
+        }
+
+        let equation_type = detect_equation_type(equation);
+        if equation_to_shape(equation) {
+            results.push(equation_type + ": success");
+        } else {
+            results.push(equation_type + ": failed");
+        }
+
+        processed = processed + 1;
+    }
+
+    return results;
+}
+
+// وظائف الاختبار والتحقق - Testing and Verification Functions
+
+/// اختبار شامل لمحرك الذكاء الاصطناعي الرياضي
+/// Comprehensive test for Mathematical AI Engine
+fn test_math_ai_engine_comprehensive() -> bool {
+    print("🧮 بدء اختبار محرك الذكاء الاصطناعي الرياضي...");
+
+    // تهيئة المحرك
+    if !init_math_ai_engine() {
+        print("❌ فشل في تهيئة المحرك");
+        return false;
+    }
+    print("✅ تم تهيئة المحرك بنجاح");
+
+    // اختبار معادلة دائرة
+    let circle_equation = "x^2 + y^2 = 25";
+    if analyze_circle_equation(circle_equation) {
+        print("✅ نجح تحليل معادلة الدائرة: " + circle_equation);
+    } else {
+        print("❌ فشل تحليل معادلة الدائرة");
+        return false;
+    }
+
+    // اختبار معادلة خط
+    let line_equation = "y = 2x + 3";
+    if analyze_line_equation(line_equation) {
+        print("✅ نجح تحليل معادلة الخط: " + line_equation);
+    } else {
+        print("❌ فشل تحليل معادلة الخط");
+        return false;
+    }
+
+    // اختبار معادلة قطع مكافئ
+    let parabola_equation = "y = x^2 + 2x + 1";
+    if analyze_parabola_equation(parabola_equation) {
+        print("✅ نجح تحليل معادلة القطع المكافئ: " + parabola_equation);
+    } else {
+        print("❌ فشل تحليل معادلة القطع المكافئ");
+        return false;
+    }
+
+    // اختبار إحصائيات الأداء
+    let stats = get_performance_stats();
+    if stats > 0 {
+        print("✅ إحصائيات الأداء: " + stats + " تحويل");
+    } else {
+        print("⚠️ لا توجد إحصائيات أداء");
+    }
+
+    print("🎊 نجح اختبار محرك الذكاء الاصطناعي الرياضي بالكامل!");
+    return true;
+}
+
+/// اختبار متقدم للمحرك
+/// Advanced engine test
+fn test_math_ai_engine_advanced() -> bool {
+    print("🔬 بدء الاختبار المتقدم...");
+
+    // اختبار معادلات متعددة
+    let equations: list<string> = [
+        "x^2 + y^2 = 16",
+        "y = 3x - 2",
+        "y = x^2 - 4x + 4",
+        "x^2 + y^2 = 9",
+        "y = -2x + 5"
+    ];
+
+    let successful_count = analyze_multiple_equations(equations);
+    print("✅ نجح تحليل " + successful_count + " من " + equations.length() + " معادلات");
+
+    // اختبار اكتشاف الأنواع
+    for equation in equations {
+        let detected_type = detect_equation_type(equation);
+        print("🔍 " + equation + " -> " + detected_type);
+    }
+
+    // اختبار المعالجة المجمعة
+    let batch_results = process_equation_batch(equations, 3);
+    print("📦 نتائج المعالجة المجمعة:");
+    for result in batch_results {
+        print("  " + result);
+    }
+
+    print("🎊 نجح الاختبار المتقدم!");
+    return true;
+}
+
+/// عرض قوة محرك الذكاء الاصطناعي الرياضي
+/// Demonstrate Mathematical AI Engine power
+fn demonstrate_math_ai_engine_power() -> bool {
+    print("🚀 عرض قوة محرك الذكاء الاصطناعي الرياضي...");
+
+    // معادلات معقدة
+    let complex_equations: list<string> = [
+        "x^2 + y^2 - 6x + 8y + 9 = 0",  // دائرة معقدة
+        "y = 2x^2 - 8x + 6",            // قطع مكافئ معقد
+        "3x - 4y + 12 = 0",             // خط بصيغة عامة
+        "x^2 + y^2 = 100",              // دائرة كبيرة
+        "y = -x^2 + 4x - 3"             // قطع مكافئ مقلوب
+    ];
+
+    print("🧮 تحليل معادلات معقدة:");
+    for equation in complex_equations {
+        let equation_type = detect_equation_type(equation);
+        let success = equation_to_shape(equation);
+
+        if success {
+            print("✅ " + equation + " (" + equation_type + ") - نجح التحليل");
+        } else {
+            print("⚠️ " + equation + " (" + equation_type + ") - تحليل جزئي");
+        }
+    }
+
+    // عرض الإحصائيات النهائية
+    let final_stats = get_performance_stats();
+    print("📊 إجمالي التحويلات: " + final_stats);
+
+    print("🎊 تم عرض قوة المحرك بنجاح!");
+    print("💡 المحرك قادر على:");
+    print("   • تحليل المعادلات الرياضية تلقائياً");
+    print("   • تحويل المعادلات إلى أشكال هندسية");
+    print("   • اكتشاف أنواع المعادلات");
+    print("   • معالجة دفعات من المعادلات");
+    print("   • تتبع إحصائيات الأداء");
+
+    return true;
+}

@@ -113,6 +113,9 @@ impl SimpleCodeGenerator {
                 AnnotatedItem::Impl(_) => {
                     output.push_str("// Impl definition\n");   // NEWLY ADDED: Expert recommendation
                 }
+                AnnotatedItem::Using(_) => {
+                    output.push_str("// Using declaration\n");  // NEWLY ADDED: Expert fix for using statements
+                }
             }
         }
 

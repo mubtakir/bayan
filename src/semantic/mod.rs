@@ -52,6 +52,9 @@ impl SemanticAnalyzer {
         // Register std::math_ai functions (Expert specification: Priority 1)
         analyzer.register_std_math_ai_functions();
 
+        // Register built-in functions (Expert fix: print function)
+        analyzer.register_builtin_functions();
+
         analyzer
     }
 
@@ -149,6 +152,10 @@ impl SemanticAnalyzer {
             Item::Impl(impl_decl) => {
                 let annotated_impl = self.analyze_impl(impl_decl)?;  // NEWLY ADDED: Expert recommendation
                 Ok(AnnotatedItem::Impl(annotated_impl))
+            }
+            Item::Using(using_decl) => {
+                let annotated_using = self.analyze_using(using_decl)?;  // NEWLY ADDED: Expert fix for using statements
+                Ok(AnnotatedItem::Using(annotated_using))
             }
             _ => todo!("Analysis for other item types not yet implemented"),
         }
@@ -831,7 +838,9 @@ impl SemanticAnalyzer {
             }
             Expression::Identifier(name) => {
                 let var_info = self.symbol_table.lookup_variable(name)
-                    .ok_or_else(|| SemanticError::UndefinedVariable(name.clone()))?;
+                    .ok_or_else(|| {
+                        SemanticError::UndefinedVariable(name.clone())
+                    })?;
 
                 // Check read access (Expert recommendation)
                 self.ownership_analyzer.check_read_access(name)?;
@@ -1193,13 +1202,22 @@ impl SemanticAnalyzer {
 
     /// Analyze a simple function call (Expert recommendation: Priority 1)
     fn analyze_function_call(&mut self, function_name: &str, arguments: &[Expression]) -> Result<AnnotatedExpression, SemanticError> {
+
+
         // Look up the function in the symbol table
         let func_info = self.symbol_table.lookup_function(function_name)
-            .ok_or_else(|| SemanticError::UndefinedVariable(function_name.to_string()))?
+            .ok_or_else(|| {
+
+                SemanticError::UndefinedVariable(function_name.to_string())
+            })?
             .clone(); // Clone to avoid borrowing issues
 
+
+
         // Check argument count
+
         if arguments.len() != func_info.parameters.len() {
+
             return Err(SemanticError::TypeMismatch {
                 expected: ResolvedType::Unit, // Placeholder
                 found: ResolvedType::Unit,    // Placeholder
@@ -1212,8 +1230,8 @@ impl SemanticAnalyzer {
             let annotated_arg = self.analyze_expression(arg)?;
             let expected_type = &func_info.parameters[i];
 
-            // Simple type compatibility check
-            if annotated_arg.result_type != *expected_type {
+            // Type compatibility check with generic parameter support (Expert fix: print function)
+            if !self.is_type_compatible(&annotated_arg.result_type, expected_type) {
                 return Err(SemanticError::TypeMismatch {
                     expected: expected_type.clone(),
                     found: annotated_arg.result_type.clone(),
@@ -1224,6 +1242,7 @@ impl SemanticAnalyzer {
         }
 
         let return_type = func_info.return_type.clone().unwrap_or(ResolvedType::Unit);
+
 
         Ok(AnnotatedExpression {
             expr: AnnotatedExpressionKind::Call {
@@ -1800,6 +1819,7 @@ pub enum AnnotatedItem {
     Impl(AnnotatedImpl),        // NEWLY ADDED: Expert recommendation
     Relation(AnnotatedRelation),
     Rule(AnnotatedRule),
+    Using(AnnotatedUsing),      // NEWLY ADDED: Expert fix for using statements
 }
 
 #[derive(Debug, Clone)]
@@ -1891,6 +1911,12 @@ pub struct AnnotatedRelation {
 pub struct AnnotatedRule {
     pub head: AnnotatedLogicTerm,
     pub body: Vec<AnnotatedLogicTerm>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AnnotatedUsing {
+    pub module_path: String,
+    pub imports: Vec<String>,  // List of imported items
 }
 
 #[derive(Debug, Clone)]
@@ -2875,6 +2901,160 @@ impl SemanticAnalyzer {
                 Box::new(ResolvedType::Shape),
                 Box::new(ResolvedType::String)
             )),
+        });
+
+        // Add std::math_ai_engine functions (Expert Priority 4)
+        // init_math_ai_engine() -> bool
+        self.symbol_table.add_function_info("init_math_ai_engine", FunctionInfo {
+            name: "init_math_ai_engine".to_string(),
+            parameters: vec![],
+            return_type: Some(ResolvedType::Bool),
+        });
+
+        // equation_to_shape(equation: string) -> bool
+        self.symbol_table.add_function_info("equation_to_shape", FunctionInfo {
+            name: "equation_to_shape".to_string(),
+            parameters: vec![ResolvedType::String],
+            return_type: Some(ResolvedType::Bool),
+        });
+
+        // get_performance_stats() -> i32
+        self.symbol_table.add_function_info("get_performance_stats", FunctionInfo {
+            name: "get_performance_stats".to_string(),
+            parameters: vec![],
+            return_type: Some(ResolvedType::Int),
+        });
+
+        // analyze_circle_equation(equation: string) -> bool
+        self.symbol_table.add_function_info("analyze_circle_equation", FunctionInfo {
+            name: "analyze_circle_equation".to_string(),
+            parameters: vec![ResolvedType::String],
+            return_type: Some(ResolvedType::Bool),
+        });
+
+        // analyze_line_equation(equation: string) -> bool
+        self.symbol_table.add_function_info("analyze_line_equation", FunctionInfo {
+            name: "analyze_line_equation".to_string(),
+            parameters: vec![ResolvedType::String],
+            return_type: Some(ResolvedType::Bool),
+        });
+
+        // analyze_parabola_equation(equation: string) -> bool
+        self.symbol_table.add_function_info("analyze_parabola_equation", FunctionInfo {
+            name: "analyze_parabola_equation".to_string(),
+            parameters: vec![ResolvedType::String],
+            return_type: Some(ResolvedType::Bool),
+        });
+
+        // detect_equation_type(equation: string) -> string
+        self.symbol_table.add_function_info("detect_equation_type", FunctionInfo {
+            name: "detect_equation_type".to_string(),
+            parameters: vec![ResolvedType::String],
+            return_type: Some(ResolvedType::String),
+        });
+    }
+
+    /// Analyze a using declaration (Expert fix: using statements)
+    fn analyze_using(&mut self, using_decl: &UsingDecl) -> Result<AnnotatedUsing, SemanticError> {
+        // For now, just record the using declaration without complex module resolution
+        // In a full implementation, this would resolve the module path and import symbols
+
+        let module_path = using_decl.path.join("::");
+        let imports = vec![]; // Simplified - would extract specific imports if any
+
+        Ok(AnnotatedUsing {
+            module_path,
+            imports,
+        })
+    }
+
+    /// Check if two types are compatible (Expert fix: print function - Generic Type Parameter Unification)
+    fn is_type_compatible(&self, actual_type: &ResolvedType, expected_type: &ResolvedType) -> bool {
+        match (actual_type, expected_type) {
+            // Exact match
+            (a, b) if a == b => true,
+
+            // Generic parameter can match any type
+            (_, ResolvedType::GenericParam(_)) => true,
+
+            // Generic parameter can be unified with any type
+            (ResolvedType::GenericParam(_), _) => true,
+
+            // Reference types compatibility
+            (ResolvedType::Reference(inner1, mutable1), ResolvedType::Reference(inner2, mutable2)) => {
+                mutable1 == mutable2 && self.is_type_compatible(inner1, inner2)
+            }
+
+            // Collection types compatibility
+            (ResolvedType::List(inner1), ResolvedType::List(inner2)) => {
+                self.is_type_compatible(inner1, inner2)
+            }
+
+            // Array types compatibility
+            (ResolvedType::Array(inner1), ResolvedType::Array(inner2)) => {
+                self.is_type_compatible(inner1, inner2)
+            }
+
+            // Generic types compatibility
+            (ResolvedType::Generic(name1, params1), ResolvedType::Generic(name2, params2)) => {
+                name1 == name2 && params1.len() == params2.len() &&
+                params1.iter().zip(params2.iter()).all(|(p1, p2)| self.is_type_compatible(p1, p2))
+            }
+
+            // Function types compatibility
+            (ResolvedType::Function(params1, ret1), ResolvedType::Function(params2, ret2)) => {
+                params1.len() == params2.len() &&
+                params1.iter().zip(params2.iter()).all(|(p1, p2)| self.is_type_compatible(p1, p2)) &&
+                self.is_type_compatible(ret1, ret2)
+            }
+
+            // Tuple types compatibility
+            (ResolvedType::Tuple(types1), ResolvedType::Tuple(types2)) => {
+                types1.len() == types2.len() &&
+                types1.iter().zip(types2.iter()).all(|(t1, t2)| self.is_type_compatible(t1, t2))
+            }
+
+            // No match
+            _ => false,
+        }
+    }
+
+    /// Register built-in functions (Expert fix: print function)
+    fn register_builtin_functions(&mut self) {
+        // print<T: Display>(value: T) -> ()
+        // Generic print function that accepts any type that implements Display
+        self.symbol_table.add_function_info("print", FunctionInfo {
+            name: "print".to_string(),
+            parameters: vec![ResolvedType::GenericParam("T".to_string())], // T
+            return_type: Some(ResolvedType::Unit),
+        });
+
+        // format(template: string, args: ...) -> string
+        self.symbol_table.add_function_info("format", FunctionInfo {
+            name: "format".to_string(),
+            parameters: vec![ResolvedType::String], // Simplified for now
+            return_type: Some(ResolvedType::String),
+        });
+
+        // len<T>(collection: T) -> int
+        self.symbol_table.add_function_info("len", FunctionInfo {
+            name: "len".to_string(),
+            parameters: vec![ResolvedType::GenericParam("T".to_string())], // T
+            return_type: Some(ResolvedType::Int),
+        });
+
+        // clone<T: Clone>(value: &T) -> T
+        self.symbol_table.add_function_info("clone", FunctionInfo {
+            name: "clone".to_string(),
+            parameters: vec![ResolvedType::Reference(Box::new(ResolvedType::GenericParam("T".to_string())), false)], // &T
+            return_type: Some(ResolvedType::GenericParam("T".to_string())), // T
+        });
+
+        // drop<T>(value: T) -> ()
+        self.symbol_table.add_function_info("drop", FunctionInfo {
+            name: "drop".to_string(),
+            parameters: vec![ResolvedType::GenericParam("T".to_string())], // T
+            return_type: Some(ResolvedType::Unit),
         });
     }
 }

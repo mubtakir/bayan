@@ -1,0 +1,6 @@
+// Medium print test
+fn main() {
+    print("Start test");
+    let test_passed = true;
+    print("End test");
+}

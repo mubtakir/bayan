@@ -796,10 +796,9 @@ impl OwnershipAnalyzer {
             }
 
             Expression::Call(call_expr) => {
-                // Analyze the callee
-                self.analyze_expression(&call_expr.callee)?;
-
-                // Analyze all arguments (they may be moved)
+                // For function calls, we don't need to analyze the callee as a variable
+                // because it's a function name, not a variable
+                // Only analyze the arguments (they may be moved)
                 for arg in &call_expr.arguments {
                     self.analyze_expression(arg)?;
                 }

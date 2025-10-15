@@ -1,0 +1,13 @@
+// If statement test
+fn main() {
+    print("Start test");
+    let test_passed = true;
+    
+    if test_passed {
+        print("Test passed");
+    } else {
+        print("Test failed");
+    }
+    
+    print("End test");
+}

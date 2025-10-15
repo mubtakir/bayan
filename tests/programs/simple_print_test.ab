@@ -1,0 +1,4 @@
+// Simple print test
+fn main() {
+    print("Hello World");
+}
