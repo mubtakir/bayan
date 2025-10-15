@@ -1,0 +1,248 @@
+//! Knowledge Module - وحدة المعرفة الدلالية
+//! 
+//! واجهة عالية المستوى للتفاعل مع محرك المعرفة الدلالية
+//! تحويل الرؤية الفلسفية إلى واجهة برمجية سهلة الاستخدام
+
+/// مقبض للكائن في النظام الدلالي
+pub struct Object {
+    handle: u64,
+}
+
+/// تصنيف الكائن
+pub enum ObjectCategory {
+    Unknown,    // مجهول
+    Real,       // حقيقي
+    Abstract,   // مجرد
+    Metaphor,   // مجازي
+}
+
+/// نقطة في الفضاء ثلاثي الأبعاد
+pub struct Point3D {
+    pub x: float,
+    pub y: float,
+    pub z: float,
+}
+
+/// قيمة ديناميكية
+pub enum DynamicValue {
+    Text(string),
+    Number(float),
+    Boolean(bool),
+    Location(Point3D),
+}
+
+impl Object {
+    /// إنشاء كائن جديد
+    pub fn new(name: string) -> Object {
+        let handle = albayan_rt_kb_create_object(name.as_ptr());
+        Object { handle }
+    }
+    
+    /// تعيين خاصية نصية
+    pub fn set_text_property(&mut self, property: string, value: string) -> bool {
+        let result = albayan_rt_kb_set_string_property(
+            self.handle,
+            property.as_ptr(),
+            value.as_ptr()
+        );
+        result == 1
+    }
+    
+    /// تعيين خاصية رقمية
+    pub fn set_number_property(&mut self, property: string, value: float) -> bool {
+        let result = albayan_rt_kb_set_float_property(
+            self.handle,
+            property.as_ptr(),
+            value
+        );
+        result == 1
+    }
+    
+    /// تعيين موقع الكائن
+    pub fn set_location(&mut self, x: float, y: float, z: float) -> bool {
+        let result = albayan_rt_kb_set_location(self.handle, x, y, z);
+        result == 1
+    }
+    
+    /// الحصول على مقبض الكائن
+    pub fn get_handle(&self) -> u64 {
+        self.handle
+    }
+}
+
+/// البحث عن كائن بالاسم
+pub fn find_object(name: string) -> Object {
+    let handle = albayan_rt_kb_find_object_by_name(name.as_ptr());
+    Object { handle }
+}
+
+/// تأكيد علاقة "فوق" بين كائنين
+/// مثال: assert_above(كتاب, طاولة) يعني "الكتاب فوق الطاولة"
+pub fn assert_above(subject: &Object, object: &Object) -> bool {
+    let result = albayan_rt_kb_assert_above(
+        subject.get_handle(),
+        object.get_handle(),
+        1.0  // قوة العلاقة
+    );
+    result == 1
+}
+
+/// تأكيد علاقة "يأكل" بين كائنين
+/// مثال: assert_eats(قط, سمك) يعني "القط يأكل السمك"
+pub fn assert_eats(eater: &Object, eaten: &Object) -> bool {
+    let result = albayan_rt_kb_assert_eats(
+        eater.get_handle(),
+        eaten.get_handle(),
+        1.0  // قوة العلاقة
+    );
+    result == 1
+}
+
+/// التحقق من علاقة "فوق"
+pub fn check_above(subject: &Object, object: &Object) -> bool {
+    let result = albayan_rt_kb_check_relation(
+        0,  // Above = 0
+        subject.get_handle(),
+        object.get_handle()
+    );
+    result == 1
+}
+
+/// التحقق من علاقة "تحت"
+pub fn check_below(subject: &Object, object: &Object) -> bool {
+    let result = albayan_rt_kb_check_relation(
+        1,  // Below = 1
+        subject.get_handle(),
+        object.get_handle()
+    );
+    result == 1
+}
+
+/// التحقق من علاقة "يأكل"
+pub fn check_eats(eater: &Object, eaten: &Object) -> bool {
+    let result = albayan_rt_kb_check_relation(
+        4,  // Eats = 4
+        eater.get_handle(),
+        eaten.get_handle()
+    );
+    result == 1
+}
+
+/// تهيئة محرك المعرفة
+pub fn initialize_knowledge_engine() -> bool {
+    let result = albayan_rt_kb_initialize();
+    result == 1
+}
+
+//
+// دوال FFI للتفاعل مع وقت التشغيل
+//
+
+extern "C" {
+    fn albayan_rt_kb_initialize() -> i32;
+    fn albayan_rt_kb_create_object(name: *const u8) -> u64;
+    fn albayan_rt_kb_set_string_property(handle: u64, property: *const u8, value: *const u8) -> i32;
+    fn albayan_rt_kb_set_float_property(handle: u64, property: *const u8, value: float) -> i32;
+    fn albayan_rt_kb_set_location(handle: u64, x: float, y: float, z: float) -> i32;
+    fn albayan_rt_kb_assert_above(subject: u64, object: u64, strength: float) -> i32;
+    fn albayan_rt_kb_assert_eats(eater: u64, eaten: u64, strength: float) -> i32;
+    fn albayan_rt_kb_find_object_by_name(name: *const u8) -> u64;
+    fn albayan_rt_kb_check_relation(relation_type: i32, subject: u64, object: u64) -> i32;
+}
+
+//
+// دوال مساعدة للمعادلات اللغوية
+//
+
+/// تحليل جملة بسيطة وتطبيق المعادلة اللغوية
+/// مثال: "الكتاب فوق الطاولة"
+pub fn parse_simple_sentence(sentence: string) -> bool {
+    // تحليل بسيط للجملة
+    let words = sentence.split(" ");
+    
+    if words.len() >= 3 {
+        let subject_name = words[0];
+        let relation = words[1];
+        let object_name = words[2];
+        
+        // البحث عن الكائنات أو إنشاؤها
+        let mut subject = find_object(subject_name.to_string());
+        if subject.get_handle() == 0 {
+            subject = Object::new(subject_name.to_string());
+        }
+        
+        let mut object = find_object(object_name.to_string());
+        if object.get_handle() == 0 {
+            object = Object::new(object_name.to_string());
+        }
+        
+        // تطبيق العلاقة حسب النوع
+        match relation {
+            "فوق" => assert_above(&subject, &object),
+            "يأكل" => assert_eats(&subject, &object),
+            _ => false,
+        }
+    } else {
+        false
+    }
+}
+
+/// تطبيق معادلة لغوية
+/// مثال: apply_language_equation("أ فوق ب", "كتاب", "طاولة")
+pub fn apply_language_equation(equation: string, subject_name: string, object_name: string) -> bool {
+    let mut subject = find_object(subject_name);
+    if subject.get_handle() == 0 {
+        subject = Object::new(subject_name);
+    }
+    
+    let mut object = find_object(object_name);
+    if object.get_handle() == 0 {
+        object = Object::new(object_name);
+    }
+    
+    // تحليل المعادلة وتطبيقها
+    if equation.contains("فوق") {
+        assert_above(&subject, &object)
+    } else if equation.contains("يأكل") {
+        assert_eats(&subject, &object)
+    } else {
+        false
+    }
+}
+
+/// تحقق من صحة معادلة لغوية
+/// مثال: verify_language_equation("أ فوق ب", "كتاب", "طاولة")
+pub fn verify_language_equation(equation: string, subject_name: string, object_name: string) -> bool {
+    let subject = find_object(subject_name);
+    let object = find_object(object_name);
+    
+    if subject.get_handle() == 0 || object.get_handle() == 0 {
+        return false;
+    }
+    
+    // تحقق من المعادلة
+    if equation.contains("فوق") {
+        check_above(&subject, &object)
+    } else if equation.contains("تحت") {
+        check_below(&subject, &object)
+    } else if equation.contains("يأكل") {
+        check_eats(&subject, &object)
+    } else {
+        false
+    }
+}
+
+/// إنشاء بيئة بسيطة للاختبار
+pub fn create_simple_environment() {
+    // إنشاء الأرض والسماء
+    let mut ground = Object::new("أرض".to_string());
+    ground.set_location(0.0, 0.0, 0.0);
+    ground.set_text_property("نوع".to_string(), "سطح".to_string());
+    
+    let mut sky = Object::new("سماء".to_string());
+    sky.set_location(0.0, 0.0, 100.0);
+    sky.set_text_property("نوع".to_string(), "فضاء".to_string());
+    
+    // تأكيد أن السماء فوق الأرض
+    assert_above(&sky, &ground);
+}

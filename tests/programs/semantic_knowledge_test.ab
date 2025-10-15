@@ -1,0 +1,127 @@
+//! Semantic Knowledge Engine Test
+//! اختبار محرك المعرفة الدلالية - تحويل الرؤية الفلسفية إلى تطبيق عملي
+
+using std::knowledge;
+
+/// اختبار إنشاء الكائنات الأساسية
+fn test_object_creation() {
+    // تهيئة محرك المعرفة
+    knowledge::initialize_knowledge_engine();
+    
+    // إنشاء كائنات بسيطة
+    let mut book = knowledge::Object.new("كتاب".to_string());
+    let mut table = knowledge::Object.new("طاولة".to_string());
+    
+    // تعيين خصائص
+    book.set_text_property("لون".to_string(), "أحمر".to_string());
+    book.set_number_property("وزن".to_string(), 0.5);
+    
+    table.set_text_property("مادة".to_string(), "خشب".to_string());
+    table.set_location(0.0, 0.0, 0.0);
+}
+
+/// اختبار المعادلات اللغوية الأساسية
+fn test_basic_language_equations() {
+    // تهيئة محرك المعرفة
+    knowledge::initialize_knowledge_engine();
+    
+    // إنشاء كائنات
+    let book = knowledge::Object.new("كتاب".to_string());
+    let table = knowledge::Object.new("طاولة".to_string());
+    
+    // تطبيق معادلة "أ فوق ب"
+    knowledge::assert_above(&book, &table);
+    
+    // التحقق من المعادلة العكسية "ب تحت أ"
+    let is_below = knowledge::check_below(&table, &book);
+    
+    // يجب أن تكون النتيجة صحيحة بسبب قواعد الاستدلال التلقائي
+}
+
+/// اختبار معادلات التفاعل
+fn test_interaction_equations() {
+    // تهيئة محرك المعرفة
+    knowledge::initialize_knowledge_engine();
+    
+    // إنشاء كائنات
+    let cat = knowledge::Object.new("قط".to_string());
+    let fish = knowledge::Object.new("سمك".to_string());
+    
+    // تطبيق معادلة "أ يأكل ب = ب (يختفي) + أ (يشبع)"
+    knowledge::assert_eats(&cat, &fish);
+    
+    // التحقق من النتيجة
+    let eats_relation = knowledge::check_eats(&cat, &fish);
+}
+
+/// اختبار تحليل الجمل البسيطة
+fn test_simple_sentence_parsing() {
+    // تهيئة محرك المعرفة
+    knowledge::initialize_knowledge_engine();
+    
+    // تحليل جملة بسيطة
+    let result1 = knowledge::parse_simple_sentence("كتاب فوق طاولة".to_string());
+    let result2 = knowledge::parse_simple_sentence("قط يأكل سمك".to_string());
+    
+    // التحقق من النتائج
+    let verification1 = knowledge::verify_language_equation(
+        "أ فوق ب".to_string(),
+        "كتاب".to_string(),
+        "طاولة".to_string()
+    );
+    
+    let verification2 = knowledge::verify_language_equation(
+        "أ يأكل ب".to_string(),
+        "قط".to_string(),
+        "سمك".to_string()
+    );
+}
+
+/// اختبار البيئة البسيطة
+fn test_simple_environment() {
+    // تهيئة محرك المعرفة
+    knowledge::initialize_knowledge_engine();
+    
+    // إنشاء البيئة الأساسية
+    knowledge::create_simple_environment();
+    
+    // التحقق من العلاقات
+    let ground = knowledge::find_object("أرض".to_string());
+    let sky = knowledge::find_object("سماء".to_string());
+    
+    let sky_above_ground = knowledge::check_above(&sky, &ground);
+}
+
+/// اختبار المعادلات المتقدمة
+fn test_advanced_equations() {
+    // تهيئة محرك المعرفة
+    knowledge::initialize_knowledge_engine();
+    
+    // إنشاء سيناريو معقد
+    let mut person = knowledge::Object.new("شخص".to_string());
+    let mut apple = knowledge::Object.new("تفاحة".to_string());
+    let mut tree = knowledge::Object.new("شجرة".to_string());
+    
+    // تعيين خصائص
+    person.set_text_property("حالة".to_string(), "جائع".to_string());
+    apple.set_text_property("لون".to_string(), "أحمر".to_string());
+    tree.set_number_property("ارتفاع".to_string(), 3.0);
+    
+    // تطبيق علاقات
+    knowledge::assert_above(&apple, &tree);  // التفاحة فوق الشجرة
+    knowledge::assert_eats(&person, &apple); // الشخص يأكل التفاحة
+    
+    // التحقق من النتائج
+    let apple_above_tree = knowledge::check_above(&apple, &tree);
+    let person_eats_apple = knowledge::check_eats(&person, &apple);
+}
+
+/// الدالة الرئيسية للاختبار
+fn main() {
+    test_object_creation();
+    test_basic_language_equations();
+    test_interaction_equations();
+    test_simple_sentence_parsing();
+    test_simple_environment();
+    test_advanced_equations();
+}
