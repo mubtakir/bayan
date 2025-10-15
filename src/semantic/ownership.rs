@@ -238,8 +238,12 @@ impl BorrowCheckState {
             ResolvedType::TorchModel => true,
             ResolvedType::TorchOptimizer => true,
             ResolvedType::TorchTensor => true,
+            // Math AI types need destruction (Expert specification: Priority 2)
+            ResolvedType::Shape => true,
+            ResolvedType::ShapeHandle => true,
             // Copy types don't need destruction
             ResolvedType::Int | ResolvedType::Float | ResolvedType::Bool | ResolvedType::Char => false,
+            ResolvedType::GeometricShapeType => false, // Enum, no destruction needed
             _ => false, // Conservative: assume other types need destruction
         };
 

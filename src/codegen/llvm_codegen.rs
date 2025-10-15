@@ -2379,6 +2379,13 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         ], false);
         let tensor_destroy_fn = self.module.add_function("albayan_rt_tensor_destroy", tensor_destroy_fn_type, None);
 
+        // Shape Inference Engine destroy function (Expert specification: Priority 2)
+        // albayan_rt_shape_destroy(handle: ShapeHandle) -> i32
+        let shape_destroy_fn_type = i32_type.fn_type(&[
+            usize_type.into(), // shape_handle
+        ], false);
+        let shape_destroy_fn = self.module.add_function("albayan_rt_shape_destroy", shape_destroy_fn_type, None);
+
         // Store function references for later use
         self.functions.insert("albayan_rt_list_create".to_string(), list_create_fn);
         self.functions.insert("albayan_rt_list_push".to_string(), list_push_fn);
@@ -2390,6 +2397,7 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
         self.functions.insert("albayan_rt_struct_destroy".to_string(), struct_destroy_fn);
         self.functions.insert("albayan_rt_model_destroy".to_string(), model_destroy_fn);
         self.functions.insert("albayan_rt_tensor_destroy".to_string(), tensor_destroy_fn);
+        self.functions.insert("albayan_rt_shape_destroy".to_string(), shape_destroy_fn);
         self.functions.insert("albayan_rt_panic".to_string(), panic_fn);
 
         Ok(())
@@ -2677,6 +2685,24 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                             )?;
                         }
                     }
+                    ResolvedType::Shape | ResolvedType::ShapeHandle => {
+                        // Generate destroy call for Shape types (Expert specification: Priority 2)
+                        if let Some(destroy_fn) = self.functions.get("albayan_rt_shape_destroy") {
+                            // Load the shape handle
+                            let shape_handle = self.builder.build_load(
+                                var_alloca.get_type().get_element_type().into(),
+                                var_alloca,
+                                &format!("{}_destroy_load", destroy_info.name)
+                            )?;
+
+                            // Call albayan_rt_shape_destroy(handle)
+                            self.builder.build_call(
+                                *destroy_fn,
+                                &[shape_handle.into()],
+                                &format!("{}_destroy", destroy_info.name)
+                            )?;
+                        }
+                    }
                     ResolvedType::Tensor(_) => {
                         // Generate destroy call for Tensor types (Expert recommendation: Priority 1)
                         if let Some(destroy_fn) = self.functions.get("albayan_rt_tensor_destroy") {
@@ -2742,6 +2768,24 @@ impl<'ctx> LLVMCodeGenerator<'ctx> {
                             )?;
 
                             // Call albayan_rt_torch_destroy_tensor(handle)
+                            self.builder.build_call(
+                                *destroy_fn,
+                                &[tensor_handle.into()],
+                                &format!("{}_destroy", destroy_info.name)
+                            )?;
+                        }
+                    }
+                    ResolvedType::Tensor(_) => {
+                        // Generate destroy call for Tensor types (Expert specification: Priority 2)
+                        if let Some(destroy_fn) = self.functions.get("albayan_rt_tensor_destroy") {
+                            // Load the tensor handle
+                            let tensor_handle = self.builder.build_load(
+                                var_alloca.get_type().get_element_type().into(),
+                                var_alloca,
+                                &format!("{}_destroy_load", destroy_info.name)
+                            )?;
+
+                            // Call albayan_rt_tensor_destroy(handle)
                             self.builder.build_call(
                                 *destroy_fn,
                                 &[tensor_handle.into()],
