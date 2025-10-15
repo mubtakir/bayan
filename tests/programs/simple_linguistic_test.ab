@@ -1,0 +1,14 @@
+/// اختبار بسيط لنظام الذكاء اللغوي
+
+fn test_basic_functionality() {
+    print("اختبار أساسي للذكاء اللغوي");
+    let x = 1.0;
+    let y = 2.0;
+    let z = x + y;
+    print("النتيجة: " + z.to_string());
+}
+
+fn main() {
+    test_basic_functionality();
+    print("انتهى الاختبار");
+}

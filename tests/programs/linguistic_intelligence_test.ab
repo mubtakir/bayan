@@ -1,0 +1,175 @@
+/// اختبار نظام الذكاء اللغوي
+/// تحليل الكلمات بناءً على دلالات الحروف
+
+using std::linguistic_intelligence;
+
+fn test_arabic_letter_analysis() {
+    print("=== اختبار تحليل الحروف العربية ===");
+    
+    // تهيئة النظام
+    let initialized = linguistic_intelligence::initialize_linguistic_intelligence();
+    if !initialized {
+        print("❌ فشل في تهيئة النظام");
+        return;
+    }
+    
+    // اختبار تحليل كلمة "شجرة"
+    let word = "شجرة".to_string();
+    let analyzed = linguistic_intelligence::analyze_arabic_word(word.clone());
+    
+    if analyzed {
+        print("✅ تم تحليل كلمة: " + word);
+        let meaning = linguistic_intelligence::get_word_meaning(word.clone(), "عربي".to_string());
+        print("المعنى المستنبط: " + meaning);
+    } else {
+        print("❌ فشل في تحليل كلمة: " + word);
+    }
+}
+
+fn test_english_letter_setup() {
+    print("=== اختبار إعداد الحروف الإنجليزية ===");
+    
+    // إضافة حرف T
+    let added_t = linguistic_intelligence::add_english_letter(
+        'T',
+        "الهيكل والدعم".to_string(),
+        "خط عمودي مع خط أفقي".to_string(),
+        0.8
+    );
+    
+    if added_t {
+        print("✅ تم إضافة حرف T بنجاح");
+    } else {
+        print("❌ فشل في إضافة حرف T");
+    }
+    
+    // إضافة حرف R
+    let added_r = linguistic_intelligence::add_english_letter(
+        'R',
+        "التفرع والانحناء".to_string(),
+        "خط منحني يوحي بالتفرع".to_string(),
+        0.85
+    );
+    
+    if added_r {
+        print("✅ تم إضافة حرف R بنجاح");
+    } else {
+        print("❌ فشل في إضافة حرف R");
+    }
+}
+
+fn test_comprehensive_analysis() {
+    print("=== اختبار التحليل الشامل ===");
+    
+    // تحليل شامل لكلمة عربية
+    let arabic_word = "جبل".to_string();
+    let arabic_pattern = linguistic_intelligence::comprehensive_arabic_analysis(arabic_word);
+    
+    print("الكلمة: " + arabic_pattern.word);
+    print("المعنى المستنبط: " + arabic_pattern.inferred_meaning);
+    print("مستوى الثقة: " + arabic_pattern.confidence.to_string());
+    print("التحليل التفصيلي: " + arabic_pattern.detailed_analysis);
+}
+
+fn test_pattern_discovery() {
+    print("=== اختبار اكتشاف الأنماط ===");
+    
+    // قائمة كلمات للاختبار
+    let test_words = vec![
+        "شمس".to_string(),
+        "قمر".to_string(),
+        "نجم".to_string(),
+        "بحر".to_string(),
+    ];
+    
+    let patterns = linguistic_intelligence::discover_word_patterns(test_words, "عربي".to_string());
+    
+    print("عدد الأنماط المكتشفة: " + patterns.len().to_string());
+    
+    for pattern in patterns {
+        print("كلمة: " + pattern.word + " | معنى: " + pattern.inferred_meaning);
+    }
+}
+
+fn test_adaptive_learning() {
+    print("=== اختبار التعلم التكيفي ===");
+    
+    // إنشاء أنماط وهمية للاختبار
+    let mut test_patterns = vec![];
+    
+    test_patterns.push(linguistic_intelligence::WordPattern {
+        word: "اختبار1".to_string(),
+        inferred_meaning: "معنى اختبار".to_string(),
+        confidence: 0.9,
+        detailed_analysis: "تحليل تفصيلي".to_string(),
+    });
+    
+    test_patterns.push(linguistic_intelligence::WordPattern {
+        word: "اختبار2".to_string(),
+        inferred_meaning: "معنى آخر".to_string(),
+        confidence: 0.6,
+        detailed_analysis: "تحليل آخر".to_string(),
+    });
+    
+    let stats = linguistic_intelligence::adaptive_learning_from_patterns(test_patterns);
+    
+    print("إحصائيات التعلم:");
+    print("عدد الكلمات: " + stats.words_analyzed.to_string());
+    print("دقة التنبؤ: " + stats.prediction_accuracy.to_string());
+}
+
+fn test_tree_example() {
+    print("=== اختبار مثال كلمة Tree ===");
+    
+    // إعداد الحروف الإنجليزية
+    linguistic_intelligence::setup_basic_english_letters();
+    
+    // تحليل كلمة tree
+    let tree_pattern = linguistic_intelligence::analyze_tree_example();
+    
+    print("تحليل كلمة 'tree':");
+    print("المعنى: " + tree_pattern.inferred_meaning);
+    print("الثقة: " + tree_pattern.confidence.to_string());
+    print("التحليل: " + tree_pattern.detailed_analysis);
+}
+
+fn test_statistics() {
+    print("=== اختبار الإحصائيات ===");
+    
+    let stats_count = linguistic_intelligence::get_analysis_statistics();
+    print("عدد الكلمات المحللة في النظام: " + stats_count.to_string());
+}
+
+fn main() {
+    print("🧠 بدء اختبارات نظام الذكاء اللغوي 🧠");
+    print("=====================================");
+    
+    // تشغيل جميع الاختبارات
+    test_arabic_letter_analysis();
+    print("");
+    
+    test_english_letter_setup();
+    print("");
+    
+    test_comprehensive_analysis();
+    print("");
+    
+    test_pattern_discovery();
+    print("");
+    
+    test_adaptive_learning();
+    print("");
+    
+    test_tree_example();
+    print("");
+    
+    test_statistics();
+    print("");
+    
+    // اختبار شامل
+    print("=== الاختبار الشامل ===");
+    linguistic_intelligence::main_linguistic_intelligence_test();
+    
+    print("=====================================");
+    print("🎉 اكتملت جميع اختبارات الذكاء اللغوي! 🎉");
+}
