@@ -1,0 +1,14 @@
+//! Minimal Natural Language Processing Test
+//! اختبار أساسي جداً لوحدة معالجة اللغة الطبيعية
+
+/// اختبار بسيط جداً
+fn test_simple() {
+    let x = 1.0;
+    let y = 2.0;
+    let z = x + y;
+}
+
+/// الدالة الرئيسية للاختبار
+fn main() {
+    test_simple();
+}

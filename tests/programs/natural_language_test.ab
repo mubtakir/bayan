@@ -1,0 +1,221 @@
+//! اختبار وحدة معالجة اللغة الطبيعية
+//! Natural Language Processing Test
+//! 
+//! تطبيق رؤية المستخدم: تحويل اللغة إلى معادلات رياضية
+//! User specification: "أ فوق ب = ب تحت أ"
+
+using std::math_ai::*;
+
+/// اختبار المعادلات اللغوية الأساسية
+fn test_basic_language_equations() -> Result<(), string> {
+    // إنشاء معالج اللغة الطبيعية
+    let mut processor = NaturalLanguageProcessor::new();
+    
+    // اختبار: "أحمد فوق الطاولة"
+    let equation1 = processor.example_spatial_relation("أحمد فوق الطاولة")?;
+    
+    // التحقق من صحة المعادلة
+    if equation1.left_side.subject != "أحمد" {
+        return Err("خطأ في تحليل الفاعل");
+    }
+    
+    if equation1.left_side.predicate != "فوق" {
+        return Err("خطأ في تحليل الفعل");
+    }
+    
+    if equation1.left_side.object != "الطاولة" {
+        return Err("خطأ في تحليل المفعول");
+    }
+    
+    // التحقق من المعادلة العكسية
+    if equation1.right_side.subject != "الطاولة" {
+        return Err("خطأ في المعادلة العكسية - الفاعل");
+    }
+    
+    if equation1.right_side.predicate != "تحت" {
+        return Err("خطأ في المعادلة العكسية - الفعل");
+    }
+    
+    if equation1.right_side.object != "أحمد" {
+        return Err("خطأ في المعادلة العكسية - المفعول");
+    }
+    
+    Ok(())
+}
+
+/// اختبار التصنيف التلقائي للكلمات
+fn test_word_classification() -> Result<(), string> {
+    let mut processor = NaturalLanguageProcessor::new();
+    
+    // اختبار كلمة حقيقية
+    let classification1 = processor.classify_word("طعام", "أحمد يأكل الطعام");
+    if classification1 != ClassificationType::Real {
+        return Err("خطأ في تصنيف الكلمة الحقيقية");
+    }
+    
+    // اختبار كلمة مجردة
+    let classification2 = processor.classify_word("حلم", "سارة تفكر في حلم جميل");
+    if classification2 != ClassificationType::Abstract {
+        return Err("خطأ في تصنيف الكلمة المجردة");
+    }
+    
+    // اختبار كلمة مجازية
+    let classification3 = processor.classify_word("نور", "قلبه مثل النور");
+    if classification3 != ClassificationType::Metaphor {
+        return Err("خطأ في تصنيف الكلمة المجازية");
+    }
+    
+    Ok(())
+}
+
+/// اختبار العلاقات المعقدة - "بين"
+fn test_between_relations() -> Result<(), string> {
+    let mut processor = NaturalLanguageProcessor::new();
+    
+    // اختبار: "الكرة بين أحمد و سارة"
+    let equation = processor.parse_between_relation("الكرة بين أحمد و سارة")?;
+    
+    // التحقق من صحة التحليل
+    if equation.left_side.subject != "الكرة" {
+        return Err("خطأ في تحليل الكائن الأوسط");
+    }
+    
+    if equation.left_side.predicate != "بين" {
+        return Err("خطأ في تحليل علاقة البين");
+    }
+    
+    if !equation.left_side.object.contains("أحمد") || !equation.left_side.object.contains("سارة") {
+        return Err("خطأ في تحليل الكائنين المحيطين");
+    }
+    
+    Ok(())
+}
+
+/// اختبار التفاعلات - الأكل
+fn test_eating_interactions() -> Result<(), string> {
+    let mut processor = NaturalLanguageProcessor::new();
+    
+    // اختبار: "القط يأكل السمك"
+    let equation = processor.parse_eating_interaction("القط يأكل السمك")?;
+    
+    // التحقق من الفاعل
+    if equation.left_side.subject != "القط" {
+        return Err("خطأ في تحليل الآكل");
+    }
+    
+    // التحقق من الفعل
+    if equation.left_side.predicate != "يأكل" {
+        return Err("خطأ في تحليل فعل الأكل");
+    }
+    
+    // التحقق من المفعول
+    if equation.left_side.object != "السمك" {
+        return Err("خطأ في تحليل المأكول");
+    }
+    
+    // التحقق من النتيجة
+    if equation.right_side.predicate != "يمتلئ" {
+        return Err("خطأ في تحليل نتيجة الأكل");
+    }
+    
+    Ok(())
+}
+
+/// اختبار نظام الإحداثيات
+fn test_coordinate_system() -> Result<(), string> {
+    let mut processor = NaturalLanguageProcessor::new();
+    
+    // تحليل جملة مكانية
+    let equation = processor.example_spatial_relation("الكتاب فوق المكتب")?;
+    
+    // التحقق من وجود الإحداثيات
+    let book_coords = processor.coordinate_system.objects.get("الكتاب");
+    let desk_coords = processor.coordinate_system.objects.get("المكتب");
+    
+    if book_coords.is_none() || desk_coords.is_none() {
+        return Err("خطأ في إنشاء الإحداثيات");
+    }
+    
+    let book_point = book_coords.unwrap();
+    let desk_point = desk_coords.unwrap();
+    
+    // التحقق من أن الكتاب أعلى من المكتب
+    if book_point.y <= desk_point.y {
+        return Err("خطأ في حساب الإحداثيات المكانية");
+    }
+    
+    Ok(())
+}
+
+/// اختبار المعادلات الرياضية المقابلة
+fn test_mathematical_equations() -> Result<(), string> {
+    let mut processor = NaturalLanguageProcessor::new();
+    
+    // تحليل جملة
+    let equation = processor.example_spatial_relation("النجم فوق القمر")?;
+    
+    // التحقق من وجود المعادلة الرياضية
+    let math_eq = equation.mathematical_representation;
+    
+    // التحقق من معاملات السيغمويد
+    if math_eq.sigmoid_parameters.amplitude <= 0.0 {
+        return Err("خطأ في معاملات السيغمويد");
+    }
+    
+    // التحقق من المكون الخطي
+    if math_eq.linear_component.intercept != 1.0 {
+        return Err("خطأ في المكون الخطي للمعادلة");
+    }
+    
+    Ok(())
+}
+
+/// اختبار شامل لجميع الوظائف
+fn test_comprehensive_functionality() -> Result<(), string> {
+    // اختبار المعادلات الأساسية
+    test_basic_language_equations()?;
+    
+    // اختبار التصنيف
+    test_word_classification()?;
+    
+    // اختبار العلاقات المعقدة
+    test_between_relations()?;
+    
+    // اختبار التفاعلات
+    test_eating_interactions()?;
+    
+    // اختبار نظام الإحداثيات
+    test_coordinate_system()?;
+    
+    // اختبار المعادلات الرياضية
+    test_mathematical_equations()?;
+    
+    Ok(())
+}
+
+/// اختبار الواجهات المبسطة
+fn test_simple_apis() -> Result<(), string> {
+    // اختبار تحويل جملة إلى معادلة
+    let equation1 = sentence_to_equation("الطائر فوق الشجرة")?;
+    
+    // اختبار تحليل جملة مكانية
+    let equation2 = analyze_spatial_sentence("السيارة يمين البيت")?;
+    
+    // اختبار تصنيف كلمة
+    let classification = classify_word("سعادة", "الطفل يشعر بالسعادة");
+    
+    if classification == ClassificationType::Unknown {
+        return Err("خطأ في تصنيف الكلمة عبر الواجهة المبسطة");
+    }
+    
+    Ok(())
+}
+
+/// الدالة الرئيسية للاختبار
+fn main() -> Result<(), string> {
+    // تشغيل جميع الاختبارات
+    test_comprehensive_functionality()?;
+    test_simple_apis()?;
+    
+    Ok(())
+}

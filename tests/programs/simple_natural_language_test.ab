@@ -1,0 +1,221 @@
+//! Simple Natural Language Processing Test
+//! اختبار بسيط لوحدة معالجة اللغة الطبيعية
+
+using std::math_ai::*;
+
+/// اختبار إنشاء معالج اللغة الطبيعية
+fn test_processor_creation() -> Result<(), string> {
+    let processor = NaturalLanguageProcessor::new();
+    Ok(())
+}
+
+/// اختبار قاعدة الأسماء الأساسية
+fn test_basic_names_database() -> Result<(), string> {
+    let database = BasicNamesDatabase::new();
+    
+    if database.directions.up != "فوق" {
+        return Err("خطأ في اسم الاتجاه العلوي");
+    }
+    
+    if database.directions.down != "تحت" {
+        return Err("خطأ في اسم الاتجاه السفلي");
+    }
+    
+    Ok(())
+}
+
+/// اختبار نظام التصنيف
+fn test_classification_system() -> Result<(), string> {
+    let system = ClassificationSystem::new();
+    Ok(())
+}
+
+/// اختبار نظام الإحداثيات
+fn test_coordinate_system() -> Result<(), string> {
+    let mut coords = CoordinateSystem::new();
+    
+    // إضافة نقطة
+    coords.objects.insert("object1", Point3D { x: 1.0, y: 2.0, z: 3.0 });
+    
+    // التحقق من وجود النقطة
+    if coords.objects.get("object1").is_none() {
+        return Err("فشل في إضافة النقطة");
+    }
+    
+    Ok(())
+}
+
+/// اختبار محرك معادلات اللغة
+fn test_language_equation_engine() -> Result<(), string> {
+    let engine = LanguageEquationEngine::new();
+    Ok(())
+}
+
+/// اختبار المعادلة الرياضية المعممة
+fn test_generalized_sigmoid_equation() -> Result<(), string> {
+    let equation = GeneralizedSigmoidEquation {
+        real_coefficient: 1.0,
+        imaginary_coefficient: 0.0,
+        linear_component: LinearEquationComponent {
+            slope: 1.0,
+            intercept: 0.0,
+            weight: 1.0,
+        },
+        sigmoid_parameters: SigmoidParameters {
+            amplitude: 1.0,
+            steepness: 1.0,
+            midpoint: 0.0,
+            offset: 0.0,
+        },
+    };
+    
+    Ok(())
+}
+
+/// اختبار نظام الانتباه
+fn test_attention_mechanism() -> Result<(), string> {
+    let attention = AttentionMechanism {
+        attention_heads: vec![],
+        attention_weights: AttentionWeights {
+            weights: Matrix {
+                rows: 2,
+                cols: 2,
+                data: vec![vec![1.0, 0.0], vec![0.0, 1.0]],
+            },
+            attention_scores: vec![0.5, 0.5],
+        },
+        query_matrix: Matrix {
+            rows: 2,
+            cols: 2,
+            data: vec![vec![1.0, 0.0], vec![0.0, 1.0]],
+        },
+        key_matrix: Matrix {
+            rows: 2,
+            cols: 2,
+            data: vec![vec![1.0, 0.0], vec![0.0, 1.0]],
+        },
+        value_matrix: Matrix {
+            rows: 2,
+            cols: 2,
+            data: vec![vec![1.0, 0.0], vec![0.0, 1.0]],
+        },
+    };
+    
+    Ok(())
+}
+
+/// اختبار التعبير اللغوي
+fn test_language_expression() -> Result<(), string> {
+    let expression = LanguageExpression {
+        subject: "A",
+        predicate: "above",
+        object: "B",
+        modifiers: vec![],
+    };
+    
+    if expression.subject != "A" {
+        return Err("خطأ في الفاعل");
+    }
+    
+    if expression.predicate != "above" {
+        return Err("خطأ في الفعل");
+    }
+    
+    if expression.object != "B" {
+        return Err("خطأ في المفعول");
+    }
+    
+    Ok(())
+}
+
+/// اختبار المعادلة اللغوية
+fn test_language_equation() -> Result<(), string> {
+    let left_side = LanguageExpression {
+        subject: "A",
+        predicate: "above",
+        object: "B",
+        modifiers: vec![],
+    };
+    
+    let right_side = LanguageExpression {
+        subject: "B",
+        predicate: "below",
+        object: "A",
+        modifiers: vec![],
+    };
+    
+    let equation = LanguageEquation {
+        left_side,
+        right_side,
+        equation_type: LanguageEquationType::SpatialRelation,
+        confidence: 0.9,
+        mathematical_representation: GeneralizedSigmoidEquation {
+            real_coefficient: 1.0,
+            imaginary_coefficient: 0.0,
+            linear_component: LinearEquationComponent {
+                slope: 1.0,
+                intercept: 1.0,
+                weight: 0.5,
+            },
+            sigmoid_parameters: SigmoidParameters {
+                amplitude: 1.0,
+                steepness: 1.0,
+                midpoint: 0.0,
+                offset: 1.0,
+            },
+        },
+    };
+    
+    if equation.confidence != 0.9 {
+        return Err("خطأ في مستوى الثقة");
+    }
+    
+    Ok(())
+}
+
+/// اختبار أنواع التصنيف
+fn test_classification_types() -> Result<(), string> {
+    let unknown = ClassificationType::Unknown;
+    let real = ClassificationType::Real;
+    let abstract_type = ClassificationType::Abstract;
+    let metaphor = ClassificationType::Metaphor;
+    
+    Ok(())
+}
+
+/// اختبار أنواع العلاقات المكانية
+fn test_spatial_relation_types() -> Result<(), string> {
+    let above = SpatialRelationType::Above;
+    let below = SpatialRelationType::Below;
+    let right_of = SpatialRelationType::RightOf;
+    let left_of = SpatialRelationType::LeftOf;
+    let in_front_of = SpatialRelationType::InFrontOf;
+    let behind = SpatialRelationType::Behind;
+    let between = SpatialRelationType::Between;
+    let near = SpatialRelationType::Near;
+    let far = SpatialRelationType::Far;
+    
+    Ok(())
+}
+
+/// اختبار شامل لجميع المكونات
+fn test_comprehensive() -> Result<(), string> {
+    test_processor_creation()?;
+    test_basic_names_database()?;
+    test_classification_system()?;
+    test_coordinate_system()?;
+    test_language_equation_engine()?;
+    test_generalized_sigmoid_equation()?;
+    test_attention_mechanism()?;
+    test_language_expression()?;
+    test_language_equation()?;
+    test_classification_types()?;
+    test_spatial_relation_types()?;
+    
+    Ok(())
+}
+
+/// الدالة الرئيسية للاختبار
+fn main() -> Result<(), string> {
+    test_comprehensive()
+}

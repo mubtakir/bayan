@@ -1,0 +1,1090 @@
+//! Natural Language Processing Module - وحدة معالجة اللغة الطبيعية
+//!
+//! تحويل اللغة الطبيعية إلى معادلات رياضية (User specification)
+//! الفلسفة: كل جملة = (أسماء، حدث، نتيجة) في إحداثيات ثلاثية الأبعاد
+//!
+//! المعادلات الرياضية: دوال سيغمويد المعممة + معادلات الخط المستقيم
+//! التقنيات المدمجة: Transformer Attention mechanism للفهم السياقي
+
+/// نظام معالجة اللغة الطبيعية الرياضي (User specification)
+/// يدمج مع الوحدات الموجودة: ArtisticRenderer, ShapeInference, ThinkingCore
+pub struct NaturalLanguageProcessor {
+    /// قاعدة الأسماء الأساسية (الجذور)
+    pub basic_names: BasicNamesDatabase,
+
+    /// نظام التصنيف (مجهول، حقيقي، مجرد، مجازي)
+    pub classification_system: ClassificationSystem,
+
+    /// محرك تحويل المعادلات (سيغمويد معمم + خط مستقيم)
+    pub equation_converter: EquationConverter,
+
+    /// نظام الإحداثيات الثلاثية (x, y, z)
+    pub coordinate_system: CoordinateSystem,
+
+    /// قاعدة المترادفات (ترجع للأصل الواحد)
+    pub synonyms_database: SynonymsDatabase,
+
+    /// محلل السياق مع Transformer Attention
+    pub context_analyzer: ContextAnalyzer,
+
+    /// ربط مع محرك الرسم الموجود
+    pub artistic_renderer: ArtisticRenderer,
+
+    /// ربط مع وحدة الاستنباط الموجودة
+    pub shape_inference: ShapeInference,
+
+    /// ربط مع نواة التفكير الموجودة
+    pub thinking_core: ThinkingCore,
+}
+
+/// قاعدة الأسماء الأساسية (User specification)
+/// "الأسماء الأساسية التي هي أصل كل شيء"
+/// البيئة البسيطة: أرض، سماء، شيء واحد ثم شيئين
+pub struct BasicNamesDatabase {
+    /// الأسماء الأساسية للجهات الست (فوق، تحت، يمين، يسار، أمام، خلف)
+    pub directions: DirectionNames,
+
+    /// الأسماء الأساسية للحالات الفيزيائية (مجوف، صلد، مرن، صلب)
+    pub physical_states: PhysicalStateNames,
+
+    /// الأسماء الأساسية للتفاعلات (يأكل، يلمس، يخدش، قريب، بعيد)
+    pub interactions: InteractionNames,
+
+    /// الأسماء الأساسية للحالات (جائع، شبعان، ألم)
+    pub states: StateNames,
+
+    /// البيئة الأساسية (أرض، سماء)
+    pub environment: EnvironmentNames,
+
+    /// أسماء الكائنات الأساسية (أ، ب، ج)
+    pub basic_objects: List<string>,
+}
+
+/// أسماء الجهات الست (User specification)
+pub struct DirectionNames {
+    pub up: string,        // فوق
+    pub down: string,      // تحت
+    pub right: string,     // يمين
+    pub left: string,      // يسار
+    pub front: string,     // أمام
+    pub back: string,      // خلف
+    pub between: string,   // بين
+}
+
+/// أسماء الحالات الفيزيائية (User specification)
+pub struct PhysicalStateNames {
+    pub solid: string,     // صلد
+    pub hollow: string,    // مجوف
+    pub flexible: string,  // مرن
+    pub rigid: string,     // صلب
+    pub liquid: string,    // سائل
+    pub gas: string,       // غاز
+}
+
+/// أسماء التفاعلات الأساسية (User specification)
+pub struct InteractionNames {
+    pub eat: string,       // يأكل
+    pub touch: string,     // يلمس
+    pub scratch: string,   // يخدش
+    pub push: string,      // يدفع
+    pub pull: string,      // يجذب
+    pub near: string,      // قريب
+    pub far: string,       // بعيد
+}
+
+/// أسماء الحالات (User specification)
+pub struct StateNames {
+    pub hungry: string,    // جائع
+    pub full: string,      // شبعان
+    pub pain: string,      // ألم
+    pub pleasure: string,  // متعة
+    pub tired: string,     // متعب
+    pub energetic: string, // نشيط
+}
+
+/// أسماء البيئة الأساسية (User specification)
+pub struct EnvironmentNames {
+    pub ground: string,    // أرض
+    pub sky: string,       // سماء
+    pub space: string,     // فضاء
+    pub surface: string,   // سطح
+}
+
+/// نظام التصنيف (User specification)
+/// "مجهول، حقيقي، مجرد، مجازي"
+pub enum ClassificationType {
+    Unknown,    // مجهول
+    Real,       // حقيقي
+    Abstract,   // مجرد
+    Metaphor,   // مجازي
+}
+
+/// نظام التصنيف
+pub struct ClassificationSystem {
+    /// قاعدة بيانات التصنيفات
+    pub classifications: Dict<string, ClassificationType>,
+
+    /// قواعد التصنيف التلقائي
+    pub auto_classification_rules: List<ClassificationRule>,
+
+    /// كلمات في انتظار التصنيف
+    pub pending_words: List<PendingWord>,
+}
+
+/// كلمة في انتظار التصنيف
+pub struct PendingWord {
+    pub word: string,
+    pub context: string,
+    pub suggested_classification: ClassificationType,
+    pub confidence: float,
+}
+
+/// قاعدة تصنيف
+pub struct ClassificationRule {
+    pub pattern: string,
+    pub classification: ClassificationType,
+    pub confidence: float,
+}
+
+/// محرك تحويل المعادلات (User specification)
+/// "أ فوق ب = ب تحت أ" باستخدام دوال سيغمويد المعممة
+pub struct EquationConverter {
+    /// قواعد التحويل الأساسية للمعادلات اللغوية
+    pub conversion_rules: List<LanguageEquationRule>,
+
+    /// محلل الجمل مع Transformer Attention
+    pub sentence_parser: SentenceParser,
+
+    /// مولد المعادلات الرياضية (سيغمويد + خط مستقيم)
+    pub equation_generator: MathematicalEquationGenerator,
+
+    /// محرك معادلات اللغة
+    pub language_equation_engine: LanguageEquationEngine,
+
+    /// نظام الانتباه (Transformer Attention)
+    pub attention_mechanism: AttentionMechanism,
+}
+
+/// قاعدة معادلة لغوية (User specification)
+/// مثال: "أ فوق ب = ب تحت أ"
+pub struct LanguageEquationRule {
+    /// النمط اللغوي الأساسي
+    pub primary_pattern: string,        // "أ فوق ب"
+
+    /// النمط اللغوي العكسي
+    pub inverse_pattern: string,        // "ب تحت أ"
+
+    /// نوع العلاقة
+    pub relation_type: SpatialRelationType,
+
+    /// المعادلة الرياضية المقابلة (سيغمويد معمم)
+    pub mathematical_equation: GeneralizedSigmoidEquation,
+
+    /// مستوى الثقة
+    pub confidence: float,
+
+    /// السياق المناسب
+    pub applicable_context: ContextType,
+}
+
+/// معادلة سيغمويد معممة للغة (User specification)
+/// تدمج الأس المركب (حقيقي + تخيلي) + معادلات الخط المستقيم
+pub struct GeneralizedSigmoidEquation {
+    /// المعامل الحقيقي
+    pub real_coefficient: float,
+
+    /// المعامل التخيلي
+    pub imaginary_coefficient: float,
+
+    /// معادلة الخط المستقيم المدمجة
+    pub linear_component: LinearEquationComponent,
+
+    /// معاملات السيغمويد
+    pub sigmoid_parameters: SigmoidParameters,
+}
+
+/// مكون معادلة الخط المستقيم
+pub struct LinearEquationComponent {
+    pub slope: float,      // الميل
+    pub intercept: float,  // نقطة التقاطع
+    pub weight: float,     // الوزن في المعادلة المركبة
+}
+
+/// معاملات السيغمويد
+pub struct SigmoidParameters {
+    pub amplitude: float,  // السعة
+    pub steepness: float,  // الانحدار
+    pub midpoint: float,   // نقطة المنتصف
+    pub offset: float,     // الإزاحة
+}
+
+/// نظام الإحداثيات الثلاثية (User specification)
+pub struct CoordinateSystem {
+    /// الأصل (0,0,0)
+    pub origin: Point3D,
+
+    /// الكائنات وإحداثياتها
+    pub objects: Dict<string, Point3D>,
+
+    /// العلاقات المكانية
+    pub spatial_relations: List<SpatialRelation>,
+}
+
+/// نقطة ثلاثية الأبعاد
+pub struct Point3D {
+    pub x: float,
+    pub y: float,
+    pub z: float,
+}
+
+/// علاقة مكانية
+pub struct SpatialRelation {
+    pub object1: string,
+    pub object2: string,
+    pub relation_type: SpatialRelationType,
+    pub distance: float,
+}
+
+/// أنواع العلاقات المكانية
+pub enum SpatialRelationType {
+    Above,      // فوق
+    Below,      // تحت
+    RightOf,    // يمين
+    LeftOf,     // يسار
+    InFrontOf,  // أمام
+    Behind,     // خلف
+    Between,    // بين
+    Near,       // قريب
+    Far,        // بعيد
+}
+
+/// عنصر الفكرة (User specification)
+/// "عناصر الفكرة هي (أسماء، حدث، نتيجة)"
+pub struct ThoughtElement {
+    /// الأسماء المشاركة
+    pub names: List<string>,
+
+    /// الحدث الذي وقع
+    pub event: Event,
+
+    /// النتيجة المترتبة
+    pub outcome: Outcome,
+
+    /// الإحداثيات المكانية
+    pub coordinates: Point3D,
+
+    /// الطابع الزمني
+    pub timestamp: int,
+}
+
+/// حدث
+pub struct Event {
+    pub name: string,
+    pub event_type: EventType,
+    pub participants: List<string>,
+    pub properties: Dict<string, string>,
+}
+
+/// أنواع الأحداث
+pub enum EventType {
+    Movement,      // حركة
+    Interaction,   // تفاعل
+    Transformation, // تحويل
+    Creation,      // إنشاء
+    Destruction,   // تدمير
+    Communication, // تواصل
+}
+
+/// نتيجة
+pub struct Outcome {
+    pub description: string,
+    pub affected_objects: List<string>,
+    pub property_changes: List<PropertyChange>,
+    pub new_relations: List<SpatialRelation>,
+}
+
+/// تغيير في خاصية
+pub struct PropertyChange {
+    pub object: string,
+    pub property: string,
+    pub old_value: string,
+    pub new_value: string,
+}
+
+/// محرك معادلات اللغة (User specification)
+/// تطبيق قواعد "أ فوق ب = ب تحت أ"
+pub struct LanguageEquationEngine {
+    /// قاعدة بيانات المعادلات اللغوية
+    pub equation_database: Dict<string, LanguageEquationRule>,
+
+    /// محرك التحويل التلقائي
+    pub auto_converter: AutoEquationConverter,
+
+    /// مُحلل العلاقات المكانية
+    pub spatial_analyzer: SpatialRelationAnalyzer,
+}
+
+/// محول المعادلات التلقائي
+pub struct AutoEquationConverter {
+    /// قواعد التحويل المباشر
+    pub direct_conversions: Dict<string, string>,
+
+    /// قواعد التحويل العكسي
+    pub inverse_conversions: Dict<string, string>,
+}
+
+/// محلل العلاقات المكانية
+pub struct SpatialRelationAnalyzer {
+    /// خريطة العلاقات المكانية
+    pub spatial_map: Dict<SpatialRelationType, SpatialRelationType>,
+}
+
+/// نظام الانتباه (Transformer Attention) (User specification)
+pub struct AttentionMechanism {
+    /// رؤوس الانتباه المتعددة
+    pub attention_heads: List<AttentionHead>,
+
+    /// أوزان الانتباه
+    pub attention_weights: AttentionWeights,
+
+    /// مصفوفة الاستعلام (Query)
+    pub query_matrix: Matrix,
+
+    /// مصفوفة المفتاح (Key)
+    pub key_matrix: Matrix,
+
+    /// مصفوفة القيمة (Value)
+    pub value_matrix: Matrix,
+}
+
+/// رأس انتباه واحد
+pub struct AttentionHead {
+    /// بُعد الانتباه
+    pub attention_dim: int,
+
+    /// أوزان الاستعلام
+    pub query_weights: Matrix,
+
+    /// أوزان المفتاح
+    pub key_weights: Matrix,
+
+    /// أوزان القيمة
+    pub value_weights: Matrix,
+}
+
+/// أوزان الانتباه
+pub struct AttentionWeights {
+    /// مصفوفة الأوزان
+    pub weights: Matrix,
+
+    /// درجات الانتباه
+    pub attention_scores: List<float>,
+}
+
+/// مصفوفة رياضية
+pub struct Matrix {
+    pub rows: int,
+    pub cols: int,
+    pub data: List<List<float>>,
+}
+
+/// معادلة لغوية (User specification)
+/// "معادلة اللغة ستكون مثلاً: أ فوق ب"
+pub struct LanguageEquation {
+    /// الجانب الأيسر من المعادلة
+    pub left_side: LanguageExpression,
+
+    /// الجانب الأيمن من المعادلة
+    pub right_side: LanguageExpression,
+
+    /// نوع المعادلة
+    pub equation_type: LanguageEquationType,
+
+    /// مستوى الثقة
+    pub confidence: float,
+
+    /// المعادلة الرياضية المقابلة
+    pub mathematical_representation: GeneralizedSigmoidEquation,
+}
+
+/// تعبير لغوي
+pub struct LanguageExpression {
+    pub subject: string,
+    pub predicate: string,
+    pub object: string,
+    pub modifiers: List<string>,
+}
+
+/// أنواع المعادلات اللغوية
+pub enum LanguageEquationType {
+    SpatialRelation,    // علاقة مكانية
+    TemporalRelation,   // علاقة زمنية
+    CausalRelation,     // علاقة سببية
+    PropertyRelation,   // علاقة خاصية
+    EquivalenceRelation, // علاقة تكافؤ
+}
+
+/// قاعدة المترادفات
+pub struct SynonymsDatabase {
+    /// مجموعات المترادفات
+    pub synonym_groups: List<SynonymGroup>,
+
+    /// خريطة الكلمات إلى الأصول
+    pub word_to_root: Dict<string, string>,
+}
+
+/// مجموعة مترادفات
+pub struct SynonymGroup {
+    /// الكلمة الأصل
+    pub root_word: string,
+
+    /// المترادفات
+    pub synonyms: List<string>,
+
+    /// السياق المناسب لكل مترادف
+    pub contexts: Dict<string, string>,
+}
+
+/// محلل السياق
+pub struct ContextAnalyzer {
+    /// قواعد تحليل السياق
+    pub context_rules: List<ContextRule>,
+
+    /// تاريخ السياق
+    pub context_history: List<ContextFrame>,
+}
+
+/// قاعدة سياق
+pub struct ContextRule {
+    pub pattern: string,
+    pub context_type: ContextType,
+    pub confidence: float,
+}
+
+/// أنواع السياق
+pub enum ContextType {
+    Spatial,     // مكاني
+    Temporal,    // زمني
+    Causal,      // سببي
+    Emotional,   // عاطفي
+    Logical,     // منطقي
+}
+
+/// إطار سياق
+pub struct ContextFrame {
+    pub context_type: ContextType,
+    pub elements: List<string>,
+    pub timestamp: int,
+}
+
+/// جملة محللة
+pub struct ParsedSentence {
+    pub words: List<Word>,
+    pub structure: SentenceStructure,
+    pub semantic_roles: List<SemanticRole>,
+}
+
+/// كلمة محللة
+pub struct Word {
+    pub text: string,
+    pub pos_tag: PartOfSpeech,
+    pub semantic_type: SemanticType,
+    pub classification: ClassificationType,
+}
+
+/// أنواع الكلمات
+pub enum PartOfSpeech {
+    Noun,        // اسم
+    Verb,        // فعل
+    Adjective,   // صفة
+    Adverb,      // ظرف
+    Preposition, // حرف جر
+    Pronoun,     // ضمير
+}
+
+/// الأنواع الدلالية
+pub enum SemanticType {
+    Agent,       // فاعل
+    Patient,     // مفعول
+    Location,    // مكان
+    Time,        // زمن
+    Manner,      // طريقة
+    Cause,       // سبب
+}
+
+/// بنية الجملة
+pub struct SentenceStructure {
+    pub subject: string,
+    pub predicate: string,
+    pub object: string,
+    pub modifiers: List<string>,
+}
+
+/// دور دلالي
+pub struct SemanticRole {
+    pub word: string,
+    pub role: SemanticType,
+    pub confidence: float,
+}
+
+/// محلل الجمل
+pub struct SentenceParser {
+    /// قواعد التحليل النحوي
+    pub grammar_rules: List<GrammarRule>,
+
+    /// قاموس الكلمات
+    pub dictionary: Dictionary,
+}
+
+/// قاعدة نحوية
+pub struct GrammarRule {
+    pub pattern: string,
+    pub structure: SentenceStructure,
+    pub confidence: float,
+}
+
+/// قاموس
+pub struct Dictionary {
+    pub words: Dict<string, WordEntry>,
+}
+
+/// مدخل كلمة في القاموس
+pub struct WordEntry {
+    pub word: string,
+    pub pos_tags: List<PartOfSpeech>,
+    pub meanings: List<string>,
+    pub root: string,
+}
+
+/// مولد المعادلات
+pub struct EquationGenerator {
+    /// قوالب المعادلات
+    pub equation_templates: List<EquationTemplate>,
+}
+
+/// قالب معادلة
+pub struct EquationTemplate {
+    pub pattern: string,
+    pub equation_format: string,
+    pub variables: List<string>,
+}
+
+impl NaturalLanguageProcessor {
+    /// إنشاء معالج جديد مع ربط الوحدات الموجودة
+    pub fn new() -> NaturalLanguageProcessor {
+        NaturalLanguageProcessor {
+            basic_names: BasicNamesDatabase::new(),
+            classification_system: ClassificationSystem::new(),
+            equation_converter: EquationConverter::new(),
+            coordinate_system: CoordinateSystem::new(),
+            synonyms_database: SynonymsDatabase::new(),
+            context_analyzer: ContextAnalyzer::new(),
+            artistic_renderer: ArtisticRenderer::new(),
+            shape_inference: ShapeInference::new(),
+            thinking_core: ThinkingCore::new(),
+        }
+    }
+
+    /// تطبيق معادلات اللغة الأساسية (User specification)
+    /// "أ فوق ب = ب تحت أ"
+    pub fn apply_language_equations(&mut self, sentence: string) -> Result<LanguageEquation, string> {
+        // تحليل الجملة باستخدام Attention
+        let attention_result = self.context_analyzer.attention_mechanism.analyze(sentence)?;
+
+        // استخراج عناصر الفكرة (أسماء، حدث، نتيجة)
+        let thought_elements = self.extract_thought_elements(sentence, attention_result)?;
+
+        // تطبيق قواعد المعادلات اللغوية
+        let language_equation = self.equation_converter.language_equation_engine.convert(thought_elements)?;
+
+        // تحويل إلى معادلة رياضية (سيغمويد معمم)
+        let math_equation = self.generate_mathematical_equation(language_equation)?;
+
+        // تحديث الإحداثيات
+        self.update_coordinates(language_equation)?;
+
+        Ok(language_equation)
+    }
+
+    /// مثال تطبيقي: "أحمد فوق الطاولة" (User specification)
+    pub fn example_spatial_relation(&mut self, sentence: string) -> Result<LanguageEquation, string> {
+        // تحليل الجملة: "أحمد فوق الطاولة"
+        if sentence.contains("فوق") {
+            let parts = sentence.split(" فوق ");
+            if parts.len() == 2 {
+                let subject = parts[0].trim();  // "أحمد"
+                let object = parts[1].trim();   // "الطاولة"
+
+                // إنشاء المعادلة اللغوية
+                let left_expression = LanguageExpression {
+                    subject: subject.to_string(),
+                    predicate: "فوق".to_string(),
+                    object: object.to_string(),
+                    modifiers: vec![],
+                };
+
+                // المعادلة العكسية: "الطاولة تحت أحمد"
+                let right_expression = LanguageExpression {
+                    subject: object.to_string(),
+                    predicate: "تحت".to_string(),
+                    object: subject.to_string(),
+                    modifiers: vec![],
+                };
+
+                // إنشاء المعادلة الرياضية المقابلة
+                let math_equation = GeneralizedSigmoidEquation {
+                    real_coefficient: 1.0,
+                    imaginary_coefficient: 0.0,
+                    linear_component: LinearEquationComponent {
+                        slope: 1.0,
+                        intercept: 1.0,  // فوق = +1
+                        weight: 0.5,
+                    },
+                    sigmoid_parameters: SigmoidParameters {
+                        amplitude: 1.0,
+                        steepness: 1.0,
+                        midpoint: 0.0,
+                        offset: 1.0,
+                    },
+                };
+
+                // تحديث الإحداثيات
+                self.coordinate_system.objects.insert(subject.to_string(), Point3D { x: 0.0, y: 1.0, z: 0.0 });
+                self.coordinate_system.objects.insert(object.to_string(), Point3D { x: 0.0, y: 0.0, z: 0.0 });
+
+                return Ok(LanguageEquation {
+                    left_side: left_expression,
+                    right_side: right_expression,
+                    equation_type: LanguageEquationType::SpatialRelation,
+                    confidence: 0.9,
+                    mathematical_representation: math_equation,
+                });
+            }
+        }
+
+        Err("لا يمكن تحليل الجملة".to_string())
+    }
+
+    /// تحويل جملة إلى معادلة (User specification)
+    /// مثال: "أ فوق ب" -> "Above(أ, ب) = Below(ب, أ)"
+    pub fn sentence_to_equation(&self, sentence: string) -> Result<LanguageEquation, string> {
+        // تحليل الجملة
+        let parsed = self.equation_converter.sentence_parser.parse(sentence)?;
+
+        // تحديد عناصر الفكرة
+        let thought_element = self.extract_thought_element(parsed)?;
+
+        // تحويل إلى معادلة
+        let equation = self.equation_converter.equation_generator.generate(thought_element)?;
+
+        Ok(equation)
+    }
+
+    /// مثال تطبيقي: "أحمد فوق الطاولة"
+    pub fn example_spatial_relation(&self, sentence: string) -> Result<LanguageEquation, string> {
+        // "أحمد فوق الطاولة" -> Above(أحمد, الطاولة)
+        if sentence.contains("فوق") {
+            let parts = sentence.split(" فوق ");
+            if parts.len() == 2 {
+                let subject = parts[0].trim();
+                let object = parts[1].trim();
+
+                return Ok(LanguageEquation {
+                    left_side: LanguageExpression {
+                        subject: subject.to_string(),
+                        predicate: "فوق".to_string(),
+                        object: object.to_string(),
+                        modifiers: vec![],
+                    },
+                    right_side: LanguageExpression {
+                        subject: object.to_string(),
+                        predicate: "تحت".to_string(),
+                        object: subject.to_string(),
+                        modifiers: vec![],
+                    },
+                    equation_type: LanguageEquationType::SpatialRelation,
+                    confidence: 0.9,
+                });
+            }
+        }
+
+        Err("لا يمكن تحليل الجملة".to_string())
+    }
+
+    /// تصنيف كلمة جديدة (User specification)
+    pub fn classify_word(&mut self, word: string, context: string) -> ClassificationType {
+        // البحث في قاعدة البيانات أولاً
+        if let Some(classification) = self.classification_system.classifications.get(&word) {
+            return *classification;
+        }
+
+        // تحليل السياق للتصنيف التلقائي
+        let suggested = self.auto_classify(word, context);
+
+        // إضافة إلى قائمة الانتظار
+        self.classification_system.pending_words.push(PendingWord {
+            word: word.clone(),
+            context,
+            suggested_classification: suggested,
+            confidence: 0.7,
+        });
+
+        suggested
+    }
+
+    /// التصنيف التلقائي
+    fn auto_classify(&self, word: string, context: string) -> ClassificationType {
+        // قواعد بسيطة للتصنيف
+        if context.contains("يأكل") || context.contains("يشرب") {
+            return ClassificationType::Real;
+        }
+
+        if context.contains("يفكر") || context.contains("يحلم") {
+            return ClassificationType::Abstract;
+        }
+
+        if context.contains("كأن") || context.contains("مثل") {
+            return ClassificationType::Metaphor;
+        }
+
+        ClassificationType::Unknown
+    }
+
+    /// تطبيق معادلات اللغة المتقدمة (User specification)
+    /// "ج بين أ و ب" - للكائن الثالث
+    pub fn apply_complex_language_equations(&mut self, sentence: string) -> Result<List<LanguageEquation>, string> {
+        let mut equations = vec![];
+
+        // معالجة "بين" - "ج بين أ و ب"
+        if sentence.contains("بين") && sentence.contains(" و ") {
+            let equation = self.parse_between_relation(sentence)?;
+            equations.push(equation);
+        }
+
+        // معالجة التفاعلات - "أ يأكل ب"
+        if sentence.contains("يأكل") {
+            let equation = self.parse_eating_interaction(sentence)?;
+            equations.push(equation);
+        }
+
+        // معالجة الحالات - "أ جائع"
+        if sentence.contains("جائع") || sentence.contains("شبعان") {
+            let equation = self.parse_state_change(sentence)?;
+            equations.push(equation);
+        }
+
+        Ok(equations)
+    }
+
+    /// تحليل علاقة "بين" (User specification)
+    fn parse_between_relation(&mut self, sentence: string) -> Result<LanguageEquation, string> {
+        // مثال: "ج بين أ و ب"
+        let parts: Vec<&str> = sentence.split(" بين ").collect();
+        if parts.len() == 2 {
+            let middle_object = parts[0].trim();
+            let between_part = parts[1];
+
+            let objects: Vec<&str> = between_part.split(" و ").collect();
+            if objects.len() == 2 {
+                let object1 = objects[0].trim();
+                let object2 = objects[1].trim();
+
+                // إنشاء إحداثيات: ج في المنتصف بين أ و ب
+                let point1 = Point3D { x: -1.0, y: 0.0, z: 0.0 };
+                let point2 = Point3D { x: 1.0, y: 0.0, z: 0.0 };
+                let middle_point = Point3D { x: 0.0, y: 0.0, z: 0.0 };
+
+                self.coordinate_system.objects.insert(object1.to_string(), point1);
+                self.coordinate_system.objects.insert(object2.to_string(), point2);
+                self.coordinate_system.objects.insert(middle_object.to_string(), middle_point);
+
+                return Ok(LanguageEquation {
+                    left_side: LanguageExpression {
+                        subject: middle_object.to_string(),
+                        predicate: "بين".to_string(),
+                        object: format!("{} و {}", object1, object2),
+                        modifiers: vec![],
+                    },
+                    right_side: LanguageExpression {
+                        subject: format!("{} و {}", object1, object2),
+                        predicate: "يحيطان".to_string(),
+                        object: middle_object.to_string(),
+                        modifiers: vec![],
+                    },
+                    equation_type: LanguageEquationType::SpatialRelation,
+                    confidence: 0.8,
+                    mathematical_representation: GeneralizedSigmoidEquation {
+                        real_coefficient: 0.5,
+                        imaginary_coefficient: 0.0,
+                        linear_component: LinearEquationComponent {
+                            slope: 0.0,
+                            intercept: 0.0,
+                            weight: 1.0,
+                        },
+                        sigmoid_parameters: SigmoidParameters {
+                            amplitude: 1.0,
+                            steepness: 2.0,
+                            midpoint: 0.0,
+                            offset: 0.0,
+                        },
+                    },
+                });
+            }
+        }
+
+        Err("لا يمكن تحليل علاقة البين".to_string())
+    }
+
+    /// تحليل تفاعل الأكل (User specification)
+    fn parse_eating_interaction(&mut self, sentence: string) -> Result<LanguageEquation, string> {
+        // مثال: "أ يأكل ب"
+        let parts: Vec<&str> = sentence.split(" يأكل ").collect();
+        if parts.len() == 2 {
+            let eater = parts[0].trim();
+            let eaten = parts[1].trim();
+
+            // النتيجة: الآكل يمتلئ، المأكول يختفي
+            return Ok(LanguageEquation {
+                left_side: LanguageExpression {
+                    subject: eater.to_string(),
+                    predicate: "يأكل".to_string(),
+                    object: eaten.to_string(),
+                    modifiers: vec![],
+                },
+                right_side: LanguageExpression {
+                    subject: eater.to_string(),
+                    predicate: "يمتلئ".to_string(),
+                    object: "".to_string(),
+                    modifiers: vec![eaten.to_string() + " يختفي"],
+                },
+                equation_type: LanguageEquationType::CausalRelation,
+                confidence: 0.9,
+                mathematical_representation: GeneralizedSigmoidEquation {
+                    real_coefficient: 1.0,
+                    imaginary_coefficient: 0.5, // تفاعل معقد
+                    linear_component: LinearEquationComponent {
+                        slope: -1.0, // تناقص المأكول
+                        intercept: 1.0,
+                        weight: 0.7,
+                    },
+                    sigmoid_parameters: SigmoidParameters {
+                        amplitude: 2.0,
+                        steepness: 3.0,
+                        midpoint: 0.5,
+                        offset: 0.0,
+                    },
+                },
+            });
+        }
+
+        Err("لا يمكن تحليل تفاعل الأكل".to_string())
+    }
+
+    /// ربط مع محرك الرسم الموجود (Integration with existing ArtisticRenderer)
+    pub fn visualize_language_equation(&mut self, equation: LanguageEquation) -> Result<ImageData, string> {
+        // تحويل المعادلة اللغوية إلى معادلة رياضية
+        let math_equation = equation.mathematical_representation;
+
+        // استخدام محرك الرسم الموجود
+        let style = ArtStyle::default();
+        self.artistic_renderer.create_artistic_visualization(
+            format!("{:?}", math_equation),
+            style
+        )
+    }
+
+    /// ربط مع وحدة الاستنباط الموجودة (Integration with existing ShapeInference)
+    pub fn infer_language_from_image(&mut self, image: ImageData) -> Result<LanguageEquation, string> {
+        // استخدام وحدة الاستنباط الموجودة لاستخراج الشكل
+        let shape = self.shape_inference.image_to_equation(&image)?;
+
+        // تحويل الشكل إلى معادلة لغوية
+        self.shape_to_language_equation(shape)
+    }
+
+    /// تحويل شكل إلى معادلة لغوية
+    fn shape_to_language_equation(&self, shape: GeometricShape) -> Result<LanguageEquation, string> {
+        match shape {
+            GeometricShape::Circle => {
+                Ok(LanguageEquation {
+                    left_side: LanguageExpression {
+                        subject: "الكائن".to_string(),
+                        predicate: "دائري".to_string(),
+                        object: "".to_string(),
+                        modifiers: vec![],
+                    },
+                    right_side: LanguageExpression {
+                        subject: "الشكل".to_string(),
+                        predicate: "متماثل".to_string(),
+                        object: "حول المركز".to_string(),
+                        modifiers: vec![],
+                    },
+                    equation_type: LanguageEquationType::PropertyRelation,
+                    confidence: 0.8,
+                    mathematical_representation: GeneralizedSigmoidEquation::default(),
+                })
+            },
+            _ => Err("شكل غير مدعوم حالياً".to_string()),
+        }
+    }
+}
+
+// ===== دوال التهيئة والإعداد =====
+
+impl BasicNamesDatabase {
+    /// تهيئة قاعدة الأسماء الأساسية (User specification)
+    pub fn new() -> BasicNamesDatabase {
+        BasicNamesDatabase {
+            directions: DirectionNames {
+                up: "فوق".to_string(),
+                down: "تحت".to_string(),
+                right: "يمين".to_string(),
+                left: "يسار".to_string(),
+                front: "أمام".to_string(),
+                back: "خلف".to_string(),
+                between: "بين".to_string(),
+            },
+            physical_states: PhysicalStateNames {
+                solid: "صلد".to_string(),
+                hollow: "مجوف".to_string(),
+                flexible: "مرن".to_string(),
+                rigid: "صلب".to_string(),
+                liquid: "سائل".to_string(),
+                gas: "غاز".to_string(),
+            },
+            interactions: InteractionNames {
+                eat: "يأكل".to_string(),
+                touch: "يلمس".to_string(),
+                scratch: "يخدش".to_string(),
+                push: "يدفع".to_string(),
+                pull: "يجذب".to_string(),
+                near: "قريب".to_string(),
+                far: "بعيد".to_string(),
+            },
+            states: StateNames {
+                hungry: "جائع".to_string(),
+                full: "شبعان".to_string(),
+                pain: "ألم".to_string(),
+                pleasure: "متعة".to_string(),
+                tired: "متعب".to_string(),
+                energetic: "نشيط".to_string(),
+            },
+            environment: EnvironmentNames {
+                ground: "أرض".to_string(),
+                sky: "سماء".to_string(),
+                space: "فضاء".to_string(),
+                surface: "سطح".to_string(),
+            },
+            basic_objects: vec!["أ".to_string(), "ب".to_string(), "ج".to_string()],
+        }
+    }
+}
+
+impl LanguageEquationEngine {
+    /// تهيئة محرك معادلات اللغة
+    pub fn new() -> LanguageEquationEngine {
+        let mut engine = LanguageEquationEngine {
+            equation_database: Dict::new(),
+            auto_converter: AutoEquationConverter::new(),
+            spatial_analyzer: SpatialRelationAnalyzer::new(),
+        };
+
+        // تحميل المعادلات الأساسية
+        engine.load_basic_equations();
+        engine
+    }
+
+    /// تحميل المعادلات الأساسية (User specification)
+    fn load_basic_equations(&mut self) {
+        // "أ فوق ب = ب تحت أ"
+        self.auto_converter.direct_conversions.insert(
+            "فوق".to_string(),
+            "تحت".to_string()
+        );
+        self.auto_converter.inverse_conversions.insert(
+            "تحت".to_string(),
+            "فوق".to_string()
+        );
+
+        // "أ يمين ب = ب يسار أ"
+        self.auto_converter.direct_conversions.insert(
+            "يمين".to_string(),
+            "يسار".to_string()
+        );
+        self.auto_converter.inverse_conversions.insert(
+            "يسار".to_string(),
+            "يمين".to_string()
+        );
+
+        // "أ أمام ب = ب خلف أ"
+        self.auto_converter.direct_conversions.insert(
+            "أمام".to_string(),
+            "خلف".to_string()
+        );
+        self.auto_converter.inverse_conversions.insert(
+            "خلف".to_string(),
+            "أمام".to_string()
+        );
+    }
+}
+
+// ===== أمثلة عملية للاستخدام =====
+
+/// مثال شامل: تحليل جملة معقدة (User specification)
+pub fn example_complex_sentence() -> Result<List<LanguageEquation>, string> {
+    let mut processor = NaturalLanguageProcessor::new();
+
+    // "أحمد فوق الطاولة وسارة يمين الكرسي"
+    let sentence = "أحمد فوق الطاولة وسارة يمين الكرسي";
+
+    let mut equations = vec![];
+
+    // تحليل الجزء الأول
+    let eq1 = processor.example_spatial_relation("أحمد فوق الطاولة")?;
+    equations.push(eq1);
+
+    // تحليل الجزء الثاني
+    let eq2 = processor.example_spatial_relation("سارة يمين الكرسي")?;
+    equations.push(eq2);
+
+    Ok(equations)
+}
+
+/// مثال التفاعل: "القط يأكل السمك" (User specification)
+pub fn example_interaction() -> Result<LanguageEquation, string> {
+    let mut processor = NaturalLanguageProcessor::new();
+    processor.parse_eating_interaction("القط يأكل السمك")
+}
+
+/// مثال العلاقة المعقدة: "الكرة بين اللاعبين" (User specification)
+pub fn example_between_relation() -> Result<LanguageEquation, string> {
+    let mut processor = NaturalLanguageProcessor::new();
+    processor.parse_between_relation("الكرة بين أحمد و سارة")
+}
+
+/// مثال التصنيف التلقائي (User specification)
+pub fn example_classification() -> ClassificationType {
+    let mut processor = NaturalLanguageProcessor::new();
+
+    // كلمة "نقاش" في سياق "الطلاب في نقاش"
+    processor.classify_word("نقاش".to_string(), "الطلاب في نقاش حول الموضوع".to_string())
+}
+
+/// مثال التكامل مع محرك الرسم (User specification)
+pub fn example_visualization() -> Result<ImageData, string> {
+    let mut processor = NaturalLanguageProcessor::new();
+
+    // إنشاء معادلة لغوية
+    let equation = processor.example_spatial_relation("الدائرة فوق المربع")?;
+
+    // تحويل إلى صورة
+    processor.visualize_language_equation(equation)
+}
+
+/// مثال التكامل مع وحدة الاستنباط (User specification)
+pub fn example_image_to_language(image: ImageData) -> Result<LanguageEquation, string> {
+    let mut processor = NaturalLanguageProcessor::new();
+
+    // استنباط معادلة لغوية من صورة
+    processor.infer_language_from_image(image)
+}

@@ -10,6 +10,7 @@ pub use adaptive_equations::*;
 pub use core::*;
 pub use api::*;
 pub use shape::*;
+pub use natural_language::*;
 
 /// الوحدات الفرعية
 pub mod objects;
@@ -19,6 +20,7 @@ pub mod adaptive_equations;
 pub mod core;
 pub mod api;
 pub mod shape;
+pub mod natural_language;
 
 /// دوال الواجهة الرئيسية للاستخدام السريع
 /// Expert insight: "نقاط دخول بسيطة للمطورين"
@@ -60,6 +62,38 @@ pub fn visualize(equation: string) -> Result<ImageData, string> {
     let mut ai = create_math_ai();
     let default_style = ArtStyle::default();
     ai.create_artistic_visualization(equation, default_style)
+}
+
+/// تحويل جملة إلى معادلة لغوية (User specification)
+/// "أ فوق ب = ب تحت أ"
+pub fn sentence_to_equation(sentence: string) -> Result<LanguageEquation, string> {
+    let mut processor = NaturalLanguageProcessor::new();
+    processor.apply_language_equations(sentence)
+}
+
+/// تحليل جملة مكانية بسيطة (User specification)
+pub fn analyze_spatial_sentence(sentence: string) -> Result<LanguageEquation, string> {
+    let mut processor = NaturalLanguageProcessor::new();
+    processor.example_spatial_relation(sentence)
+}
+
+/// تصنيف كلمة جديدة (User specification)
+pub fn classify_word(word: string, context: string) -> ClassificationType {
+    let mut processor = NaturalLanguageProcessor::new();
+    processor.classify_word(word, context)
+}
+
+/// تحويل معادلة لغوية إلى صورة (User specification)
+pub fn language_to_image(sentence: string) -> Result<ImageData, string> {
+    let mut processor = NaturalLanguageProcessor::new();
+    let equation = processor.apply_language_equations(sentence)?;
+    processor.visualize_language_equation(equation)
+}
+
+/// استنباط معادلة لغوية من صورة (User specification)
+pub fn image_to_language(image: ImageData) -> Result<LanguageEquation, string> {
+    let mut processor = NaturalLanguageProcessor::new();
+    processor.infer_language_from_image(image)
 }
 
 /// ثوابت النظام

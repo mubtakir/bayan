@@ -1,0 +1,140 @@
+//! Basic Natural Language Processing Test
+//! اختبار أساسي لوحدة معالجة اللغة الطبيعية
+
+using std::math_ai;
+
+/// اختبار إنشاء معالج اللغة الطبيعية
+fn test_processor_creation() {
+    let processor = math_ai::NaturalLanguageProcessor.new();
+}
+
+/// اختبار قاعدة الأسماء الأساسية
+fn test_basic_names_database() {
+    let database = math_ai::BasicNamesDatabase.new();
+}
+
+/// اختبار نظام التصنيف
+fn test_classification_system() {
+    let system = math_ai::ClassificationSystem.new();
+}
+
+/// اختبار نظام الإحداثيات
+fn test_coordinate_system() {
+    let mut coords = math_ai::CoordinateSystem.new();
+
+    // إضافة نقطة
+    coords.objects.insert("object1", math_ai::Point3D { x: 1.0, y: 2.0, z: 3.0 });
+}
+
+/// اختبار محرك معادلات اللغة
+fn test_language_equation_engine() {
+    let engine = math_ai::LanguageEquationEngine.new();
+}
+
+/// اختبار المعادلة الرياضية المعممة
+fn test_generalized_sigmoid_equation() {
+    let equation = math_ai::GeneralizedSigmoidEquation {
+        real_coefficient: 1.0,
+        imaginary_coefficient: 0.0,
+        linear_component: math_ai::LinearEquationComponent {
+            slope: 1.0,
+            intercept: 0.0,
+            weight: 1.0,
+        },
+        sigmoid_parameters: math_ai::SigmoidParameters {
+            amplitude: 1.0,
+            steepness: 1.0,
+            midpoint: 0.0,
+            offset: 0.0,
+        },
+    };
+}
+
+/// اختبار التعبير اللغوي
+fn test_language_expression() {
+    let expression = math_ai::LanguageExpression {
+        subject: "A",
+        predicate: "above",
+        object: "B",
+        modifiers: vec![],
+    };
+}
+
+/// اختبار المعادلة اللغوية
+fn test_language_equation() {
+    let left_side = math_ai::LanguageExpression {
+        subject: "A",
+        predicate: "above",
+        object: "B",
+        modifiers: vec![],
+    };
+
+    let right_side = math_ai::LanguageExpression {
+        subject: "B",
+        predicate: "below",
+        object: "A",
+        modifiers: vec![],
+    };
+
+    let equation = math_ai::LanguageEquation {
+        left_side,
+        right_side,
+        equation_type: math_ai::LanguageEquationType::SpatialRelation,
+        confidence: 0.9,
+        mathematical_representation: math_ai::GeneralizedSigmoidEquation {
+            real_coefficient: 1.0,
+            imaginary_coefficient: 0.0,
+            linear_component: math_ai::LinearEquationComponent {
+                slope: 1.0,
+                intercept: 1.0,
+                weight: 0.5,
+            },
+            sigmoid_parameters: math_ai::SigmoidParameters {
+                amplitude: 1.0,
+                steepness: 1.0,
+                midpoint: 0.0,
+                offset: 1.0,
+            },
+        },
+    };
+}
+
+/// اختبار أنواع التصنيف
+fn test_classification_types() {
+    let unknown = math_ai::ClassificationType::Unknown;
+    let real = math_ai::ClassificationType::Real;
+    let abstract_type = math_ai::ClassificationType::Abstract;
+    let metaphor = math_ai::ClassificationType::Metaphor;
+}
+
+/// اختبار أنواع العلاقات المكانية
+fn test_spatial_relation_types() {
+    let above = math_ai::SpatialRelationType::Above;
+    let below = math_ai::SpatialRelationType::Below;
+    let right_of = math_ai::SpatialRelationType::RightOf;
+    let left_of = math_ai::SpatialRelationType::LeftOf;
+    let in_front_of = math_ai::SpatialRelationType::InFrontOf;
+    let behind = math_ai::SpatialRelationType::Behind;
+    let between = math_ai::SpatialRelationType::Between;
+    let near = math_ai::SpatialRelationType::Near;
+    let far = math_ai::SpatialRelationType::Far;
+}
+
+/// اختبار شامل لجميع المكونات
+fn test_comprehensive() {
+    test_processor_creation();
+    test_basic_names_database();
+    test_classification_system();
+    test_coordinate_system();
+    test_language_equation_engine();
+    test_generalized_sigmoid_equation();
+    test_language_expression();
+    test_language_equation();
+    test_classification_types();
+    test_spatial_relation_types();
+}
+
+/// الدالة الرئيسية للاختبار
+fn main() {
+    test_comprehensive();
+}

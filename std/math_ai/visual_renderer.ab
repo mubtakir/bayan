@@ -1,0 +1,434 @@
+//! Visual Renderer Module - محرك الرسم البصري
+//! 
+//! تحويل معادلة الشكل إلى صورة (User specification)
+//! "وحدات فنية تتكون من محرك رسم (وربما تحريك) مهمتها تحويل معادلة الشكل الى صورة"
+
+/// محرك الرسم البصري
+pub struct VisualRenderer {
+    /// محرك الرسم الأساسي
+    pub drawing_engine: DrawingEngine,
+    
+    /// محرك التحريك
+    pub animation_engine: AnimationEngine,
+    
+    /// معالج الألوان
+    pub color_processor: ColorProcessor,
+    
+    /// مولد الأنسجة
+    pub texture_generator: TextureGenerator,
+    
+    /// محرك الإضاءة
+    pub lighting_engine: LightingEngine,
+    
+    /// إعدادات الرسم
+    pub render_settings: RenderSettings,
+}
+
+/// محرك الرسم الأساسي
+pub struct DrawingEngine {
+    /// اللوحة الافتراضية
+    pub canvas: Canvas,
+    
+    /// أدوات الرسم
+    pub drawing_tools: DrawingTools,
+    
+    /// محرك الأشكال الهندسية
+    pub geometry_engine: GeometryEngine,
+    
+    /// معالج الإحداثيات
+    pub coordinate_processor: CoordinateProcessor,
+}
+
+/// اللوحة
+pub struct Canvas {
+    /// العرض بالبكسل
+    pub width: int,
+    
+    /// الارتفاع بالبكسل
+    pub height: int,
+    
+    /// عمق الألوان
+    pub color_depth: int,
+    
+    /// البيانات الخام للصورة
+    pub pixel_data: List<Pixel>,
+    
+    /// طبقات الرسم
+    pub layers: List<Layer>,
+}
+
+/// بكسل
+pub struct Pixel {
+    pub x: int,
+    pub y: int,
+    pub color: Color,
+    pub alpha: float,
+}
+
+/// لون
+pub struct Color {
+    pub red: int,
+    pub green: int,
+    pub blue: int,
+}
+
+/// طبقة رسم
+pub struct Layer {
+    pub name: string,
+    pub visible: bool,
+    pub opacity: float,
+    pub blend_mode: BlendMode,
+    pub pixels: List<Pixel>,
+}
+
+/// أنماط المزج
+pub enum BlendMode {
+    Normal,
+    Multiply,
+    Screen,
+    Overlay,
+    SoftLight,
+    HardLight,
+}
+
+/// أدوات الرسم
+pub struct DrawingTools {
+    /// الفرشاة
+    pub brush: Brush,
+    
+    /// القلم
+    pub pen: Pen,
+    
+    /// أداة الخط
+    pub line_tool: LineTool,
+    
+    /// أداة الدائرة
+    pub circle_tool: CircleTool,
+    
+    /// أداة المستطيل
+    pub rectangle_tool: RectangleTool,
+}
+
+/// فرشاة
+pub struct Brush {
+    pub size: float,
+    pub hardness: float,
+    pub opacity: float,
+    pub color: Color,
+    pub texture: Texture,
+}
+
+/// قلم
+pub struct Pen {
+    pub width: float,
+    pub color: Color,
+    pub style: PenStyle,
+}
+
+/// أنماط القلم
+pub enum PenStyle {
+    Solid,
+    Dashed,
+    Dotted,
+    DashDot,
+}
+
+/// أداة الخط
+pub struct LineTool {
+    pub start_point: Point2D,
+    pub end_point: Point2D,
+    pub thickness: float,
+    pub color: Color,
+}
+
+/// نقطة ثنائية الأبعاد
+pub struct Point2D {
+    pub x: float,
+    pub y: float,
+}
+
+/// أداة الدائرة
+pub struct CircleTool {
+    pub center: Point2D,
+    pub radius: float,
+    pub fill_color: Color,
+    pub stroke_color: Color,
+    pub stroke_width: float,
+}
+
+/// أداة المستطيل
+pub struct RectangleTool {
+    pub top_left: Point2D,
+    pub width: float,
+    pub height: float,
+    pub fill_color: Color,
+    pub stroke_color: Color,
+    pub stroke_width: float,
+}
+
+/// محرك الأشكال الهندسية
+pub struct GeometryEngine {
+    /// رسام الدوائر
+    pub circle_renderer: CircleRenderer,
+    
+    /// رسام المستطيلات
+    pub rectangle_renderer: RectangleRenderer,
+    
+    /// رسام الخطوط
+    pub line_renderer: LineRenderer,
+    
+    /// رسام المنحنيات
+    pub curve_renderer: CurveRenderer,
+    
+    /// رسام الأشكال المعقدة
+    pub complex_shape_renderer: ComplexShapeRenderer,
+}
+
+/// رسام الدوائر
+pub struct CircleRenderer {
+    /// خوارزمية الرسم
+    pub algorithm: CircleAlgorithm,
+}
+
+/// خوارزميات رسم الدائرة
+pub enum CircleAlgorithm {
+    Bresenham,
+    Midpoint,
+    Parametric,
+}
+
+/// محرك التحريك (User specification)
+/// "وربما تحريك"
+pub struct AnimationEngine {
+    /// الإطارات
+    pub frames: List<Frame>,
+    
+    /// معدل الإطارات في الثانية
+    pub fps: int,
+    
+    /// مدة الحركة
+    pub duration: float,
+    
+    /// نوع الحركة
+    pub animation_type: AnimationType,
+    
+    /// منحنى التسارع
+    pub easing_curve: EasingCurve,
+}
+
+/// إطار حركة
+pub struct Frame {
+    pub frame_number: int,
+    pub timestamp: float,
+    pub canvas: Canvas,
+    pub transformations: List<Transformation>,
+}
+
+/// أنواع الحركة
+pub enum AnimationType {
+    Linear,        // خطية
+    Rotation,      // دوران
+    Scaling,       // تكبير/تصغير
+    Translation,   // انتقال
+    Morphing,      // تحويل الشكل
+    Complex,       // حركة معقدة
+}
+
+/// منحنى التسارع
+pub enum EasingCurve {
+    Linear,
+    EaseIn,
+    EaseOut,
+    EaseInOut,
+    Bounce,
+    Elastic,
+}
+
+/// تحويل هندسي
+pub struct Transformation {
+    pub transformation_type: TransformationType,
+    pub parameters: List<float>,
+    pub center: Point2D,
+}
+
+/// أنواع التحويلات
+pub enum TransformationType {
+    Translate,  // انتقال
+    Rotate,     // دوران
+    Scale,      // تكبير/تصغير
+    Skew,       // إمالة
+    Matrix,     // مصفوفة تحويل
+}
+
+/// معالج الألوان
+pub struct ColorProcessor {
+    /// لوحة الألوان
+    pub color_palette: ColorPalette,
+    
+    /// مولد التدرجات
+    pub gradient_generator: GradientGenerator,
+    
+    /// محرك الألوان التكيفية
+    pub adaptive_color_engine: AdaptiveColorEngine,
+}
+
+/// لوحة الألوان
+pub struct ColorPalette {
+    pub colors: List<Color>,
+    pub name: string,
+    pub theme: ColorTheme,
+}
+
+/// موضوع الألوان
+pub enum ColorTheme {
+    Bright,     // مشرق
+    Dark,       // داكن
+    Pastel,     // ألوان هادئة
+    Vibrant,    // ألوان زاهية
+    Monochrome, // أحادي اللون
+    Natural,    // ألوان طبيعية
+}
+
+/// مولد التدرجات
+pub struct GradientGenerator {
+    pub start_color: Color,
+    pub end_color: Color,
+    pub gradient_type: GradientType,
+    pub steps: int,
+}
+
+/// أنواع التدرجات
+pub enum GradientType {
+    Linear,    // خطي
+    Radial,    // دائري
+    Angular,   // زاوي
+    Diamond,   // ماسي
+}
+
+/// محرك الألوان التكيفية
+pub struct AdaptiveColorEngine {
+    /// قواعد اختيار الألوان
+    pub color_rules: List<ColorRule>,
+    
+    /// تاريخ الألوان المستخدمة
+    pub color_history: List<Color>,
+}
+
+/// قاعدة لون
+pub struct ColorRule {
+    pub condition: string,
+    pub color_scheme: ColorScheme,
+    pub priority: int,
+}
+
+/// مخطط الألوان
+pub struct ColorScheme {
+    pub primary: Color,
+    pub secondary: Color,
+    pub accent: Color,
+    pub background: Color,
+}
+
+/// مولد الأنسجة
+pub struct TextureGenerator {
+    /// الأنسجة المحددة مسبقاً
+    pub predefined_textures: List<Texture>,
+    
+    /// مولد الأنسجة الإجرائية
+    pub procedural_generator: ProceduralTextureGenerator,
+}
+
+/// نسيج
+pub struct Texture {
+    pub name: string,
+    pub width: int,
+    pub height: int,
+    pub data: List<Color>,
+    pub texture_type: TextureType,
+}
+
+/// أنواع الأنسجة
+pub enum TextureType {
+    Solid,      // صلبة
+    Pattern,    // نمط
+    Noise,      // ضوضاء
+    Gradient,   // تدرج
+    Image,      // صورة
+}
+
+/// مولد الأنسجة الإجرائية
+pub struct ProceduralTextureGenerator {
+    /// مولد الضوضاء
+    pub noise_generator: NoiseGenerator,
+    
+    /// مولد الأنماط
+    pub pattern_generator: PatternGenerator,
+}
+
+/// مولد الضوضاء
+pub struct NoiseGenerator {
+    pub noise_type: NoiseType,
+    pub frequency: float,
+    pub amplitude: float,
+    pub octaves: int,
+}
+
+/// أنواع الضوضاء
+pub enum NoiseType {
+    Perlin,
+    Simplex,
+    White,
+    Pink,
+}
+
+impl VisualRenderer {
+    /// إنشاء محرك رسم جديد
+    pub fn new() -> VisualRenderer {
+        VisualRenderer {
+            drawing_engine: DrawingEngine::new(),
+            animation_engine: AnimationEngine::new(),
+            color_processor: ColorProcessor::new(),
+            texture_generator: TextureGenerator::new(),
+            lighting_engine: LightingEngine::new(),
+            render_settings: RenderSettings::default(),
+        }
+    }
+    
+    /// تحويل معادلة الشكل إلى صورة (User specification)
+    pub fn equation_to_image(&self, equation: string) -> Result<Canvas, string> {
+        // تحليل المعادلة
+        let shape = self.parse_equation(equation)?;
+        
+        // إنشاء لوحة جديدة
+        let mut canvas = Canvas::new(800, 600);
+        
+        // رسم الشكل
+        self.draw_shape(&mut canvas, shape)?;
+        
+        Ok(canvas)
+    }
+    
+    /// رسم شكل على اللوحة
+    fn draw_shape(&self, canvas: &mut Canvas, shape: GeometricShape) -> Result<(), string> {
+        match shape.shape_type {
+            ShapeType::Circle => {
+                self.drawing_engine.geometry_engine.circle_renderer.draw_circle(
+                    canvas, 
+                    shape.center, 
+                    shape.radius,
+                    shape.color
+                )?;
+            },
+            ShapeType::Rectangle => {
+                self.drawing_engine.geometry_engine.rectangle_renderer.draw_rectangle(
+                    canvas,
+                    shape.bounds,
+                    shape.color
+                )?;
+            },
+            // المزيد من الأشكال...
+        }
+        
+        Ok(())
+    }
+}
