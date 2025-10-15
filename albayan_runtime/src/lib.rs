@@ -11,6 +11,7 @@ pub mod shape_inference;  // Expert recommendation: Priority 2 - PyTorch Trainin
 pub mod knowledge_engine;  // Expert recommendation: Priority 2 - Semantic Knowledge Base
 pub mod linguistic_intelligence;  // User specification: Letter-based word analysis system
 pub mod nlu_engine;  // Expert recommendation: Priority 4 - Natural Language Understanding
+pub mod baserah_semantic_system;  // User specification: Baserah Revolutionary Semantic System
 
 pub use knowledge_base::*;
 pub use unification::*;
@@ -21,6 +22,7 @@ pub use torch::*;
 pub use knowledge_engine::*;
 pub use linguistic_intelligence::*;
 pub use nlu_engine::*;
+pub use baserah_semantic_system::*;
 
 /// Runtime initialization
 pub fn init_runtime() {
@@ -30,6 +32,8 @@ pub fn init_runtime() {
     initialize_linguistic_intelligence();
     // Initialize Natural Language Understanding engine
     initialize_nlu_engine();
+    // Initialize Baserah Revolutionary Semantic System
+    initialize_baserah_semantic_system();
     // This will be called from generated LLVM code
 }
 

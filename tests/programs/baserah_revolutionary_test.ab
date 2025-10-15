@@ -1,0 +1,266 @@
+// اختبار نظام الدلالة المعنوية الثوري - Baserah Revolutionary Semantic System
+//
+// تحويل نظام باسل الثوري من Python إلى لغة البيان
+// المبدأ الأساسي: الانسان = (معادلة شكله العام) + (حدود غير رياضية: نفسية، عاطفية، ...)
+
+using std::baserah_semantic;
+
+fn main() {
+    print("🧠💭 مرحباً بك في نظام الدلالة المعنوية الثوري!");
+    print("🌟 تحويل نظام باسل الثوري إلى لغة البيان");
+    print("=" * 60);
+    print("");
+
+    // اختبار النظام الثوري الكامل
+    let success = test_revolutionary_system();
+
+    print("");
+    print("=" * 60);
+
+    if success {
+        print("🎊 النظام الثوري يعمل بكفاءة استثنائية!");
+        print("✅ تم تحويل نظام باسل الثوري بنجاح إلى لغة البيان");
+        print("🔤 الكلمة تكشف دلالتها بنفسها - طبقة ذكاء إضافية ثورية!");
+    } else {
+        print("❌ هناك مشاكل في النظام الثوري");
+    }
+
+    print("");
+    print("🧬 نظريات باسل الثورية المطبقة:");
+    print("   1. نظرية ثنائية الصفر (Zero Duality Theory)");
+    print("   2. نظرية تعامد الأضداد (Perpendicular Opposites Theory)");
+    print("   3. نظرية الفتائل (Filament Theory)");
+    print("");
+
+    print("🌟 نظام Baserah النقي:");
+    print("   - sigmoid + linear فقط للتحليل اللغوي");
+    print("   - دلالات الحروف الأصيلة من التراث العربي");
+    print("   - تطبيق نظريات باسل على كل كلمة");
+    print("   - منهج نقي 100% - بدون AI تقليدي");
+    print("");
+
+    // اختبارات إضافية للحروف العربية
+    test_arabic_letters();
+
+    print("");
+    print("🎯 النتيجة النهائية:");
+    print("   لغة البيان أصبحت الآن تملك نظام دلالة معنوية ثوري!");
+    print("   الكلمة تكشف دلالتها بنفسها - طبقة ذكاء إضافية!");
+}
+
+fn test_arabic_letters() {
+    print("🔤 اختبار دلالات الحروف العربية:");
+    print("");
+
+    // اختبار حروف مختارة
+    let letters = ['ا', 'ل', 'ه', 'ج', 'ر', 'ة', 'ع', 'ن', 'س'];
+
+    let alif_meaning = get_arabic_letter_meaning('ا');
+    let alif_value = baserah_sigmoid(1575.0 / 1000.0, 1.0, 1.5, 0.5, 1.0);
+    print("   ا: " + alif_meaning + " (Baserah: " + alif_value.to_string() + ")");
+
+    let lam_meaning = get_arabic_letter_meaning('ل');
+    let lam_value = baserah_sigmoid(1604.0 / 1000.0, 1.0, 1.5, 0.5, 1.0);
+    print("   ل: " + lam_meaning + " (Baserah: " + lam_value.to_string() + ")");
+
+    let haa_meaning = get_arabic_letter_meaning('ه');
+    let haa_value = baserah_sigmoid(1607.0 / 1000.0, 1.0, 1.5, 0.5, 1.0);
+    print("   ه: " + haa_meaning + " (Baserah: " + haa_value.to_string() + ")");
+
+    let jeem_meaning = get_arabic_letter_meaning('ج');
+    let jeem_value = baserah_sigmoid(1580.0 / 1000.0, 1.0, 1.5, 0.5, 1.0);
+    print("   ج: " + jeem_meaning + " (Baserah: " + jeem_value.to_string() + ")");
+
+    let raa_meaning = get_arabic_letter_meaning('ر');
+    let raa_value = baserah_sigmoid(1585.0 / 1000.0, 1.0, 1.5, 0.5, 1.0);
+    print("   ر: " + raa_meaning + " (Baserah: " + raa_value.to_string() + ")");
+
+    print("");
+    print("💡 كل حرف له معنى صوتي ومعنى بصري!");
+    print("💡 شكل الحرف ليس اعتباطاً - له دلالة عميقة!");
+}
+
+// اختبار متقدم للمعادلات الدلالية
+fn test_advanced_semantic_equations() {
+    print("🧮 اختبار المعادلات الدلالية المتقدمة:");
+    print("");
+
+    // اختبار كلمات مختلفة
+    let words = ["حياة", "علم", "حكمة", "جمال", "طريق"];
+
+    // اختبار كلمة "حياة"
+    print("🔍 تحليل كلمة 'حياة':");
+    let result1 = analyze_arabic_word_revolutionary("حياة");
+    if result1 {
+        print("   ✅ تم التحليل بنجاح");
+        let equation_created1 = create_semantic_equation("حياة", SemanticType::Concept);
+        if equation_created1 {
+            print("   🌟 تم إنشاء معادلة دلالية");
+        }
+        let found1 = find_semantic_equation("حياة");
+        if found1 {
+            print("   🔍 المعادلة موجودة في النظام");
+        }
+    } else {
+        print("   ❌ فشل في التحليل");
+    }
+    print("");
+
+    // اختبار كلمة "علم"
+    print("🔍 تحليل كلمة 'علم':");
+    let result2 = analyze_arabic_word_revolutionary("علم");
+    if result2 {
+        print("   ✅ تم التحليل بنجاح");
+        let equation_created2 = create_semantic_equation("علم", SemanticType::Concept);
+        if equation_created2 {
+            print("   🌟 تم إنشاء معادلة دلالية");
+        }
+        let found2 = find_semantic_equation("علم");
+        if found2 {
+            print("   🔍 المعادلة موجودة في النظام");
+        }
+    } else {
+        print("   ❌ فشل في التحليل");
+    }
+    print("");
+}
+
+// اختبار دوال Baserah الرياضية
+fn test_baserah_mathematical_functions() {
+    print("🧮 اختبار دوال Baserah الرياضية:");
+    print("");
+
+    // اختبار دالة السيجمويد
+    print("📈 دالة السيجمويد Baserah:");
+
+    let result1 = baserah_sigmoid(0.0, 1.0, 1.5, 0.5, 1.0);
+    print("   sigmoid(0.0) = " + result1.to_string());
+
+    let result2 = baserah_sigmoid(0.25, 1.0, 1.5, 0.5, 1.0);
+    print("   sigmoid(0.25) = " + result2.to_string());
+
+    let result3 = baserah_sigmoid(0.5, 1.0, 1.5, 0.5, 1.0);
+    print("   sigmoid(0.5) = " + result3.to_string());
+
+    let result4 = baserah_sigmoid(0.75, 1.0, 1.5, 0.5, 1.0);
+    print("   sigmoid(0.75) = " + result4.to_string());
+
+    let result5 = baserah_sigmoid(1.0, 1.0, 1.5, 0.5, 1.0);
+    print("   sigmoid(1.0) = " + result5.to_string());
+
+    print("");
+
+    // اختبار دالة خطية
+    print("📊 دالة خطية Baserah:");
+
+    let linear1 = baserah_linear(0.0, 2.0, 0.1);
+    print("   linear(0.0) = " + linear1.to_string());
+
+    let linear2 = baserah_linear(0.25, 2.0, 0.1);
+    print("   linear(0.25) = " + linear2.to_string());
+
+    let linear3 = baserah_linear(0.5, 2.0, 0.1);
+    print("   linear(0.5) = " + linear3.to_string());
+
+    let linear4 = baserah_linear(0.75, 2.0, 0.1);
+    print("   linear(0.75) = " + linear4.to_string());
+
+    let linear5 = baserah_linear(1.0, 2.0, 0.1);
+    print("   linear(1.0) = " + linear5.to_string());
+
+    print("");
+}
+
+// اختبار نظريات باسل الثورية
+fn test_basil_revolutionary_theories() {
+    print("🧬 اختبار نظريات باسل الثورية:");
+    print("");
+
+    print("1. نظرية ثنائية الصفر (Zero Duality Theory):");
+    print("   - توازن الحروف الإيجابية والسالبية في الكلمة");
+    print("   - الصيغة: Σ(positive_letters) + Σ(negative_letters) = 0");
+    print("");
+
+    print("2. نظرية تعامد الأضداد (Perpendicular Opposites Theory):");
+    print("   - تحليل التضاد بين أجزاء الكلمة");
+    print("   - الصيغة: angle = |first_half - second_half| × 90°");
+    print("");
+
+    print("3. نظرية الفتائل (Filament Theory):");
+    print("   - تفكيك الكلمات إلى فتائل دلالية أولية");
+    print("   - الصيغة: Word = Σ(Primary_Filaments)");
+    print("");
+
+    // تطبيق النظريات على كلمة "الله"
+    print("🔍 تطبيق النظريات على كلمة 'الله':");
+
+    // حساب قيم الحروف
+    let alif_value = baserah_sigmoid(0.627, 1.0, 1.5, 0.5, 1.0);
+    let lam1_value = baserah_sigmoid(0.644, 1.0, 1.5, 0.5, 1.0);
+    let lam2_value = baserah_sigmoid(0.644, 1.0, 1.5, 0.5, 1.0);
+    let haa_value = baserah_sigmoid(0.647, 1.0, 1.5, 0.5, 1.0);
+
+    // نظرية ثنائية الصفر
+    let positive_sum = alif_value + lam2_value;  // مواضع زوجية (0, 2)
+    let negative_sum = lam1_value + haa_value;   // مواضع فردية (1, 3)
+    let balance = (positive_sum - negative_sum).abs();
+
+    print("   ثنائية الصفر:");
+    print("     إيجابي: " + positive_sum.to_string());
+    print("     سالب: " + negative_sum.to_string());
+    print("     التوازن: " + balance.to_string());
+
+    if balance < 0.1 {
+        print("     ✅ الكلمة متوازنة!");
+    } else {
+        print("     ⚖️ الكلمة غير متوازنة");
+    }
+
+    print("");
+
+    // نظرية تعامد الأضداد
+    let first_half = (alif_value + lam1_value) / 2.0;
+    let second_half = (lam2_value + haa_value) / 2.0;
+    let perpendicular_angle = (first_half - second_half).abs() * 90.0;
+
+    print("   تعامد الأضداد:");
+    print("     النصف الأول: " + first_half.to_string());
+    print("     النصف الثاني: " + second_half.to_string());
+    print("     زاوية التعامد: " + perpendicular_angle.to_string() + "°");
+
+    if (perpendicular_angle - 90.0).abs() < 10.0 {
+        print("     ✅ الكلمة متعامدة!");
+    } else {
+        print("     📐 الكلمة غير متعامدة");
+    }
+
+    print("");
+}
+
+// اختبار شامل متقدم
+fn comprehensive_revolutionary_test() {
+    print("🎊 اختبار شامل متقدم للنظام الثوري:");
+    print("=" * 50);
+    print("");
+
+    // اختبار المعادلات الدلالية المتقدمة
+    test_advanced_semantic_equations();
+
+    print("");
+
+    // اختبار دوال Baserah الرياضية
+    test_baserah_mathematical_functions();
+
+    print("");
+
+    // اختبار نظريات باسل الثورية
+    test_basil_revolutionary_theories();
+
+    print("");
+
+    // عرض الإحصائيات النهائية
+    show_system_stats();
+
+    print("");
+    print("🎯 الاختبار الشامل مكتمل!");
+}

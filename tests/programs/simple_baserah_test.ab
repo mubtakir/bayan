@@ -1,0 +1,119 @@
+// اختبار بسيط لنظام Baserah الثوري
+//
+// تحويل نظام باسل الثوري من Python إلى لغة البيان
+
+using std::baserah_semantic;
+
+fn main() {
+    print("🧠💭 اختبار نظام Baserah الثوري البسيط");
+    print("=" * 50);
+    print("");
+    
+    // اختبار دوال Baserah الرياضية
+    test_baserah_functions();
+    
+    print("");
+    
+    // اختبار دلالات الحروف العربية
+    test_letter_meanings();
+    
+    print("");
+    
+    // اختبار تحليل الكلمات
+    test_word_analysis();
+    
+    print("");
+    
+    // عرض إحصائيات النظام
+    show_system_stats();
+    
+    print("");
+    print("🎊 اختبار نظام Baserah الثوري مكتمل!");
+}
+
+fn test_baserah_functions() {
+    print("🧮 اختبار دوال Baserah الرياضية:");
+    print("");
+    
+    // اختبار دالة السيجمويد
+    print("📈 دالة السيجمويد:");
+    let sigmoid_result = baserah_sigmoid(0.5, 1.0, 1.5, 0.5, 1.0);
+    print("   sigmoid(0.5) = " + sigmoid_result.to_string());
+    
+    // اختبار دالة خطية
+    print("📊 دالة خطية:");
+    let linear_result = baserah_linear(0.5, 2.0, 0.1);
+    print("   linear(0.5) = " + linear_result.to_string());
+}
+
+fn test_letter_meanings() {
+    print("🔤 اختبار دلالات الحروف العربية:");
+    print("");
+    
+    // اختبار حروف أساسية
+    let alif_meaning = get_arabic_letter_meaning('ا');
+    print("   ا: " + alif_meaning);
+    
+    let lam_meaning = get_arabic_letter_meaning('ل');
+    print("   ل: " + lam_meaning);
+    
+    let haa_meaning = get_arabic_letter_meaning('ه');
+    print("   ه: " + haa_meaning);
+    
+    print("");
+    print("💡 كل حرف له معنى صوتي ومعنى بصري!");
+}
+
+fn test_word_analysis() {
+    print("🔍 اختبار تحليل الكلمات:");
+    print("");
+    
+    // اختبار كلمة "الله"
+    print("تحليل كلمة 'الله':");
+    let allah_result = analyze_arabic_word_revolutionary("الله");
+    if allah_result {
+        print("   ✅ تم التحليل بنجاح");
+    } else {
+        print("   ❌ فشل في التحليل");
+    }
+    
+    print("");
+    
+    // اختبار كلمة "انسان"
+    print("تحليل كلمة 'انسان':");
+    let human_result = analyze_arabic_word_revolutionary("انسان");
+    if human_result {
+        print("   ✅ تم التحليل بنجاح");
+        
+        // إنشاء معادلة دلالية
+        let equation_created = create_semantic_equation("انسان", SemanticType::Object);
+        if equation_created {
+            print("   🌟 تم إنشاء معادلة دلالية");
+        }
+    } else {
+        print("   ❌ فشل في التحليل");
+    }
+    
+    print("");
+    
+    // اختبار كلمة "شجرة"
+    print("تحليل كلمة 'شجرة':");
+    let tree_result = analyze_arabic_word_revolutionary("شجرة");
+    if tree_result {
+        print("   ✅ تم التحليل بنجاح");
+        
+        // إنشاء معادلة دلالية
+        let equation_created = create_semantic_equation("شجرة", SemanticType::Object);
+        if equation_created {
+            print("   🌟 تم إنشاء معادلة دلالية");
+        }
+    } else {
+        print("   ❌ فشل في التحليل");
+    }
+}
+
+fn show_system_stats() {
+    print("📊 إحصائيات نظام Baserah:");
+    let stats = get_semantic_system_stats();
+    print("   عدد المعادلات الدلالية: " + stats.to_string());
+}
