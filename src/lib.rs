@@ -25,6 +25,7 @@ pub mod tools;
 pub mod lsp;
 pub mod ai;
 pub mod builtin_libraries;
+pub mod nlu;
 
 // Re-export commonly used types
 pub use lexer::{Token, TokenType, Lexer};

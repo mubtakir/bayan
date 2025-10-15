@@ -62,6 +62,8 @@ pub enum Item {
     Fact(FactDecl),
     Module(ModuleDecl),
     Using(UsingDecl),
+    /// Natural Language Understanding block - كتلة فهم اللغة الطبيعية
+    Semantic(SemanticBlock),
 }
 
 /// Function declaration
@@ -308,6 +310,7 @@ pub enum Statement {
     Query(QueryStatement),
     Assert(AssertStatement),
     Retract(RetractStatement),
+    Semantic(SemanticBlock),
 }
 
 /// Let statement (variable declaration)
@@ -572,6 +575,38 @@ pub trait AstVisitorMut<T> {
     fn visit_item(&mut self, item: &mut Item) -> T;
     fn visit_statement(&mut self, statement: &mut Statement) -> T;
     fn visit_expression(&mut self, expression: &mut Expression) -> T;
+}
+
+/// Semantic block for Natural Language Understanding
+/// كتلة دلالية لفهم اللغة الطبيعية
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SemanticBlock {
+    /// Natural language sentences to be parsed
+    /// الجمل الطبيعية المراد تحليلها
+    pub sentences: Vec<String>,
+    /// Generated API calls from NLU parsing
+    /// استدعاءات API المولدة من تحليل اللغة الطبيعية
+    pub generated_calls: Vec<String>,
+    /// Confidence scores for each sentence
+    /// درجات الثقة لكل جملة
+    pub confidence_scores: Vec<f64>,
+}
+
+impl SemanticBlock {
+    /// Create a new semantic block
+    pub fn new(sentences: Vec<String>) -> Self {
+        Self {
+            sentences,
+            generated_calls: Vec::new(),
+            confidence_scores: Vec::new(),
+        }
+    }
+
+    /// Add a generated API call
+    pub fn add_generated_call(&mut self, call: String, confidence: f64) {
+        self.generated_calls.push(call);
+        self.confidence_scores.push(confidence);
+    }
 }
 
 // Re-export the main AST node type

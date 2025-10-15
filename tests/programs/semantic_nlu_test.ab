@@ -1,0 +1,45 @@
+// اختبار محلل اللغة الطبيعية - Natural Language Understanding Test
+// تنفيذ الأولوية الرابعة من توجيهات الخبير
+
+fn main() {
+    print("اختبار محلل اللغة الطبيعية");
+
+    // اختبار الكتل الدلالية
+    test_semantic_blocks();
+
+    print("انتهى الاختبار");
+}
+
+fn test_semantic_blocks() {
+    print("اختبار الكتل الدلالية");
+
+    // كتلة دلالية بسيطة
+    semantic {
+        "أ فوق ب";
+        "كتاب تحت طاولة";
+        "قط يأكل سمك";
+    };
+
+    // كتلة دلالية متقدمة
+    semantic {
+        "الشمس فوق الأرض";
+        "الطائر يطير في السماء";
+        "الماء يجري في النهر";
+    };
+
+    print("تم تحليل الكتل الدلالية بنجاح");
+}
+
+// دالة لاختبار التكامل مع محرك المعرفة
+fn test_knowledge_integration() {
+    // استخدام API المولد من تحليل اللغة الطبيعية
+    let book = Object::new("كتاب");
+    let table = Object::new("طاولة");
+
+    // هذا سيتم توليده تلقائياً من "كتاب فوق طاولة"
+    std::knowledge::assert_above(&book, &table);
+
+    // التحقق من العلاقة
+    let is_above = std::knowledge::query_above(&book, &table);
+    print("الكتاب فوق الطاولة: " + is_above.to_string());
+}

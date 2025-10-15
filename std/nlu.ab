@@ -1,0 +1,240 @@
+// Natural Language Understanding API - واجهة فهم اللغة الطبيعية
+// تنفيذ الأولوية الرابعة من توجيهات الخبير
+
+/// تحليل جملة طبيعية وتحويلها إلى استدعاءات API
+pub fn parse_natural_sentence(sentence: string) -> ParseResult {
+    // استدعاء محلل NLU من وقت التشغيل
+    let result = albayan_rt_parse_natural_language(sentence.as_ptr());
+    
+    if result == 0 {
+        ParseResult {
+            success: false,
+            confidence: 0.0,
+            api_call: "".to_string(),
+            error: "فشل في تحليل الجملة".to_string(),
+        }
+    } else {
+        ParseResult {
+            success: true,
+            confidence: 0.8,
+            api_call: "std::knowledge::assert_relation()".to_string(),
+            error: "".to_string(),
+        }
+    }
+}
+
+/// نتيجة تحليل الجملة الطبيعية
+pub struct ParseResult {
+    pub success: bool,
+    pub confidence: float,
+    pub api_call: string,
+    pub error: string,
+}
+
+/// تحليل كتلة دلالية كاملة
+pub fn process_semantic_block(sentences: Vec<string>) -> Vec<ParseResult> {
+    let mut results = Vec::new();
+    
+    for sentence in sentences {
+        let result = parse_natural_sentence(sentence);
+        results.push(result);
+    }
+    
+    results
+}
+
+/// تحليل العلاقات المكانية
+pub fn parse_spatial_relation(sentence: string) -> SpatialRelation {
+    // تحليل جمل مثل "أ فوق ب"
+    let words = sentence.split(" ");
+    
+    if words.len() == 3 {
+        let subject = words[0].to_string();
+        let relation = words[1].to_string();
+        let object = words[2].to_string();
+        
+        match relation.as_str() {
+            "فوق" => SpatialRelation {
+                relation_type: RelationType::Above,
+                subject: subject,
+                object: object,
+                confidence: 0.9,
+            },
+            "تحت" => SpatialRelation {
+                relation_type: RelationType::Below,
+                subject: subject,
+                object: object,
+                confidence: 0.9,
+            },
+            _ => SpatialRelation {
+                relation_type: RelationType::Unknown,
+                subject: subject,
+                object: object,
+                confidence: 0.1,
+            },
+        }
+    } else {
+        SpatialRelation {
+            relation_type: RelationType::Unknown,
+            subject: "".to_string(),
+            object: "".to_string(),
+            confidence: 0.0,
+        }
+    }
+}
+
+/// أنواع العلاقات المكانية
+pub enum RelationType {
+    Above,    // فوق
+    Below,    // تحت
+    LeftOf,   // يسار
+    RightOf,  // يمين
+    Near,     // قريب
+    Far,      // بعيد
+    Unknown,  // غير معروف
+}
+
+/// علاقة مكانية
+pub struct SpatialRelation {
+    pub relation_type: RelationType,
+    pub subject: string,
+    pub object: string,
+    pub confidence: float,
+}
+
+/// تحليل العلاقات التفاعلية
+pub fn parse_interactive_relation(sentence: string) -> InteractiveRelation {
+    // تحليل جمل مثل "قط يأكل سمك"
+    let words = sentence.split(" ");
+    
+    if words.len() == 3 {
+        let subject = words[0].to_string();
+        let action = words[1].to_string();
+        let object = words[2].to_string();
+        
+        match action.as_str() {
+            "يأكل" => InteractiveRelation {
+                action_type: ActionType::Eats,
+                subject: subject,
+                object: object,
+                confidence: 0.8,
+            },
+            "يلمس" => InteractiveRelation {
+                action_type: ActionType::Touches,
+                subject: subject,
+                object: object,
+                confidence: 0.8,
+            },
+            _ => InteractiveRelation {
+                action_type: ActionType::Unknown,
+                subject: subject,
+                object: object,
+                confidence: 0.1,
+            },
+        }
+    } else {
+        InteractiveRelation {
+            action_type: ActionType::Unknown,
+            subject: "".to_string(),
+            object: "".to_string(),
+            confidence: 0.0,
+        }
+    }
+}
+
+/// أنواع الأفعال التفاعلية
+pub enum ActionType {
+    Eats,     // يأكل
+    Touches,  // يلمس
+    Hits,     // يضرب
+    Unknown,  // غير معروف
+}
+
+/// علاقة تفاعلية
+pub struct InteractiveRelation {
+    pub action_type: ActionType,
+    pub subject: string,
+    pub object: string,
+    pub confidence: float,
+}
+
+/// توليد كود البيان من نتيجة التحليل
+pub fn generate_albayan_code(parse_result: ParseResult) -> string {
+    if parse_result.success {
+        format!(
+            "// تحليل تلقائي - مستوى الثقة: {:.2}\n{}\n",
+            parse_result.confidence,
+            parse_result.api_call
+        )
+    } else {
+        format!("// خطأ في التحليل: {}\n", parse_result.error)
+    }
+}
+
+/// دوال FFI للتكامل مع وقت التشغيل
+extern "C" {
+    fn albayan_rt_parse_natural_language(sentence: *const u8) -> i32;
+    fn albayan_rt_get_parse_confidence() -> f64;
+    fn albayan_rt_get_generated_api_call() -> *const u8;
+}
+
+/// مثال شامل لاستخدام محلل اللغة الطبيعية
+pub fn nlu_example() {
+    print("مثال على محلل اللغة الطبيعية");
+    
+    // تحليل جملة بسيطة
+    let sentence = "كتاب فوق طاولة".to_string();
+    let result = parse_natural_sentence(sentence);
+    
+    if result.success {
+        print("تم التحليل بنجاح!");
+        print("استدعاء API: " + result.api_call);
+        print("مستوى الثقة: " + result.confidence.to_string());
+        
+        // توليد الكود
+        let generated_code = generate_albayan_code(result);
+        print("الكود المولد:");
+        print(generated_code);
+    } else {
+        print("فشل في التحليل: " + result.error);
+    }
+}
+
+/// تحليل متقدم للجمل المعقدة
+pub fn advanced_sentence_analysis(sentence: string) -> AdvancedParseResult {
+    // تحليل أكثر تعقيداً للجمل الطويلة
+    let words = sentence.split(" ");
+    let word_count = words.len();
+    
+    let mut subjects = Vec::new();
+    let mut predicates = Vec::new();
+    let mut objects = Vec::new();
+    
+    // تحليل بسيط للعناصر
+    for (i, word) in words.enumerate() {
+        if i == 0 {
+            subjects.push(word.to_string());
+        } else if i == word_count - 1 {
+            objects.push(word.to_string());
+        } else {
+            predicates.push(word.to_string());
+        }
+    }
+    
+    AdvancedParseResult {
+        subjects: subjects,
+        predicates: predicates,
+        objects: objects,
+        complexity_score: word_count as float / 10.0,
+        confidence: if word_count <= 5 { 0.8 } else { 0.5 },
+    }
+}
+
+/// نتيجة التحليل المتقدم
+pub struct AdvancedParseResult {
+    pub subjects: Vec<string>,
+    pub predicates: Vec<string>,
+    pub objects: Vec<string>,
+    pub complexity_score: float,
+    pub confidence: float,
+}

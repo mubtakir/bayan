@@ -108,6 +108,10 @@ pub enum TokenType {
     Using,
     #[token("pub")]
     Pub,
+
+    // Keywords - Natural Language Understanding
+    #[token("semantic")]
+    Semantic,
     #[token("priv")]
     Priv,
 

@@ -6,6 +6,7 @@
 pub mod ast;
 
 use crate::lexer::{Token, TokenType};
+use crate::nlu::parse_simple_natural_language;
 use ast::*;
 use std::collections::HashMap;
 
@@ -55,6 +56,10 @@ impl Parser {
             TokenType::Fact => self.parse_fact(),
             TokenType::Module => self.parse_module(),
             TokenType::Using => self.parse_using(),
+            TokenType::Semantic => {
+                let semantic_block = self.parse_semantic_block()?;
+                Ok(Item::Semantic(semantic_block))
+            }, // NEWLY ADDED: NLU support
             _ => Err(ParseError::UnexpectedToken {
                 expected: "item declaration".to_string(),
                 found: self.peek().clone(),
@@ -435,6 +440,11 @@ impl Parser {
             TokenType::Return => self.parse_return_statement(),
             TokenType::If => self.parse_if_statement(),
             TokenType::Match => self.parse_match_statement(),
+            TokenType::Semantic => {
+                let semantic_block = self.parse_semantic_block()?;
+                self.consume(&TokenType::Semicolon, "Expected ';' after semantic block")?;
+                Ok(Statement::Semantic(semantic_block))
+            },
             _ => {
                 // Check if this is an assignment
                 if self.check_assignment() {
@@ -1544,6 +1554,43 @@ impl Parser {
         self.consume(&TokenType::RightBracket, "Expected ']' after tensor literal")?;
 
         Ok(Expression::Literal(Literal::Tensor(rows)))
+    }
+
+    /// Parse a semantic block for Natural Language Understanding
+    /// تحليل كتلة دلالية لفهم اللغة الطبيعية
+    fn parse_semantic_block(&mut self) -> Result<SemanticBlock, ParseError> {
+        self.consume(&TokenType::Semantic, "Expected 'semantic'")?;
+        self.consume(&TokenType::LeftBrace, "Expected '{' after 'semantic'")?;
+
+        let mut sentences = Vec::new();
+
+        // Parse natural language sentences
+        while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
+            if self.match_token(&TokenType::Newline) {
+                continue;
+            }
+
+            // Expect string literals containing natural language
+            if matches!(self.peek().token_type, TokenType::StringLiteral(_)) {
+                let sentence_token = self.advance();
+                if let TokenType::StringLiteral(content) = &sentence_token.token_type {
+                    sentences.push(content.clone());
+                }
+            } else {
+                return Err(ParseError::UnexpectedToken {
+                    expected: "string literal with natural language sentence".to_string(),
+                    found: self.peek().clone(),
+                });
+            }
+
+            // Optional semicolon
+            self.match_token(&TokenType::Semicolon);
+        }
+
+        self.consume(&TokenType::RightBrace, "Expected '}' after semantic block")?;
+
+        let semantic_block = SemanticBlock::new(sentences);
+        Ok(semantic_block)
     }
 }
 
