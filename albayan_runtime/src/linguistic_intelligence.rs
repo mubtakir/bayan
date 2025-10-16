@@ -920,3 +920,36 @@ mod tests_letter_semantics {
         assert!(explain.len() >= 3);
     }
 }
+
+    #[test]
+    fn test_ffi_arabic_analysis_meaning() {
+        use std::ffi::CString;
+        use std::os::raw::c_char;
+
+        // Initialize engine
+        assert_eq!(super::albayan_rt_linguistic_initialize(), 1);
+
+        // Analyze an Arabic word: "شجرة"
+        let word = CString::new("شجرة").unwrap();
+        assert_eq!(super::albayan_rt_analyze_arabic_word(word.as_ptr()), 1);
+
+        // Get inferred meaning
+        let lang = CString::new("عربي").unwrap();
+        let ptr = super::albayan_rt_get_word_meaning(word.as_ptr(), lang.as_ptr());
+        assert!(!ptr.is_null());
+
+        // Take ownership of the returned C string to avoid leak
+        let cstr = unsafe { CString::from_raw(ptr as *mut c_char) };
+        let meaning = cstr.to_str().unwrap().to_string();
+
+        // Expect the meaning to include contributions from letters ش/ج/ر at least
+        assert!(
+            meaning.contains("التشتت") || meaning.contains("التجمع") || meaning.contains("التفرع"),
+            "unexpected meaning: {}",
+            meaning
+        );
+
+        // Also sanity-check stats counter increased
+        let count = super::albayan_rt_get_analysis_stats();
+        assert!(count >= 1);
+    }
