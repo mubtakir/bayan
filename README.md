@@ -1,3 +1,37 @@
+# AlBayan Programming Language — Semantic Computing with Embedded AI
+
+Preface / تمهيد
+- All conceptual foundations and innovative engines of the language are by the researcher: Bassel Yahya Abdullah.
+- تم تنفيذ الأفكار وتطويرها وتطوير اللغة بشكل كبير من قبل نموذجين في الذكاء الاصطناعي: أحدهما كان يلعب دور الخبير الموجّه والآخر دور المنفّذ العبقري.
+
+Quick links:
+- Arabic User Guide: docs/USER_GUIDE_AR.md
+- Agent Briefing (technical vision): docs/AGENT_INTELLIGENT_MODEL_BRIEFING.md
+
+Minimal parser basics (illustrative):
+```rust
+use crate::lexer::Lexer;
+use crate::parser::Parser;
+
+let source = "fn main() { return 42; }";
+let tokens = Lexer::new(source).tokenize().unwrap();
+let mut parser = Parser::new(tokens);
+let ast = parser.parse().unwrap();
+assert!(!ast.items.is_empty());
+```
+
+Minimal AlBayan program:
+```albayan
+fn main() -> int {
+    print("Hello AlBayan!");
+    return 0;
+}
+```
+
+---
+
+<!-- Arabic original README follows below. English summary is provided above. -->
+
 # 🧬 لغة البيان (AlBayan) - أول لغة برمجة بذكاء اصطناعي مدمج
 
 <div align="center">
