@@ -2,8 +2,8 @@
 //!
 //! This module implements type checking and type inference for the AlBayan language.
 
-use crate::parser::ast::*;
 use super::{ResolvedType, SemanticError};
+use crate::parser::ast::*;
 
 /// Type checker for the AlBayan language
 #[derive(Debug, Clone)]
@@ -68,7 +68,10 @@ impl TypeChecker {
                     resolved_params.push(self.resolve_type(param)?);
                 }
                 let resolved_ret = self.resolve_type(ret)?;
-                Ok(ResolvedType::Function(resolved_params, Box::new(resolved_ret)))
+                Ok(ResolvedType::Function(
+                    resolved_params,
+                    Box::new(resolved_ret),
+                ))
             }
             _ => todo!("Other type resolution not yet implemented"),
         }
@@ -112,21 +115,40 @@ impl TypeChecker {
             // Numeric coercion: int can be promoted to float
             (ResolvedType::Float, ResolvedType::Int) => true,
 
-            // Struct types
+            // Struct and enum types
             (ResolvedType::Struct(name1), ResolvedType::Struct(name2)) => name1 == name2,
             (ResolvedType::Enum(name1), ResolvedType::Enum(name2)) => name1 == name2,
 
+            // Collection types
+            (ResolvedType::List(inner1), ResolvedType::List(inner2)) => {
+                self.types_compatible(inner1, inner2)
+            }
+            (ResolvedType::Tuple(elems1), ResolvedType::Tuple(elems2)) => {
+                elems1.len() == elems2.len()
+                    && elems1
+                        .iter()
+                        .zip(elems2.iter())
+                        .all(|(t1, t2)| self.types_compatible(t1, t2))
+            }
+
             // Generic types
             (ResolvedType::Generic(name1, args1), ResolvedType::Generic(name2, args2)) => {
-                name1 == name2 && args1.len() == args2.len() &&
-                args1.iter().zip(args2.iter()).all(|(a1, a2)| self.types_compatible(a1, a2))
+                name1 == name2
+                    && args1.len() == args2.len()
+                    && args1
+                        .iter()
+                        .zip(args2.iter())
+                        .all(|(a1, a2)| self.types_compatible(a1, a2))
             }
 
             // Function types
             (ResolvedType::Function(params1, ret1), ResolvedType::Function(params2, ret2)) => {
-                params1.len() == params2.len() &&
-                params1.iter().zip(params2.iter()).all(|(p1, p2)| self.types_compatible(p1, p2)) &&
-                self.types_compatible(ret1, ret2)
+                params1.len() == params2.len()
+                    && params1
+                        .iter()
+                        .zip(params2.iter())
+                        .all(|(p1, p2)| self.types_compatible(p1, p2))
+                    && self.types_compatible(ret1, ret2)
             }
 
             // Generic type parameters - for now, any generic param is compatible with any type
@@ -162,16 +184,20 @@ impl TypeChecker {
     ) -> Result<ResolvedType, SemanticError> {
         match operator {
             // Arithmetic operations
-            BinaryOperator::Add | BinaryOperator::Subtract |
-            BinaryOperator::Multiply | BinaryOperator::Divide |
-            BinaryOperator::Modulo | BinaryOperator::Power => {
+            BinaryOperator::Add
+            | BinaryOperator::Subtract
+            | BinaryOperator::Multiply
+            | BinaryOperator::Divide
+            | BinaryOperator::Modulo
+            | BinaryOperator::Power => {
                 self.check_arithmetic_operation(operator, left_type, right_type)
             }
 
             // Comparison operations
             BinaryOperator::Equal | BinaryOperator::NotEqual => {
-                if self.types_compatible(left_type, right_type) ||
-                   self.types_compatible(right_type, left_type) {
+                if self.types_compatible(left_type, right_type)
+                    || self.types_compatible(right_type, left_type)
+                {
                     Ok(ResolvedType::Bool)
                 } else {
                     Err(SemanticError::InvalidBinaryOperation(
@@ -182,14 +208,18 @@ impl TypeChecker {
                 }
             }
 
-            BinaryOperator::Less | BinaryOperator::LessEqual |
-            BinaryOperator::Greater | BinaryOperator::GreaterEqual => {
+            BinaryOperator::Less
+            | BinaryOperator::LessEqual
+            | BinaryOperator::Greater
+            | BinaryOperator::GreaterEqual => {
                 self.check_comparison_operation(operator, left_type, right_type)
             }
 
             // Logical operations
             BinaryOperator::And | BinaryOperator::Or => {
-                if matches!(left_type, ResolvedType::Bool) && matches!(right_type, ResolvedType::Bool) {
+                if matches!(left_type, ResolvedType::Bool)
+                    && matches!(right_type, ResolvedType::Bool)
+                {
                     Ok(ResolvedType::Bool)
                 } else {
                     Err(SemanticError::InvalidBinaryOperation(
@@ -212,8 +242,10 @@ impl TypeChecker {
                 }
             }
 
-            BinaryOperator::AddAssign | BinaryOperator::SubtractAssign |
-            BinaryOperator::MultiplyAssign | BinaryOperator::DivideAssign => {
+            BinaryOperator::AddAssign
+            | BinaryOperator::SubtractAssign
+            | BinaryOperator::MultiplyAssign
+            | BinaryOperator::DivideAssign => {
                 // For compound assignment, check the operation first
                 let base_op = match operator {
                     BinaryOperator::AddAssign => BinaryOperator::Add,
@@ -252,11 +284,14 @@ impl TypeChecker {
             (ResolvedType::Float, ResolvedType::Float) => Ok(ResolvedType::Float),
 
             // Mixed int/float operations (promote to float)
-            (ResolvedType::Int, ResolvedType::Float) |
-            (ResolvedType::Float, ResolvedType::Int) => Ok(ResolvedType::Float),
+            (ResolvedType::Int, ResolvedType::Float) | (ResolvedType::Float, ResolvedType::Int) => {
+                Ok(ResolvedType::Float)
+            }
 
             // String concatenation (only for +)
-            (ResolvedType::String, ResolvedType::String) if matches!(operator, BinaryOperator::Add) => {
+            (ResolvedType::String, ResolvedType::String)
+                if matches!(operator, BinaryOperator::Add) =>
+            {
                 Ok(ResolvedType::String)
             }
 
@@ -291,10 +326,10 @@ impl TypeChecker {
     ) -> Result<ResolvedType, SemanticError> {
         match (left_type, right_type) {
             // Numeric comparisons
-            (ResolvedType::Int, ResolvedType::Int) |
-            (ResolvedType::Float, ResolvedType::Float) |
-            (ResolvedType::Int, ResolvedType::Float) |
-            (ResolvedType::Float, ResolvedType::Int) => Ok(ResolvedType::Bool),
+            (ResolvedType::Int, ResolvedType::Int)
+            | (ResolvedType::Float, ResolvedType::Float)
+            | (ResolvedType::Int, ResolvedType::Float)
+            | (ResolvedType::Float, ResolvedType::Int) => Ok(ResolvedType::Bool),
 
             // String comparisons
             (ResolvedType::String, ResolvedType::String) => Ok(ResolvedType::Bool),
@@ -341,28 +376,30 @@ impl TypeChecker {
 
             UnaryOperator::Reference => {
                 // &T -> &T (handled in semantic analysis)
-                Ok(ResolvedType::Reference(Box::new(operand_type.clone()), false))
+                Ok(ResolvedType::Reference(
+                    Box::new(operand_type.clone()),
+                    false,
+                ))
             }
 
             UnaryOperator::MutableReference => {
                 // &mut T -> &mut T (handled in semantic analysis)
-                Ok(ResolvedType::Reference(Box::new(operand_type.clone()), true))
+                Ok(ResolvedType::Reference(
+                    Box::new(operand_type.clone()),
+                    true,
+                ))
             }
 
             UnaryOperator::Dereference => {
                 // *&T -> T or *&mut T -> T
                 match operand_type {
-                    ResolvedType::Reference(inner, _) => {
-                        Ok((**inner).clone())
-                    }
+                    ResolvedType::Reference(inner, _) => Ok((**inner).clone()),
                     _ => Err(SemanticError::TypeMismatch {
                         expected: ResolvedType::Reference(Box::new(ResolvedType::Unit), false), // placeholder
                         found: operand_type.clone(),
                     }),
                 }
             }
-
-
         }
     }
 
@@ -404,7 +441,7 @@ impl TypeChecker {
         match type_ {
             ResolvedType::Bool => true,
             ResolvedType::Null => false, // null is always falsy
-            _ => false, // Other types need explicit conversion
+            _ => false,                  // Other types need explicit conversion
         }
     }
 
@@ -417,8 +454,8 @@ impl TypeChecker {
         } else {
             // Special cases for numeric promotion
             match (type1, type2) {
-                (ResolvedType::Int, ResolvedType::Float) |
-                (ResolvedType::Float, ResolvedType::Int) => Some(ResolvedType::Float),
+                (ResolvedType::Int, ResolvedType::Float)
+                | (ResolvedType::Float, ResolvedType::Int) => Some(ResolvedType::Float),
                 _ => None,
             }
         }
@@ -431,34 +468,33 @@ impl TypeChecker {
 
     /// Check if a type is a collection type
     fn is_collection_type(&self, ast_type: &Type) -> bool {
-        matches!(ast_type,
-            Type::Array(_, _) |
-            Type::Matrix(_, _) |
-            Type::Vector(_, _) |
-            Type::Set(_) |
-            Type::Map(_, _) |
-            Type::Queue(_) |
-            Type::Stack(_) |
-            Type::Tree(_) |
-            Type::Graph(_, _)
+        matches!(
+            ast_type,
+            Type::Array(_, _)
+                | Type::Matrix(_, _)
+                | Type::Vector(_, _)
+                | Type::Set(_)
+                | Type::Map(_, _)
+                | Type::Queue(_)
+                | Type::Stack(_)
+                | Type::Tree(_)
+                | Type::Graph(_, _)
         )
     }
 
     /// Check if a type is a concurrent type
     fn is_concurrent_type(&self, ast_type: &Type) -> bool {
-        matches!(ast_type,
-            Type::Channel(_) |
-            Type::Mutex(_) |
-            Type::Atomic(_)
+        matches!(
+            ast_type,
+            Type::Channel(_) | Type::Mutex(_) | Type::Atomic(_)
         )
     }
 
     /// Check if a type is an AI type
     fn is_ai_type(&self, ast_type: &Type) -> bool {
-        matches!(ast_type,
-            Type::Tensor(_) |
-            Type::Dataset(_) |
-            Type::Model(_)
+        matches!(
+            ast_type,
+            Type::Tensor(_) | Type::Dataset(_) | Type::Model(_)
         )
     }
 
@@ -483,7 +519,11 @@ impl TypeChecker {
     }
 
     /// Find common super type between two types (Expert recommendation: Arm type compatibility)
-    pub fn common_super_type(&self, type1: &ResolvedType, type2: &ResolvedType) -> Option<ResolvedType> {
+    pub fn common_super_type(
+        &self,
+        type1: &ResolvedType,
+        type2: &ResolvedType,
+    ) -> Option<ResolvedType> {
         // If types are identical, return that type
         if type1 == type2 {
             return Some(type1.clone());
@@ -513,10 +553,22 @@ mod tests {
     fn test_literal_type_inference() {
         let type_checker = TypeChecker::new();
 
-        assert_eq!(type_checker.infer_literal_type(&Literal::Integer(42)), ResolvedType::Int);
-        assert_eq!(type_checker.infer_literal_type(&Literal::Float(3.14)), ResolvedType::Float);
-        assert_eq!(type_checker.infer_literal_type(&Literal::Boolean(true)), ResolvedType::Bool);
-        assert_eq!(type_checker.infer_literal_type(&Literal::String("hello".to_string())), ResolvedType::String);
+        assert_eq!(
+            type_checker.infer_literal_type(&Literal::Integer(42)),
+            ResolvedType::Int
+        );
+        assert_eq!(
+            type_checker.infer_literal_type(&Literal::Float(3.14)),
+            ResolvedType::Float
+        );
+        assert_eq!(
+            type_checker.infer_literal_type(&Literal::Boolean(true)),
+            ResolvedType::Bool
+        );
+        assert_eq!(
+            type_checker.infer_literal_type(&Literal::String("hello".to_string())),
+            ResolvedType::String
+        );
     }
 
     #[test]

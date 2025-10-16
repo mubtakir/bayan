@@ -1,0 +1,5 @@
+// Test 8: Indexing into array literal
+fn main() -> int {
+    return [10, 20, 30, 40][2];
+}
+

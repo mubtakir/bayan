@@ -1,0 +1,5 @@
+// Test 9: Nested list and double indexing
+fn main() -> int {
+    return [[1, 2], [3, 4]][1][0];
+}
+
