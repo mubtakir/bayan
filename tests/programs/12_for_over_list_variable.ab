@@ -1,0 +1,10 @@
+// Test 12: For loop over a list variable (not a literal)
+fn main() -> int {
+    let mut sum: int = 0;
+    let arr = [1, 2, 3, 4];
+    for x in arr {
+        sum = sum + x;
+    }
+    return sum;
+}
+

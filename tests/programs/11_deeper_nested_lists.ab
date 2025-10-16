@@ -1,0 +1,6 @@
+// Test 11: Deeper nested lists and multi-level indexing
+fn main() -> int {
+    // [[[1]], [[2]]] -> select second top-level, then first inner, then first innermost
+    return [[[1]], [[2]]][1][0][0];
+}
+

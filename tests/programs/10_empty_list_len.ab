@@ -1,0 +1,6 @@
+// Test 10: Empty list literal should type-check and default to List(int)
+fn main() -> int {
+    let xs = [];
+    return len(xs);
+}
+
