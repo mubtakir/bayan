@@ -467,14 +467,14 @@ pub extern "C" fn albayan_rt_get_analysis_stats() -> u64 {
 
 // ========== Letter Semantics (سيماء الحروف) ==========
 // تصميم مرن قائم على ميزات مسماة قابلة للتوسعة لاحقاً
-use std::sync::OnceLock;
+use std::sync::{OnceLock, RwLock};
 
 #[derive(Debug, Clone, Default)]
 pub struct LetterSemanticEntry {
     pub features: HashMap<String, f32>, // مثال مفاتيح: "shape:enclosure", "sound:friction", "polarity:pull"
 }
 
-static LETTER_SEM_DB: OnceLock<HashMap<char, LetterSemanticEntry>> = OnceLock::new();
+static LETTER_SEM_DB: OnceLock<RwLock<HashMap<char, LetterSemanticEntry>>> = OnceLock::new();
 
 /// تهيئة افتراضية وفق القواعد المقدّمة (قابلة للتوسعة)
 pub fn ls_init_default() {
@@ -616,25 +616,268 @@ pub fn ls_init_default() {
         );
     }
 
-    let _ = LETTER_SEM_DB.set(db);
+    // إضافات وفق القائمة الجديدة المقدّمة:
+    db.insert(
+        'ء',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:surprise".to_string(), 0.8),
+                ("sound:alarm".to_string(), 0.7),
+                ("place:guttural".to_string(), 0.7),
+                ("psych:inner".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    db.insert(
+        'آ',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:elevation".to_string(), 0.8),
+                ("concept:compassion".to_string(), 0.7),
+                ("concept:aggrandize".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    db.insert(
+        'و',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:wonder".to_string(), 0.7),
+                ("concept:attack".to_string(), 0.6),
+                ("concept:ambush".to_string(), 0.6),
+                ("place:labial".to_string(), 0.7),
+                ("reality:concrete".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    db.insert(
+        'ي',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("psych:grief".to_string(), 0.8),
+                ("psych:regret".to_string(), 0.7),
+            ]),
+        },
+    );
+
+    db.insert(
+        'ج',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:collect".to_string(), 0.8),
+                ("concept:consolation".to_string(), 0.6),
+                ("concept:grandeur".to_string(), 0.5),
+            ]),
+        },
+    );
+
+    db.insert(
+        'د',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:start_end".to_string(), 0.7),
+                ("concept:stability".to_string(), 0.7),
+                ("concept:gate".to_string(), 0.6),
+                ("concept:opening".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    db.insert(
+        'ه',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:effort".to_string(), 0.7),
+                ("concept:result".to_string(), 0.6),
+                ("concept:fruit".to_string(), 0.5),
+                ("place:guttural".to_string(), 0.6),
+                ("psych:inner".to_string(), 0.5),
+            ]),
+        },
+    );
+
+    db.insert(
+        'ز',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:slip".to_string(), 0.7),
+                ("concept:supply".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    // ح: صوت المشقة/العطش/التودد
+    db.insert(
+        'ح',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("sound:hard_effort".to_string(), 0.8),
+                ("concept:thirst".to_string(), 0.7),
+                ("concept:affection".to_string(), 0.5),
+                ("place:guttural".to_string(), 0.7),
+                ("psych:inner".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    db.insert(
+        'ط',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:knock".to_string(), 0.8),
+                ("concept:ask_permission".to_string(), 0.6),
+                ("concept:escape".to_string(), 0.6),
+                ("concept:soar".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    db.insert(
+        'ك',
+        LetterSemanticEntry {
+            features: HashMap::from([("concept:give".to_string(), 0.8)]),
+        },
+    );
+
+    // ن: أنين/استقرار/ظهور/رمزية
+    db.insert(
+        'ن',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("sound:moan".to_string(), 0.7),
+                ("concept:stability".to_string(), 0.7),
+                ("concept:emergence".to_string(), 0.6),
+                ("concept:placeholder".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    // تعزيز ميزات ص
+    if let Some(e) = db.get_mut(&'ص') {
+        e.features.insert("sound:harder_than_s".to_string(), 0.7);
+        e.features.insert("concept:listen".to_string(), 0.6);
+        e.features.insert("concept:watch".to_string(), 0.6);
+    }
+
+    db.insert(
+        'غ',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("sound:anger".to_string(), 0.8),
+                ("concept:boil".to_string(), 0.7),
+                ("concept:obscure".to_string(), 0.6),
+                ("place:guttural".to_string(), 0.7),
+                ("psych:inner".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    db.insert(
+        'ف',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:gap".to_string(), 0.8),
+                ("sound:explosion".to_string(), 0.6),
+                ("place:labial".to_string(), 0.7),
+                ("reality:concrete".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    // ق موجودة، نُبقيها كما هي
+
+    db.insert(
+        'ذ',
+        LetterSemanticEntry {
+            features: HashMap::from([("sound:pleasure".to_string(), 0.8)]),
+        },
+    );
+
+    // تعزيز ميزات ر
+    if let Some(e) = db.get_mut(&'ر') {
+        e.features.insert("concept:repeat".to_string(), 0.6);
+    }
+
+    db.insert(
+        'ت',
+        LetterSemanticEntry {
+            features: HashMap::from([("concept:build".to_string(), 0.8)]),
+        },
+    );
+
+    db.insert(
+        'ث',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:scatter_random".to_string(), 0.8),
+                ("sound:stutter".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    // ش موجودة
+
+    db.insert(
+        'ع',
+        LetterSemanticEntry {
+            features: HashMap::from([
+                ("concept:push".to_string(), 0.8),
+                ("concept:uproot".to_string(), 0.7),
+                ("place:guttural".to_string(), 0.7),
+                ("psych:inner".to_string(), 0.6),
+            ]),
+        },
+    );
+
+    // تعزيز ميزات خ (إضافة الخرق/الاختراق)
+    if let Some(e) = db.get_mut(&'خ') {
+        e.features.insert("sound:tear_pierce".to_string(), 0.7);
+        e.features.insert("concept:perforate".to_string(), 0.6);
+    }
+
+    // تعزيز ميزات م (الرضا/الكتم)
+    if let Some(e) = db.get_mut(&'م') {
+        e.features.insert("concept:contentment".to_string(), 0.6);
+        e.features.insert("concept:hide".to_string(), 0.5);
+    }
+
+    // تعزيز ميزات ب (الدك)
+    if let Some(e) = db.get_mut(&'ب') {
+        e.features.insert("concept:ramming".to_string(), 0.5);
+    }
+
+    // توليد الأضداد تلقائياً: لكل سمة، أنشئ anti:<name> بنفس الوزن
+    for entry in db.values_mut() {
+        let anti: Vec<(String, f32)> = entry
+            .features
+            .iter()
+            .map(|(k, v)| (format!("anti:{}", k), *v))
+            .collect();
+        for (k, v) in anti {
+            entry.features.entry(k).or_insert(v);
+        }
+    }
+
+    let _ = LETTER_SEM_DB.set(RwLock::new(db));
 }
 
 /// إضافة/تحديث حرف بميزات مسماة (مرن لتوسعة لاحقة)
 pub fn ls_register_letter(ch: char, features: Vec<(impl Into<String>, f32)>) {
-    let map = LETTER_SEM_DB.get_or_init(|| HashMap::new());
-    let mut entry = map.get(&ch).cloned().unwrap_or_default();
+    let lock = LETTER_SEM_DB.get_or_init(|| RwLock::new(HashMap::new()));
+    let mut map = lock.write().expect("LETTER_SEM_DB poisoned");
+    let entry = map.entry(ch).or_insert_with(LetterSemanticEntry::default);
     for (k, v) in features {
         entry.features.insert(k.into(), v);
     }
-    // OnceLock لا يتيح تعديل المكان مباشرة؛ ننسخ ثم نعيد البناء
-    let mut cloned = map.clone();
-    cloned.insert(ch, entry);
-    LETTER_SEM_DB.set(cloned).ok();
 }
 
 /// إنتاج متجه دلالي للكلمة + تقرير تفسير مساهمة كل حرف
 pub fn ls_word_vector(word: &str) -> (HashMap<String, f32>, Vec<(char, HashMap<String, f32>)>) {
-    let db = LETTER_SEM_DB.get_or_init(|| HashMap::new());
+    let lock = LETTER_SEM_DB.get_or_init(|| RwLock::new(HashMap::new()));
+    let db = lock.read().expect("LETTER_SEM_DB poisoned");
     let mut acc: HashMap<String, f32> = HashMap::new();
     let mut explain: Vec<(char, HashMap<String, f32>)> = Vec::new();
 
