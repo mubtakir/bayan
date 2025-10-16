@@ -1,0 +1,11 @@
+// Test 7: while with break
+// Syntax/Semantic check only
+
+fn main() -> int {
+    let mut i: int = 0;
+    while i < 3 {
+        break;
+    }
+    return i;
+}
+

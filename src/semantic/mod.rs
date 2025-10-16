@@ -764,6 +764,14 @@ impl SemanticAnalyzer {
                 let annotated_ret = self.analyze_return_statement(ret_stmt)?;
                 Ok(AnnotatedStatement::Return(annotated_ret))
             }
+            // Special-case break/continue pseudo-statements early to avoid any lookup paths
+            Statement::Expression(Expression::Identifier(name)) if name == "__break__" || name == "__continue__" => {
+                let annotated_expr = AnnotatedExpression {
+                    expr: AnnotatedExpressionKind::Identifier(name.clone()),
+                    result_type: ResolvedType::Unit,
+                };
+                Ok(AnnotatedStatement::Expression(annotated_expr))
+            }
             Statement::Expression(expr) => {
                 let annotated_expr = self.analyze_expression(expr)?;
                 Ok(AnnotatedStatement::Expression(annotated_expr))

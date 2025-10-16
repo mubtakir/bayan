@@ -1,0 +1,13 @@
+// Test 6: loop with break only (no continue)
+// Syntax/Semantic check only
+
+fn main() -> int {
+    let mut i: int = 0;
+    loop {
+        if i >= 10 {
+            break;
+        }
+        i = i + 1;
+    }
+    return i;
+}

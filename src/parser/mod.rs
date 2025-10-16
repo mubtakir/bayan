@@ -448,6 +448,8 @@ impl Parser {
             TokenType::If => self.parse_if_statement(),
             TokenType::Match => self.parse_match_statement(),
             TokenType::While => self.parse_while_statement(),
+            TokenType::For => self.parse_for_statement(),
+            TokenType::Loop => self.parse_loop_statement(),
             TokenType::Break => self.parse_break_statement(),
             TokenType::Continue => self.parse_continue_statement(),
             TokenType::Semantic => {
@@ -646,6 +648,24 @@ impl Parser {
         Ok(Statement::Expression(Expression::Identifier(
             "__continue__".to_string(),
         )))
+    }
+
+    /// Parse a for statement: for <ident> in <expr> { <block> }
+    fn parse_for_statement(&mut self) -> Result<Statement, ParseError> {
+        self.consume(&TokenType::For, "Expected 'for'")?;
+        let var_name = self.consume_identifier("Expected loop variable after 'for'")?;
+        self.consume(&TokenType::In, "Expected 'in' after loop variable")?;
+        let iterable = self.parse_expression()?;
+        let body = self.parse_block()?;
+        Ok(Statement::For(ForStatement { variable: var_name, iterable, body }))
+    }
+
+    /// Parse a loop statement (desugared to while true)
+    fn parse_loop_statement(&mut self) -> Result<Statement, ParseError> {
+        self.consume(&TokenType::Loop, "Expected 'loop'")?;
+        let body = self.parse_block()?;
+        let condition = Expression::Literal(Literal::Boolean(true));
+        Ok(Statement::While(WhileStatement { condition, body }))
     }
 
     fn parse_match_arm(&mut self) -> Result<MatchArm, ParseError> {

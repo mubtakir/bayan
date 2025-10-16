@@ -3,8 +3,8 @@
 //! This module implements ownership and borrowing checking for memory safety.
 //! It ensures that the AlBayan language's ownership rules are enforced at compile time.
 
-use crate::parser::ast::*;
 use super::{ResolvedType, SemanticError};
+use crate::parser::ast::*;
 use std::collections::{HashMap, HashSet};
 
 /// Ownership analyzer for memory safety
@@ -88,8 +88,6 @@ pub struct OwnershipInfo {
     pub scope_depth: usize,
 }
 
-
-
 impl BorrowCheckState {
     /// Create a new borrow check state (Expert recommendation)
     pub fn new() -> Self {
@@ -114,12 +112,28 @@ impl BorrowCheckState {
     }
 
     /// Add a borrow (Expert recommendation: &/&mut tracking with path analysis)
-    pub fn add_borrow(&mut self, name: &str, borrow_kind: BorrowKind, scope_depth: usize) -> Result<(), SemanticError> {
-        self.add_borrow_with_path(name, borrow_kind, scope_depth, BorrowPath::Variable(name.to_string()))
+    pub fn add_borrow(
+        &mut self,
+        name: &str,
+        borrow_kind: BorrowKind,
+        scope_depth: usize,
+    ) -> Result<(), SemanticError> {
+        self.add_borrow_with_path(
+            name,
+            borrow_kind,
+            scope_depth,
+            BorrowPath::Variable(name.to_string()),
+        )
     }
 
     /// Add a borrow with path (Expert recommendation: Priority 1 - Field-level borrowing)
-    pub fn add_borrow_with_path(&mut self, name: &str, borrow_kind: BorrowKind, scope_depth: usize, path: BorrowPath) -> Result<(), SemanticError> {
+    pub fn add_borrow_with_path(
+        &mut self,
+        name: &str,
+        borrow_kind: BorrowKind,
+        scope_depth: usize,
+        path: BorrowPath,
+    ) -> Result<(), SemanticError> {
         // Check for conflicting borrows with path analysis
         if let Some(existing_borrows) = self.active_borrows.get(name) {
             for existing_borrow in existing_borrows {
@@ -162,8 +176,8 @@ impl BorrowCheckState {
             (BorrowPath::Variable(var1), BorrowPath::Variable(var2)) => var1 == var2,
 
             // Variable borrow conflicts with field borrow of the same variable
-            (BorrowPath::Variable(var1), BorrowPath::Field(var2, _)) |
-            (BorrowPath::Field(var1, _), BorrowPath::Variable(var2)) => var1 == var2,
+            (BorrowPath::Variable(var1), BorrowPath::Field(var2, _))
+            | (BorrowPath::Field(var1, _), BorrowPath::Variable(var2)) => var1 == var2,
 
             // Field borrows conflict if they're the same field of the same variable
             (BorrowPath::Field(var1, field1), BorrowPath::Field(var2, field2)) => {
@@ -172,25 +186,31 @@ impl BorrowCheckState {
 
             // For nested fields, check if any part of the path overlaps
             (BorrowPath::NestedField(var1, path1), BorrowPath::NestedField(var2, path2)) => {
-                if var1 != var2 { return false; }
+                if var1 != var2 {
+                    return false;
+                }
                 // Check if one path is a prefix of the other
                 let min_len = path1.len().min(path2.len());
                 path1[..min_len] == path2[..min_len]
             }
 
             // Variable vs nested field: variable borrow conflicts with any field access
-            (BorrowPath::Variable(var1), BorrowPath::NestedField(var2, _)) |
-            (BorrowPath::NestedField(var1, _), BorrowPath::Variable(var2)) => var1 == var2,
+            (BorrowPath::Variable(var1), BorrowPath::NestedField(var2, _))
+            | (BorrowPath::NestedField(var1, _), BorrowPath::Variable(var2)) => var1 == var2,
 
             // Field vs nested field: check if field is part of the nested path
             (BorrowPath::Field(var1, field1), BorrowPath::NestedField(var2, path2)) => {
-                if var1 != var2 { return false; }
+                if var1 != var2 {
+                    return false;
+                }
                 // Check if the field is the first element of the nested path
                 path2.first().map_or(false, |first| first == field1)
             }
 
             (BorrowPath::NestedField(var1, path1), BorrowPath::Field(var2, field2)) => {
-                if var1 != var2 { return false; }
+                if var1 != var2 {
+                    return false;
+                }
                 // Check if the field is the first element of the nested path
                 path1.first().map_or(false, |first| first == field2)
             }
@@ -199,7 +219,9 @@ impl BorrowCheckState {
 
     /// Check if a variable has any active borrows (Expert recommendation)
     pub fn has_active_borrows(&self, name: &str) -> bool {
-        self.active_borrows.get(name).map_or(false, |borrows| !borrows.is_empty())
+        self.active_borrows
+            .get(name)
+            .map_or(false, |borrows| !borrows.is_empty())
     }
 
     /// Check if a variable has mutable borrows (Expert recommendation)
@@ -210,7 +232,13 @@ impl BorrowCheckState {
     }
 
     /// Add a field borrow (Expert recommendation: Priority 1 - Field-level borrowing)
-    pub fn add_field_borrow(&mut self, var_name: &str, field_name: &str, borrow_kind: BorrowKind, scope_depth: usize) -> Result<(), SemanticError> {
+    pub fn add_field_borrow(
+        &mut self,
+        var_name: &str,
+        field_name: &str,
+        borrow_kind: BorrowKind,
+        scope_depth: usize,
+    ) -> Result<(), SemanticError> {
         let path = BorrowPath::Field(var_name.to_string(), field_name.to_string());
         self.add_borrow_with_path(var_name, borrow_kind, scope_depth, path)
     }
@@ -225,7 +253,12 @@ impl BorrowCheckState {
     }
 
     /// Register a variable for destruction at end of scope (Expert recommendation)
-    pub fn register_for_destruction(&mut self, name: &str, var_type: ResolvedType, scope_depth: usize) {
+    pub fn register_for_destruction(
+        &mut self,
+        name: &str,
+        var_type: ResolvedType,
+        scope_depth: usize,
+    ) {
         // Register types that need destruction (Expert recommendation: Priority 1)
         let needs_destruction = match &var_type {
             ResolvedType::List(_) => true,
@@ -242,17 +275,22 @@ impl BorrowCheckState {
             ResolvedType::Shape => true,
             ResolvedType::ShapeHandle => true,
             // Copy types don't need destruction
-            ResolvedType::Int | ResolvedType::Float | ResolvedType::Bool | ResolvedType::Char => false,
+            ResolvedType::Int | ResolvedType::Float | ResolvedType::Bool | ResolvedType::Char => {
+                false
+            }
             ResolvedType::GeometricShapeType => false, // Enum, no destruction needed
             _ => false, // Conservative: assume other types need destruction
         };
 
         if needs_destruction {
-            self.variables_to_destroy.insert(name.to_string(), DestroyInfo {
-                name: name.to_string(),
-                var_type,
-                scope_depth,
-            });
+            self.variables_to_destroy.insert(
+                name.to_string(),
+                DestroyInfo {
+                    name: name.to_string(),
+                    var_type,
+                    scope_depth,
+                },
+            );
         }
     }
 
@@ -266,7 +304,8 @@ impl BorrowCheckState {
 
     /// Clear variables at scope exit (Expert recommendation)
     pub fn clear_scope(&mut self, scope_depth: usize) {
-        self.variables_to_destroy.retain(|_, info| info.scope_depth < scope_depth);
+        self.variables_to_destroy
+            .retain(|_, info| info.scope_depth < scope_depth);
         // Clear borrows created in this scope (Expert recommendation)
         for borrows in self.active_borrows.values_mut() {
             borrows.retain(|borrow| borrow.scope_depth < scope_depth);
@@ -327,14 +366,17 @@ impl BorrowCheckState {
         // For active borrows: merge borrows from both states
         // If a borrow exists in either state, it should be active in the merged state
         for (var_name, other_borrows) in &other.active_borrows {
-            let existing_borrows = self.active_borrows.entry(var_name.clone()).or_insert_with(Vec::new);
+            let existing_borrows = self
+                .active_borrows
+                .entry(var_name.clone())
+                .or_insert_with(Vec::new);
 
             for other_borrow in other_borrows {
                 // Check if this borrow already exists
                 let borrow_exists = existing_borrows.iter().any(|existing| {
-                    existing.borrow_kind == other_borrow.borrow_kind &&
-                    existing.path == other_borrow.path &&
-                    existing.scope_depth == other_borrow.scope_depth
+                    existing.borrow_kind == other_borrow.borrow_kind
+                        && existing.path == other_borrow.path
+                        && existing.scope_depth == other_borrow.scope_depth
                 });
 
                 if !borrow_exists {
@@ -347,7 +389,8 @@ impl BorrowCheckState {
         // Variables that need destruction in either state should be destroyed
         for (var_name, destroy_info) in &other.variables_to_destroy {
             if !self.variables_to_destroy.contains_key(var_name) {
-                self.variables_to_destroy.insert(var_name.clone(), destroy_info.clone());
+                self.variables_to_destroy
+                    .insert(var_name.clone(), destroy_info.clone());
             }
         }
 
@@ -361,9 +404,10 @@ impl BorrowCheckState {
                 for self_borrow in self_borrows {
                     for other_borrow in other_borrows {
                         // If the same borrow exists in both paths, keep it
-                        if self_borrow.borrow_kind == other_borrow.borrow_kind &&
-                           self_borrow.path == other_borrow.path &&
-                           self_borrow.scope_depth == other_borrow.scope_depth {
+                        if self_borrow.borrow_kind == other_borrow.borrow_kind
+                            && self_borrow.path == other_borrow.path
+                            && self_borrow.scope_depth == other_borrow.scope_depth
+                        {
                             common_borrows.push(self_borrow.clone());
                             break;
                         }
@@ -378,12 +422,17 @@ impl BorrowCheckState {
 
         // For variables to destroy: merge both sets
         for (var_name, destroy_info) in &other.variables_to_destroy {
-            self.variables_to_destroy.insert(var_name.clone(), destroy_info.clone());
+            self.variables_to_destroy
+                .insert(var_name.clone(), destroy_info.clone());
         }
     }
 
     /// Check for borrow conflicts (Expert recommendation: Priority 1)
-    pub fn check_borrow_conflicts(&self, name: &str, borrow_kind: BorrowKind) -> Result<(), super::SemanticError> {
+    pub fn check_borrow_conflicts(
+        &self,
+        name: &str,
+        borrow_kind: BorrowKind,
+    ) -> Result<(), super::SemanticError> {
         if let Some(existing_borrows) = self.active_borrows.get(name) {
             for existing_borrow in existing_borrows {
                 // Conflict rules:
@@ -408,7 +457,6 @@ impl BorrowCheckState {
         }
         Ok(())
     }
-
 }
 
 impl OwnershipAnalyzer {
@@ -430,17 +478,20 @@ impl OwnershipAnalyzer {
     /// Exit the current scope
     pub fn exit_scope(&mut self) -> Vec<DestroyInfo> {
         // Get variables that need to be destroyed at this scope (Expert recommendation)
-        let variables_to_destroy = self.borrow_check_state
+        let variables_to_destroy = self
+            .borrow_check_state
             .get_variables_to_destroy_at_scope(self.scope_depth)
             .into_iter()
             .cloned()
             .collect();
 
         // Remove variables declared in this scope
-        self.variables.retain(|_, info| info.scope_depth < self.scope_depth);
+        self.variables
+            .retain(|_, info| info.scope_depth < self.scope_depth);
 
         // Remove borrows created in this scope
-        self.active_borrows.retain(|borrow| borrow.scope_depth < self.scope_depth);
+        self.active_borrows
+            .retain(|borrow| borrow.scope_depth < self.scope_depth);
 
         // Clear borrow check state for this scope
         self.borrow_check_state.clear_scope(self.scope_depth);
@@ -458,13 +509,24 @@ impl OwnershipAnalyzer {
     }
 
     /// Register a variable for destruction (Expert recommendation: Priority 1)
-    pub fn register_for_destruction(&mut self, name: &str, var_type: ResolvedType, scope_depth: usize) {
-        self.borrow_check_state.register_for_destruction(name, var_type, scope_depth);
+    pub fn register_for_destruction(
+        &mut self,
+        name: &str,
+        var_type: ResolvedType,
+        scope_depth: usize,
+    ) {
+        self.borrow_check_state
+            .register_for_destruction(name, var_type, scope_depth);
     }
 
     /// Check for borrow conflicts (Expert recommendation: Priority 1)
-    pub fn check_borrow_conflicts(&mut self, name: &str, borrow_kind: BorrowKind) -> Result<(), super::SemanticError> {
-        self.borrow_check_state.check_borrow_conflicts(name, borrow_kind)
+    pub fn check_borrow_conflicts(
+        &mut self,
+        name: &str,
+        borrow_kind: BorrowKind,
+    ) -> Result<(), super::SemanticError> {
+        self.borrow_check_state
+            .check_borrow_conflicts(name, borrow_kind)
     }
 
     /// Get variable information for dangling reference analysis (Expert recommendation: Priority 1)
@@ -473,8 +535,13 @@ impl OwnershipAnalyzer {
     }
 
     /// Add a borrow (Expert recommendation: Priority 1)
-    pub fn add_borrow(&mut self, name: &str, borrow_kind: BorrowKind) -> Result<(), super::SemanticError> {
-        self.borrow_check_state.add_borrow(name, borrow_kind, self.scope_depth)
+    pub fn add_borrow(
+        &mut self,
+        name: &str,
+        borrow_kind: BorrowKind,
+    ) -> Result<(), super::SemanticError> {
+        self.borrow_check_state
+            .add_borrow(name, borrow_kind, self.scope_depth)
     }
 
     /// Declare a new variable
@@ -488,23 +555,29 @@ impl OwnershipAnalyzer {
             return Err(SemanticError::Redefinition(name.to_string()));
         }
 
-        self.variables.insert(name.to_string(), OwnershipInfo {
-            name: name.to_string(),
-            var_type: var_type.clone(),
-            is_moved: false,
-            is_mutable,
-            scope_depth: self.scope_depth,
-        });
+        self.variables.insert(
+            name.to_string(),
+            OwnershipInfo {
+                name: name.to_string(),
+                var_type: var_type.clone(),
+                is_moved: false,
+                is_mutable,
+                scope_depth: self.scope_depth,
+            },
+        );
 
         // Register for destruction if needed (Expert recommendation)
-        self.borrow_check_state.register_for_destruction(name, var_type, self.scope_depth);
+        self.borrow_check_state
+            .register_for_destruction(name, var_type, self.scope_depth);
 
         Ok(())
     }
 
     /// Check if a variable can be used (not moved)
     pub fn check_variable_use(&self, name: &str) -> Result<&OwnershipInfo, SemanticError> {
-        let var_info = self.variables.get(name)
+        let var_info = self
+            .variables
+            .get(name)
             .ok_or_else(|| SemanticError::UndefinedVariable(name.to_string()))?;
 
         if var_info.is_moved || self.borrow_check_state.is_moved(name) {
@@ -517,7 +590,9 @@ impl OwnershipAnalyzer {
     /// Mark a variable as moved (Expert recommendation)
     pub fn mark_as_moved(&mut self, name: &str) -> Result<(), SemanticError> {
         // Check if variable exists
-        let var_info = self.variables.get_mut(name)
+        let var_info = self
+            .variables
+            .get_mut(name)
             .ok_or_else(|| SemanticError::UndefinedVariable(name.to_string()))?;
 
         // Check if already moved
@@ -535,7 +610,9 @@ impl OwnershipAnalyzer {
     /// Check read access to a variable (Expert recommendation)
     pub fn check_read_access(&self, name: &str) -> Result<(), SemanticError> {
         // Check if variable exists
-        let _var_info = self.variables.get(name)
+        let _var_info = self
+            .variables
+            .get(name)
             .ok_or_else(|| SemanticError::UndefinedVariable(name.to_string()))?;
 
         // Check if moved
@@ -559,8 +636,14 @@ impl OwnershipAnalyzer {
     }
 
     /// Add a borrow for method calls (Expert recommendation: Priority 2)
-    pub fn add_method_borrow(&mut self, var_name: &str, borrow_kind: BorrowKind, scope_depth: usize) -> Result<(), SemanticError> {
-        self.borrow_check_state.add_borrow(var_name, borrow_kind, scope_depth)
+    pub fn add_method_borrow(
+        &mut self,
+        var_name: &str,
+        borrow_kind: BorrowKind,
+        scope_depth: usize,
+    ) -> Result<(), SemanticError> {
+        self.borrow_check_state
+            .add_borrow(var_name, borrow_kind, scope_depth)
     }
 
     /// Get mutable access to borrow check state (Expert recommendation)
@@ -569,22 +652,43 @@ impl OwnershipAnalyzer {
     }
 
     /// Add a field borrow (Expert recommendation: Priority 1 - Field-level borrowing)
-    pub fn add_field_borrow(&mut self, var_name: &str, field_name: &str, borrow_kind: BorrowKind) -> Result<(), SemanticError> {
-        self.borrow_check_state.add_field_borrow(var_name, field_name, borrow_kind, self.scope_depth)
+    pub fn add_field_borrow(
+        &mut self,
+        var_name: &str,
+        field_name: &str,
+        borrow_kind: BorrowKind,
+    ) -> Result<(), SemanticError> {
+        self.borrow_check_state.add_field_borrow(
+            var_name,
+            field_name,
+            borrow_kind,
+            self.scope_depth,
+        )
     }
 
     /// Check if a field has active borrows (Expert recommendation: Priority 1)
     pub fn has_field_borrow(&self, var_name: &str, field_name: &str) -> bool {
-        self.borrow_check_state.has_field_borrow(var_name, field_name)
+        self.borrow_check_state
+            .has_field_borrow(var_name, field_name)
     }
 
     /// Add a borrow with path (Expert recommendation: Priority 1)
-    pub fn add_borrow_with_path(&mut self, var_name: &str, borrow_kind: BorrowKind, path: BorrowPath) -> Result<(), SemanticError> {
-        self.borrow_check_state.add_borrow_with_path(var_name, borrow_kind, self.scope_depth, path)
+    pub fn add_borrow_with_path(
+        &mut self,
+        var_name: &str,
+        borrow_kind: BorrowKind,
+        path: BorrowPath,
+    ) -> Result<(), SemanticError> {
+        self.borrow_check_state
+            .add_borrow_with_path(var_name, borrow_kind, self.scope_depth, path)
     }
 
     /// Analyze reference expressions with enhanced path tracking (Expert recommendation: Priority 1)
-    pub fn analyze_reference_expression(&mut self, expr: &Expression, borrow_kind: BorrowKind) -> Result<(), SemanticError> {
+    pub fn analyze_reference_expression(
+        &mut self,
+        expr: &Expression,
+        borrow_kind: BorrowKind,
+    ) -> Result<(), SemanticError> {
         match expr {
             Expression::Identifier(var_name) => {
                 // Simple variable borrow: &var or &mut var
@@ -615,14 +719,20 @@ impl OwnershipAnalyzer {
     }
 
     /// Analyze field access for borrowing (Expert recommendation: Priority 1)
-    pub fn analyze_field_access_ownership(&mut self, field_access: &FieldAccessExpression) -> Result<(), SemanticError> {
+    pub fn analyze_field_access_ownership(
+        &mut self,
+        field_access: &FieldAccessExpression,
+    ) -> Result<(), SemanticError> {
         // First analyze the object being accessed
         self.analyze_expression(&field_access.object)?;
 
         // Check if we're accessing a field of a moved variable
         if let Expression::Identifier(var_name) = &*field_access.object {
             if self.borrow_check_state.is_moved(&var_name) {
-                return Err(SemanticError::UseAfterMove(format!("{}.{}", var_name, field_access.field)));
+                return Err(SemanticError::UseAfterMove(format!(
+                    "{}.{}",
+                    var_name, field_access.field
+                )));
             }
         }
 
@@ -630,7 +740,11 @@ impl OwnershipAnalyzer {
     }
 
     /// Analyze field borrow with path tracking (Expert recommendation: Priority 1)
-    fn analyze_field_borrow_expression(&mut self, field_access: &FieldAccessExpression, borrow_kind: BorrowKind) -> Result<(), SemanticError> {
+    fn analyze_field_borrow_expression(
+        &mut self,
+        field_access: &FieldAccessExpression,
+        borrow_kind: BorrowKind,
+    ) -> Result<(), SemanticError> {
         match &*field_access.object {
             Expression::Identifier(var_name) => {
                 // Simple field borrow: &var.field
@@ -639,7 +753,11 @@ impl OwnershipAnalyzer {
 
             Expression::FieldAccess(nested_field) => {
                 // Nested field borrow: &var.field1.field2
-                self.analyze_nested_field_borrow_expression(nested_field, &field_access.field, borrow_kind)?;
+                self.analyze_nested_field_borrow_expression(
+                    nested_field,
+                    &field_access.field,
+                    borrow_kind,
+                )?;
             }
 
             _ => {
@@ -651,7 +769,12 @@ impl OwnershipAnalyzer {
     }
 
     /// Analyze nested field borrow (Expert recommendation: Priority 1)
-    fn analyze_nested_field_borrow_expression(&mut self, base_field: &FieldAccessExpression, final_field: &str, borrow_kind: BorrowKind) -> Result<(), SemanticError> {
+    fn analyze_nested_field_borrow_expression(
+        &mut self,
+        base_field: &FieldAccessExpression,
+        final_field: &str,
+        borrow_kind: BorrowKind,
+    ) -> Result<(), SemanticError> {
         // Build the path for nested field access
         let mut field_path = Vec::new();
         let mut current_expr = base_field;
@@ -685,18 +808,19 @@ impl OwnershipAnalyzer {
         Ok(())
     }
 
-
-
     /// Get variables that need destruction at current scope (Expert recommendation)
     pub fn get_variables_to_destroy(&self) -> Vec<&DestroyInfo> {
-        self.borrow_check_state.get_variables_to_destroy_at_scope(self.scope_depth)
+        self.borrow_check_state
+            .get_variables_to_destroy_at_scope(self.scope_depth)
     }
 
     /// Move a variable (transfer ownership)
     pub fn move_variable(&mut self, name: &str) -> Result<(), SemanticError> {
         // First check if variable exists and get its type
         let var_type = {
-            let var_info = self.variables.get(name)
+            let var_info = self
+                .variables
+                .get(name)
                 .ok_or_else(|| SemanticError::UndefinedVariable(name.to_string()))?;
 
             if var_info.is_moved || self.borrow_check_state.is_moved(name) {
@@ -715,13 +839,13 @@ impl OwnershipAnalyzer {
         Ok(())
     }
 
-
-
     /// Check if a type implements Copy (doesn't move on assignment)
     fn is_copy_type(&self, type_: &ResolvedType) -> bool {
         match type_ {
             // Primitive types are Copy
-            ResolvedType::Int | ResolvedType::Float | ResolvedType::Bool | ResolvedType::Char => true,
+            ResolvedType::Int | ResolvedType::Float | ResolvedType::Bool | ResolvedType::Char => {
+                true
+            }
 
             // String is not Copy (it's owned)
             ResolvedType::String => false,
@@ -741,9 +865,18 @@ impl OwnershipAnalyzer {
     }
 
     /// Analyze an expression for ownership
-    pub fn analyze_expression(&mut self, expr: &Expression) -> Result<OwnershipResult, SemanticError> {
+    pub fn analyze_expression(
+        &mut self,
+        expr: &Expression,
+    ) -> Result<OwnershipResult, SemanticError> {
         match expr {
             Expression::Identifier(name) => {
+                // Special control-flow pseudo-identifiers for break/continue should not
+                // participate in ownership checks
+                if name == "__break__" || name == "__continue__" {
+                    return Ok(OwnershipResult::Copy);
+                }
+
                 self.check_variable_use(name)?;
 
                 // For now, we assume all identifier access moves the value
@@ -773,12 +906,18 @@ impl OwnershipAnalyzer {
                 match unary_expr.operator {
                     UnaryOperator::Reference => {
                         // Handle &expr - create immutable borrow with path analysis
-                        self.analyze_reference_expression(&unary_expr.operand, BorrowKind::Immutable)?;
+                        self.analyze_reference_expression(
+                            &unary_expr.operand,
+                            BorrowKind::Immutable,
+                        )?;
                         Ok(OwnershipResult::Copy)
                     }
                     UnaryOperator::MutableReference => {
                         // Handle &mut expr - create mutable borrow with path analysis
-                        self.analyze_reference_expression(&unary_expr.operand, BorrowKind::Mutable)?;
+                        self.analyze_reference_expression(
+                            &unary_expr.operand,
+                            BorrowKind::Mutable,
+                        )?;
                         Ok(OwnershipResult::Copy)
                     }
                     _ => {
@@ -863,7 +1002,10 @@ impl OwnershipAnalyzer {
     }
 
     /// Analyze if statement with control flow merging (Expert recommendation: Priority 2)
-    pub fn analyze_if_statement_ownership(&mut self, if_stmt: &IfStatement) -> Result<(), SemanticError> {
+    pub fn analyze_if_statement_ownership(
+        &mut self,
+        if_stmt: &IfStatement,
+    ) -> Result<(), SemanticError> {
         // Analyze condition
         self.analyze_expression(&if_stmt.condition)?;
 
@@ -906,7 +1048,10 @@ impl OwnershipAnalyzer {
     }
 
     /// Analyze while statement with control flow (Expert recommendation: Priority 2)
-    pub fn analyze_while_statement_ownership(&mut self, while_stmt: &WhileStatement) -> Result<(), SemanticError> {
+    pub fn analyze_while_statement_ownership(
+        &mut self,
+        while_stmt: &WhileStatement,
+    ) -> Result<(), SemanticError> {
         // Analyze condition
         self.analyze_expression(&while_stmt.condition)?;
 
@@ -929,7 +1074,10 @@ impl OwnershipAnalyzer {
     }
 
     /// Analyze for statement with control flow (Expert recommendation: Priority 2)
-    pub fn analyze_for_statement_ownership(&mut self, for_stmt: &ForStatement) -> Result<(), SemanticError> {
+    pub fn analyze_for_statement_ownership(
+        &mut self,
+        for_stmt: &ForStatement,
+    ) -> Result<(), SemanticError> {
         // Analyze the iterable expression
         self.analyze_expression(&for_stmt.iterable)?;
 
@@ -958,7 +1106,10 @@ impl OwnershipAnalyzer {
     }
 
     /// Enhanced control flow analysis for match statements (Expert recommendation: Priority 2)
-    pub fn analyze_match_statement_ownership(&mut self, match_stmt: &MatchStatement) -> Result<(), SemanticError> {
+    pub fn analyze_match_statement_ownership(
+        &mut self,
+        match_stmt: &MatchStatement,
+    ) -> Result<(), SemanticError> {
         // Analyze the matched expression
         self.analyze_expression(&match_stmt.expression)?;
 
@@ -1004,7 +1155,6 @@ pub enum OwnershipResult {
 
 // Add new error types to SemanticError
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1033,10 +1183,14 @@ mod tests {
     fn test_scope_management() {
         let mut analyzer = OwnershipAnalyzer::new();
 
-        analyzer.declare_variable("global", ResolvedType::Int, false).unwrap();
+        analyzer
+            .declare_variable("global", ResolvedType::Int, false)
+            .unwrap();
 
         analyzer.enter_scope();
-        analyzer.declare_variable("local", ResolvedType::String, false).unwrap();
+        analyzer
+            .declare_variable("local", ResolvedType::String, false)
+            .unwrap();
 
         assert!(analyzer.check_variable_use("global").is_ok());
         assert!(analyzer.check_variable_use("local").is_ok());

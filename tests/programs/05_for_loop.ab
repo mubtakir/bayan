@@ -1,0 +1,12 @@
+// Test 5: For loop over array literal
+// Syntax/Semantic check only
+// Expected to parse: for i in [0,1,2,3,4] { ... }
+
+fn main() -> int {
+    let mut sum: int = 0;
+    for i in [0, 1, 2, 3, 4] {
+        sum = sum + i;
+    }
+    return sum;
+}
+
