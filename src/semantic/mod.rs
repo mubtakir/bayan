@@ -824,9 +824,47 @@ impl SemanticAnalyzer {
                 };
                 Ok(AnnotatedStatement::Expression(while_expr))
             }
-            Statement::For(_for_stmt) => {
-                // For now, treat for statements as expressions
-                // TODO: Implement proper for loop analysis
+            Statement::For(for_stmt) => {
+                // Semantic analysis for `for <var> in <iterable> { <body> }`
+                // 1) Analyze iterable and extract element type
+                let annotated_iterable = self.analyze_expression(&for_stmt.iterable)?;
+                let element_type = match &annotated_iterable.result_type {
+                    ResolvedType::List(inner) => (**inner).clone(),
+                    // In the future we can support ranges, strings, maps, etc.
+                    other => {
+                        return Err(SemanticError::TypeMismatch {
+                            // Show that we expect some List<_>; Unit is just a placeholder for message clarity
+                            expected: ResolvedType::List(Box::new(ResolvedType::Unit)),
+                            found: other.clone(),
+                        });
+                    }
+                };
+
+                // 2) Create a new scope for the loop variable (enclosing the body)
+                self.symbol_table.enter_scope();
+                self.ownership_analyzer.enter_scope();
+
+                // 3) Declare loop variable with the element type
+                self.symbol_table.declare_variable(&for_stmt.variable, &element_type)?;
+                // Ownership: declare as immutable by default
+                self.ownership_analyzer
+                    .declare_variable(&for_stmt.variable, element_type.clone(), false)?;
+                // Register for destruction if needed (mirrors let-stmt behavior)
+                let scope_depth = self.ownership_analyzer.get_scope_depth();
+                self.ownership_analyzer.register_for_destruction(
+                    &for_stmt.variable,
+                    element_type.clone(),
+                    scope_depth,
+                );
+
+                // 4) Analyze loop body with loop variable in scope
+                let _annotated_body = self.analyze_block(&for_stmt.body)?;
+
+                // 5) Exit loop scope
+                let _vars_to_destroy = self.ownership_analyzer.exit_scope();
+                self.symbol_table.exit_scope();
+
+                // 6) For now, the for-loop is represented as a dummy expression result
                 let for_expr = AnnotatedExpression {
                     result_type: ResolvedType::Int, // Placeholder
                     expr: AnnotatedExpressionKind::Literal(Literal::Integer(0)),
