@@ -1,0 +1,255 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات واجهة سطر الأوامر
+// CLI Tests
+// ═══════════════════════════════════════════════════════════════════════════
+
+use std::agent::types;
+use std::agent::core;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات الأوامر الأساسية
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_run_command() {
+    println("🧪 Testing 'run' command...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "run example.ab");
+    assert(response.message.len() > 0, "Run command failed");
+    println("✅ 'run' command works correctly");
+}
+
+fn test_compile_command() {
+    println("🧪 Testing 'compile' command...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "compile code.ab");
+    assert(response.message.len() > 0, "Compile command failed");
+    println("✅ 'compile' command works correctly");
+}
+
+fn test_analyze_command() {
+    println("🧪 Testing 'analyze' command...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "analyze fn main() { }");
+    assert(response.message.len() > 0, "Analyze command failed");
+    println("✅ 'analyze' command works correctly");
+}
+
+fn test_suggest_command() {
+    println("🧪 Testing 'suggest' command...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "suggest");
+    assert(response.message.len() > 0, "Suggest command failed");
+    println("✅ 'suggest' command works correctly");
+}
+
+fn test_chat_command() {
+    println("🧪 Testing 'chat' command...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "chat How do I use the agent?");
+    assert(response.message.len() > 0, "Chat command failed");
+    println("✅ 'chat' command works correctly");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات الأوامر الخاصة
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_help_command() {
+    println("🧪 Testing 'help' command...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "help");
+    assert(response.message.contains("help") || response.message.contains("Help"), "Help command failed");
+    println("✅ 'help' command works correctly");
+}
+
+fn test_status_command() {
+    println("🧪 Testing 'status' command...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "status");
+    assert(response.message.len() > 0, "Status command failed");
+    println("✅ 'status' command works correctly");
+}
+
+fn test_reset_command() {
+    println("🧪 Testing 'reset' command...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "reset");
+    assert(response.message.len() > 0, "Reset command failed");
+    println("✅ 'reset' command works correctly");
+}
+
+fn test_lang_command() {
+    println("🧪 Testing 'lang' command...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "lang ar");
+    assert(response.message.len() > 0, "Lang command failed");
+    println("✅ 'lang' command works correctly");
+}
+
+fn test_exit_command() {
+    println("🧪 Testing 'exit' command...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "exit");
+    assert(response.message.len() > 0, "Exit command failed");
+    println("✅ 'exit' command works correctly");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات الدعم العربي
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_arabic_run_command() {
+    println("🧪 Testing Arabic 'run' command...");
+    let mut agent = types::create_agent("ar", false);
+    let response = core::process_input(&mut agent, "تشغيل ملف.ab");
+    assert(response.message.len() > 0, "Arabic run command failed");
+    assert(response.language == "ar", "Response should be in Arabic");
+    println("✅ Arabic 'run' command works correctly");
+}
+
+fn test_arabic_compile_command() {
+    println("🧪 Testing Arabic 'compile' command...");
+    let mut agent = types::create_agent("ar", false);
+    let response = core::process_input(&mut agent, "ترجمة كود.ab");
+    assert(response.message.len() > 0, "Arabic compile command failed");
+    assert(response.language == "ar", "Response should be in Arabic");
+    println("✅ Arabic 'compile' command works correctly");
+}
+
+fn test_arabic_help_command() {
+    println("🧪 Testing Arabic 'help' command...");
+    let mut agent = types::create_agent("ar", false);
+    let response = core::process_input(&mut agent, "مساعدة");
+    assert(response.message.len() > 0, "Arabic help command failed");
+    assert(response.language == "ar", "Response should be in Arabic");
+    println("✅ Arabic 'help' command works correctly");
+}
+
+fn test_arabic_status_command() {
+    println("🧪 Testing Arabic 'status' command...");
+    let mut agent = types::create_agent("ar", false);
+    let response = core::process_input(&mut agent, "الحالة");
+    assert(response.message.len() > 0, "Arabic status command failed");
+    assert(response.language == "ar", "Response should be in Arabic");
+    println("✅ Arabic 'status' command works correctly");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات معالجة الأخطاء
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_invalid_command() {
+    println("🧪 Testing invalid command handling...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "invalid_command");
+    assert(response.message.len() > 0, "Invalid command should still return response");
+    println("✅ Invalid command handled correctly");
+}
+
+fn test_empty_input() {
+    println("🧪 Testing empty input handling...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "");
+    assert(response.message.len() > 0, "Empty input should still return response");
+    println("✅ Empty input handled correctly");
+}
+
+fn test_whitespace_input() {
+    println("🧪 Testing whitespace input handling...");
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "   ");
+    assert(response.message.len() > 0, "Whitespace input should still return response");
+    println("✅ Whitespace input handled correctly");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات تبديل اللغة
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_language_switching() {
+    println("🧪 Testing language switching...");
+    let mut agent = types::create_agent("en", false);
+    
+    // Start in English
+    assert(agent.language == "en", "Should start in English");
+    
+    // Switch to Arabic
+    let response = core::process_input(&mut agent, "lang ar");
+    assert(response.message.len() > 0, "Language switch failed");
+    
+    // Verify language switched
+    assert(agent.language == "ar", "Language should be switched to Arabic");
+    
+    println("✅ Language switching works correctly");
+}
+
+fn test_multilingual_responses() {
+    println("🧪 Testing multilingual responses...");
+    
+    // English response
+    let mut agent_en = types::create_agent("en", false);
+    let response_en = core::process_input(&mut agent_en, "help");
+    assert(response_en.language == "en", "English response should be in English");
+    
+    // Arabic response
+    let mut agent_ar = types::create_agent("ar", false);
+    let response_ar = core::process_input(&mut agent_ar, "مساعدة");
+    assert(response_ar.language == "ar", "Arabic response should be in Arabic");
+    
+    println("✅ Multilingual responses work correctly");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// دالة تشغيل جميع اختبارات CLI
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn main() {
+    println("╔════════════════════════════════════════════════════════════════╗");
+    println("║          💻 اختبارات واجهة سطر الأوامر 💻                   ║");
+    println("╚════════════════════════════════════════════════════════════════╝");
+    println("");
+    
+    // اختبارات الأوامر الأساسية
+    println("📋 اختبارات الأوامر الأساسية:");
+    test_run_command();
+    test_compile_command();
+    test_analyze_command();
+    test_suggest_command();
+    test_chat_command();
+    println("");
+    
+    // اختبارات الأوامر الخاصة
+    println("📋 اختبارات الأوامر الخاصة:");
+    test_help_command();
+    test_status_command();
+    test_reset_command();
+    test_lang_command();
+    test_exit_command();
+    println("");
+    
+    // اختبارات الدعم العربي
+    println("📋 اختبارات الدعم العربي:");
+    test_arabic_run_command();
+    test_arabic_compile_command();
+    test_arabic_help_command();
+    test_arabic_status_command();
+    println("");
+    
+    // اختبارات معالجة الأخطاء
+    println("📋 اختبارات معالجة الأخطاء:");
+    test_invalid_command();
+    test_empty_input();
+    test_whitespace_input();
+    println("");
+    
+    // اختبارات تبديل اللغة
+    println("📋 اختبارات تبديل اللغة:");
+    test_language_switching();
+    test_multilingual_responses();
+    println("");
+    
+    println("╔════════════════════════════════════════════════════════════════╗");
+    println("║          ✅ تم تشغيل جميع اختبارات CLI بنجاح! ✅           ║");
+    println("╚════════════════════════════════════════════════════════════════╝");
+}
+

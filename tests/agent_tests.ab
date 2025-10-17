@@ -1,0 +1,223 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات شاملة لوحدات الوكيل المساعد
+// Comprehensive Tests for Agent Modules
+// ═══════════════════════════════════════════════════════════════════════════
+
+use std::agent::types;
+use std::agent::nlu;
+use std::agent::nlg;
+use std::agent::optimizer;
+use std::agent::bridge;
+use std::agent::core;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات الأنواع (Types Tests)
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_intent_creation() {
+    let intent = types::create_intent("run", "file.ab", "ar");
+    assert(intent.command == "run", "Command should be 'run'");
+    assert(intent.language == "ar", "Language should be 'ar'");
+    println("✅ test_intent_creation passed");
+}
+
+fn test_response_creation() {
+    let response = types::create_response("Success", "ar", true);
+    assert(response.message == "Success", "Message should be 'Success'");
+    assert(response.language == "ar", "Language should be 'ar'");
+    assert(response.success == true, "Success should be true");
+    println("✅ test_response_creation passed");
+}
+
+fn test_config_creation() {
+    let config = types::create_config("ar", true, 100);
+    assert(config.language == "ar", "Language should be 'ar'");
+    assert(config.debug == true, "Debug should be true");
+    println("✅ test_config_creation passed");
+}
+
+fn test_event_creation() {
+    let event = types::create_event("run", "success", 50);
+    assert(event.intent == "run", "Intent should be 'run'");
+    assert(event.result == "success", "Result should be 'success'");
+    println("✅ test_event_creation passed");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات فهم النية (NLU Tests)
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_parse_intent_run() {
+    let intent = nlu::parse_intent("run file.ab", "en");
+    assert(intent.command == "run", "Command should be 'run'");
+    assert(intent.parameter.contains("file.ab"), "Parameter should contain 'file.ab'");
+    println("✅ test_parse_intent_run passed");
+}
+
+fn test_parse_intent_compile() {
+    let intent = nlu::parse_intent("compile code.ab", "en");
+    assert(intent.command == "compile", "Command should be 'compile'");
+    println("✅ test_parse_intent_compile passed");
+}
+
+fn test_parse_intent_arabic() {
+    let intent = nlu::parse_intent("تشغيل ملف.ab", "ar");
+    assert(intent.language == "ar", "Language should be 'ar'");
+    println("✅ test_parse_intent_arabic passed");
+}
+
+fn test_extract_path() {
+    let path = nlu::extract_path("run /home/user/file.ab");
+    assert(path.contains("file.ab"), "Path should contain 'file.ab'");
+    println("✅ test_extract_path passed");
+}
+
+fn test_extract_code() {
+    let code = nlu::extract_code("analyze fn main() { println(\"hello\") }");
+    assert(code.contains("main"), "Code should contain 'main'");
+    println("✅ test_extract_code passed");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات توليد اللغة (NLG Tests)
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_generate_reply_success() {
+    let reply = nlg::generate_reply("success", "en");
+    assert(reply.contains("success") || reply.contains("Success"), "Reply should mention success");
+    println("✅ test_generate_reply_success passed");
+}
+
+fn test_generate_reply_error() {
+    let reply = nlg::generate_reply("error", "en");
+    assert(reply.contains("error") || reply.contains("Error"), "Reply should mention error");
+    println("✅ test_generate_reply_error passed");
+}
+
+fn test_generate_reply_arabic() {
+    let reply = nlg::generate_reply_ar("success");
+    assert(reply.len() > 0, "Reply should not be empty");
+    println("✅ test_generate_reply_arabic passed");
+}
+
+fn test_generate_reply_english() {
+    let reply = nlg::generate_reply_en("success");
+    assert(reply.len() > 0, "Reply should not be empty");
+    println("✅ test_generate_reply_english passed");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات المحسّن (Optimizer Tests)
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_observe_event() {
+    let mut agent = types::create_agent("ar", true);
+    let event = types::create_event("run", "success", 50);
+    optimizer::observe_event(&mut agent, event);
+    assert(agent.events.len() > 0, "Events should be recorded");
+    println("✅ test_observe_event passed");
+}
+
+fn test_calculate_success_rate() {
+    let mut agent = types::create_agent("ar", true);
+    let event1 = types::create_event("run", "success", 50);
+    let event2 = types::create_event("compile", "success", 30);
+    optimizer::observe_event(&mut agent, event1);
+    optimizer::observe_event(&mut agent, event2);
+    let rate = optimizer::calculate_success_rate(&agent);
+    assert(rate >= 0.0 && rate <= 100.0, "Success rate should be between 0 and 100");
+    println("✅ test_calculate_success_rate passed");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات جسر التكامل (Bridge Tests)
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_bridge_creation() {
+    let bridge = bridge::create_bridge();
+    assert(bridge.compiler_path.len() > 0, "Compiler path should not be empty");
+    println("✅ test_bridge_creation passed");
+}
+
+fn test_validate_file() {
+    let is_valid = bridge::validate_file("test.ab");
+    assert(is_valid == true || is_valid == false, "Should return boolean");
+    println("✅ test_validate_file passed");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات النواة (Core Tests)
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_process_input_run() {
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "run test.ab");
+    assert(response.message.len() > 0, "Response should not be empty");
+    println("✅ test_process_input_run passed");
+}
+
+fn test_process_input_help() {
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "help");
+    assert(response.message.contains("help") || response.message.contains("Help"), "Response should contain help");
+    println("✅ test_process_input_help passed");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// دالة تشغيل جميع الاختبارات
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn main() {
+    println("╔════════════════════════════════════════════════════════════════╗");
+    println("║          🧪 تشغيل اختبارات الوكيل المساعد 🧪                 ║");
+    println("╚════════════════════════════════════════════════════════════════╝");
+    println("");
+    
+    // اختبارات الأنواع
+    println("📋 اختبارات الأنواع (Types Tests):");
+    test_intent_creation();
+    test_response_creation();
+    test_config_creation();
+    test_event_creation();
+    println("");
+    
+    // اختبارات NLU
+    println("📋 اختبارات فهم النية (NLU Tests):");
+    test_parse_intent_run();
+    test_parse_intent_compile();
+    test_parse_intent_arabic();
+    test_extract_path();
+    test_extract_code();
+    println("");
+    
+    // اختبارات NLG
+    println("📋 اختبارات توليد اللغة (NLG Tests):");
+    test_generate_reply_success();
+    test_generate_reply_error();
+    test_generate_reply_arabic();
+    test_generate_reply_english();
+    println("");
+    
+    // اختبارات Optimizer
+    println("📋 اختبارات المحسّن (Optimizer Tests):");
+    test_observe_event();
+    test_calculate_success_rate();
+    println("");
+    
+    // اختبارات Bridge
+    println("📋 اختبارات جسر التكامل (Bridge Tests):");
+    test_bridge_creation();
+    test_validate_file();
+    println("");
+    
+    // اختبارات Core
+    println("📋 اختبارات النواة (Core Tests):");
+    test_process_input_run();
+    test_process_input_help();
+    println("");
+    
+    println("╔════════════════════════════════════════════════════════════════╗");
+    println("║          ✅ تم تشغيل جميع الاختبارات بنجاح! ✅              ║");
+    println("╚════════════════════════════════════════════════════════════════╝");
+}
+

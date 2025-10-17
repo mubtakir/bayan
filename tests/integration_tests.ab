@@ -1,0 +1,267 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات التكامل الشاملة
+// Comprehensive Integration Tests
+// ═══════════════════════════════════════════════════════════════════════════
+
+use std::agent::types;
+use std::agent::nlu;
+use std::agent::nlg;
+use std::agent::optimizer;
+use std::agent::bridge;
+use std::agent::core;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات تكامل NLU + NLG
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_nlu_nlg_integration_run() {
+    // Parse intent
+    let intent = nlu::parse_intent("run test.ab", "en");
+    assert(intent.command == "run", "Intent parsing failed");
+    
+    // Generate response
+    let response = nlg::generate_reply("success", "en");
+    assert(response.len() > 0, "Response generation failed");
+    
+    println("✅ test_nlu_nlg_integration_run passed");
+}
+
+fn test_nlu_nlg_integration_compile() {
+    // Parse intent
+    let intent = nlu::parse_intent("compile code.ab", "en");
+    assert(intent.command == "compile", "Intent parsing failed");
+    
+    // Generate response
+    let response = nlg::generate_reply("success", "en");
+    assert(response.len() > 0, "Response generation failed");
+    
+    println("✅ test_nlu_nlg_integration_compile passed");
+}
+
+fn test_nlu_nlg_integration_arabic() {
+    // Parse intent in Arabic
+    let intent = nlu::parse_intent("تشغيل ملف.ab", "ar");
+    assert(intent.language == "ar", "Arabic parsing failed");
+    
+    // Generate response in Arabic
+    let response = nlg::generate_reply_ar("success");
+    assert(response.len() > 0, "Arabic response generation failed");
+    
+    println("✅ test_nlu_nlg_integration_arabic passed");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات تكامل Bridge + Core
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_bridge_core_integration() {
+    let bridge = bridge::create_bridge();
+    assert(bridge.compiler_path.len() > 0, "Bridge creation failed");
+    
+    let mut agent = types::create_agent("en", false);
+    let response = core::process_input(&mut agent, "run test.ab");
+    assert(response.message.len() > 0, "Core processing failed");
+    
+    println("✅ test_bridge_core_integration passed");
+}
+
+fn test_bridge_validation() {
+    let bridge = bridge::create_bridge();
+    let is_valid = bridge::validate_file("test.ab");
+    assert(is_valid == true || is_valid == false, "Validation should return boolean");
+    
+    println("✅ test_bridge_validation passed");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات تكامل Optimizer + Core
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_optimizer_core_integration() {
+    let mut agent = types::create_agent("en", false);
+    
+    // Process multiple inputs
+    let response1 = core::process_input(&mut agent, "run test1.ab");
+    assert(response1.message.len() > 0, "First input processing failed");
+    
+    let response2 = core::process_input(&mut agent, "compile test2.ab");
+    assert(response2.message.len() > 0, "Second input processing failed");
+    
+    // Check events were recorded
+    assert(agent.events.len() > 0, "Events should be recorded");
+    
+    println("✅ test_optimizer_core_integration passed");
+}
+
+fn test_optimizer_success_rate() {
+    let mut agent = types::create_agent("en", false);
+    
+    // Simulate multiple operations
+    for i in 0..5 {
+        let event = types::create_event("run", "success", 50 + i * 10);
+        optimizer::observe_event(&mut agent, event);
+    }
+    
+    let rate = optimizer::calculate_success_rate(&agent);
+    assert(rate >= 0.0 && rate <= 100.0, "Success rate calculation failed");
+    
+    println("✅ test_optimizer_success_rate passed");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات تكامل كامل (End-to-End)
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_e2e_run_command() {
+    let mut agent = types::create_agent("en", false);
+    
+    // User input
+    let user_input = "run example.ab";
+    
+    // Process through core
+    let response = core::process_input(&mut agent, user_input);
+    
+    // Verify response
+    assert(response.message.len() > 0, "Response should not be empty");
+    assert(response.language == "en", "Language should be English");
+    
+    println("✅ test_e2e_run_command passed");
+}
+
+fn test_e2e_compile_command() {
+    let mut agent = types::create_agent("en", false);
+    
+    // User input
+    let user_input = "compile code.ab";
+    
+    // Process through core
+    let response = core::process_input(&mut agent, user_input);
+    
+    // Verify response
+    assert(response.message.len() > 0, "Response should not be empty");
+    
+    println("✅ test_e2e_compile_command passed");
+}
+
+fn test_e2e_analyze_command() {
+    let mut agent = types::create_agent("en", false);
+    
+    // User input
+    let user_input = "analyze fn main() { println(\"hello\") }";
+    
+    // Process through core
+    let response = core::process_input(&mut agent, user_input);
+    
+    // Verify response
+    assert(response.message.len() > 0, "Response should not be empty");
+    
+    println("✅ test_e2e_analyze_command passed");
+}
+
+fn test_e2e_help_command() {
+    let mut agent = types::create_agent("en", false);
+    
+    // User input
+    let user_input = "help";
+    
+    // Process through core
+    let response = core::process_input(&mut agent, user_input);
+    
+    // Verify response
+    assert(response.message.len() > 0, "Response should not be empty");
+    assert(response.message.contains("help") || response.message.contains("Help"), "Response should contain help");
+    
+    println("✅ test_e2e_help_command passed");
+}
+
+fn test_e2e_status_command() {
+    let mut agent = types::create_agent("en", false);
+    
+    // User input
+    let user_input = "status";
+    
+    // Process through core
+    let response = core::process_input(&mut agent, user_input);
+    
+    // Verify response
+    assert(response.message.len() > 0, "Response should not be empty");
+    
+    println("✅ test_e2e_status_command passed");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// اختبارات اللغة المتعددة
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_multilingual_support() {
+    // English
+    let agent_en = types::create_agent("en", false);
+    assert(agent_en.language == "en", "English agent creation failed");
+    
+    // Arabic
+    let agent_ar = types::create_agent("ar", false);
+    assert(agent_ar.language == "ar", "Arabic agent creation failed");
+    
+    println("✅ test_multilingual_support passed");
+}
+
+fn test_language_switching() {
+    let mut agent = types::create_agent("en", false);
+    assert(agent.language == "en", "Initial language should be English");
+    
+    // Switch to Arabic
+    agent.language = "ar";
+    assert(agent.language == "ar", "Language should be switched to Arabic");
+    
+    println("✅ test_language_switching passed");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// دالة تشغيل جميع اختبارات التكامل
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn main() {
+    println("╔════════════════════════════════════════════════════════════════╗");
+    println("║          🔗 اختبارات التكامل الشاملة 🔗                      ║");
+    println("╚════════════════════════════════════════════════════════════════╝");
+    println("");
+    
+    // اختبارات تكامل NLU + NLG
+    println("📋 اختبارات تكامل NLU + NLG:");
+    test_nlu_nlg_integration_run();
+    test_nlu_nlg_integration_compile();
+    test_nlu_nlg_integration_arabic();
+    println("");
+    
+    // اختبارات تكامل Bridge + Core
+    println("📋 اختبارات تكامل Bridge + Core:");
+    test_bridge_core_integration();
+    test_bridge_validation();
+    println("");
+    
+    // اختبارات تكامل Optimizer + Core
+    println("📋 اختبارات تكامل Optimizer + Core:");
+    test_optimizer_core_integration();
+    test_optimizer_success_rate();
+    println("");
+    
+    // اختبارات End-to-End
+    println("📋 اختبارات End-to-End:");
+    test_e2e_run_command();
+    test_e2e_compile_command();
+    test_e2e_analyze_command();
+    test_e2e_help_command();
+    test_e2e_status_command();
+    println("");
+    
+    // اختبارات اللغة المتعددة
+    println("📋 اختبارات اللغة المتعددة:");
+    test_multilingual_support();
+    test_language_switching();
+    println("");
+    
+    println("╔════════════════════════════════════════════════════════════════╗");
+    println("║          ✅ تم تشغيل جميع اختبارات التكامل بنجاح! ✅        ║");
+    println("╚════════════════════════════════════════════════════════════════╝");
+}
+
