@@ -1,0 +1,151 @@
+// 🎊 عرض شامل مبهر - Ultimate AlBayan Language Showcase 🎊
+// يجمع كل الميزات الأساسية في مثال واحد
+
+// ============================================================
+// 1️⃣ تعريف هيكل - Struct Definition
+// ============================================================
+struct Person {
+    name: int;
+    age: int;
+    score: int;
+}
+
+// ============================================================
+// 2️⃣ تعريف تعداد - Enum Definition
+// ============================================================
+enum Grade { A, B, C, D, F }
+
+// ============================================================
+// 3️⃣ دوال مساعدة - Helper Functions
+// ============================================================
+
+// دالة حساب مربع العدد
+fn square(x: int) -> int {
+    return x * x;
+}
+
+// دالة حساب مجموع الأرقام من 1 إلى n
+fn sum_to_n(n: int) -> int {
+    let sum = 0;
+    let i = 1;
+    while i <= n {
+        sum = sum + i;
+        i = i + 1;
+    }
+    return sum;
+}
+
+// دالة التحقق من العدد الأولي
+fn is_prime(n: int) -> int {
+    if n < 2 {
+        return 0;
+    }
+    let i = 2;
+    while i * i <= n {
+        if n % i == 0 {
+            return 0;
+        }
+        i = i + 1;
+    }
+    return 1;
+}
+
+// دالة حساب العامل (Factorial)
+fn factorial(n: int) -> int {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+// دالة حساب أكبر عامل مشترك
+fn gcd(a: int, b: int) -> int {
+    while b != 0 {
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+// دالة حساب أصغر مضاعف مشترك
+fn lcm(a: int, b: int) -> int {
+    return (a * b) / gcd(a, b);
+}
+
+// دالة حساب متوسط المصفوفة
+fn array_average(arr: int) -> int {
+    let sum = 0;
+    let count = 0;
+    for i in arr {
+        sum = sum + i;
+        count = count + 1;
+    }
+    if count == 0 {
+        return 0;
+    }
+    return sum / count;
+}
+
+// ============================================================
+// 4️⃣ الدالة الرئيسية - Main Function
+// ============================================================
+
+fn main() -> int {
+    // ========== الحسابات الأساسية ==========
+    let a = 10;
+    let b = 20;
+    let c = a + b;
+
+    // ========== العمليات الحسابية ==========
+    let square_a = square(5);
+    let sum_result = sum_to_n(10);
+    let fact_result = factorial(5);
+
+    // ========== التحقق من الأعداد الأولية ==========
+    let is_7_prime = is_prime(7);
+    let is_10_prime = is_prime(10);
+
+    // ========== حساب GCD و LCM ==========
+    let gcd_result = gcd(48, 18);
+    let lcm_result = lcm(12, 18);
+
+    // ========== الشروط ==========
+    let max_value = 0;
+    if a > b {
+        max_value = a;
+    } else {
+        max_value = b;
+    }
+
+    // ========== الحلقات ==========
+    let loop_sum = 0;
+    let i = 1;
+    while i <= 5 {
+        loop_sum = loop_sum + i;
+        i = i + 1;
+    }
+
+    // ========== المصفوفات ==========
+    let numbers = [1, 2, 3, 4, 5];
+    let arr_sum = 0;
+    for num in numbers {
+        arr_sum = arr_sum + num;
+    }
+
+    // ========== الهياكل ==========
+    let person = Person { name: 1; age: 25; score: 95 };
+    let person_age = person.age;
+    let person_score = person.score;
+
+    // ========== القيم المنطقية ==========
+    let is_true = true;
+    let is_false = false;
+    let logic_result = 0;
+    if is_true {
+        logic_result = 1;
+    }
+
+    // ========== الإرجاع النهائي ==========
+    return 1;
+}

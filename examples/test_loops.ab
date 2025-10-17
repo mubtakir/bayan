@@ -1,0 +1,35 @@
+// اختبار الحلقات في لغة البيان
+// Test Loops in AlBayan Language
+
+fn sum_to_n(n: int) -> int {
+    let sum = 0;
+    let i = 1;
+    while i <= n {
+        sum = sum + i;
+        i = i + 1;
+    }
+    return sum;
+}
+
+fn factorial(n: int) -> int {
+    let result = 1;
+    let i = 1;
+    while i <= n {
+        result = result * i;
+        i = i + 1;
+    }
+    return result;
+}
+
+fn main() -> int {
+    // Test while loops
+    let sum1 = sum_to_n(5);
+    let sum2 = sum_to_n(10);
+    
+    // Test factorial
+    let fact1 = factorial(3);
+    let fact2 = factorial(5);
+    
+    return sum1;
+}
+

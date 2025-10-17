@@ -1,0 +1,30 @@
+// اختبار التطابق في لغة البيان
+// Test Match in AlBayan Language
+
+fn describe_number(n: int) -> int {
+    match n {
+        0 => {
+            return 0;
+        }
+        1 => {
+            return 1;
+        }
+        2 => {
+            return 2;
+        }
+        _ => {
+            return -1;
+        }
+    }
+}
+
+fn main() -> int {
+    // Test match
+    let result1 = describe_number(0);
+    let result2 = describe_number(1);
+    let result3 = describe_number(2);
+    let result4 = describe_number(5);
+    
+    return result1;
+}
+

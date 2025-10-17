@@ -1,0 +1,32 @@
+// اختبار الهياكل في لغة البيان
+// Test Structs in AlBayan Language
+
+struct Point {
+    x: int,
+    y: int,
+}
+
+struct Rectangle {
+    width: int,
+    height: int,
+}
+
+fn main() -> int {
+    // Test struct creation
+    let p1 = Point { x: 10, y: 20 };
+    let p2 = Point { x: 30, y: 40 };
+    
+    // Test struct field access
+    let x1 = p1.x;
+    let y1 = p1.y;
+    
+    // Test struct operations
+    let sum = x1 + y1;
+    
+    // Test another struct
+    let rect = Rectangle { width: 100, height: 50 };
+    let area = rect.width * rect.height;
+    
+    return sum;
+}
+

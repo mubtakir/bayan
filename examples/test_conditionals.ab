@@ -1,0 +1,48 @@
+// اختبار الشروط في لغة البيان
+// Test Conditionals in AlBayan Language
+
+fn max(a: int, b: int) -> int {
+    if a > b {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+fn abs_value(n: int) -> int {
+    if n < 0 {
+        return -n;
+    } else {
+        return n;
+    }
+}
+
+fn classify(n: int) -> int {
+    if n > 0 {
+        return 1;
+    } else {
+        if n < 0 {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+}
+
+fn main() -> int {
+    // Test if-else
+    let result1 = max(10, 20);
+    let result2 = max(30, 15);
+    
+    // Test nested if-else
+    let result3 = abs_value(-5);
+    let result4 = abs_value(10);
+    
+    // Test multiple conditions
+    let result5 = classify(5);
+    let result6 = classify(-3);
+    let result7 = classify(0);
+    
+    return result1;
+}
+

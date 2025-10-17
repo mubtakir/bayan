@@ -1,0 +1,30 @@
+// اختبار الدوال في لغة البيان
+// Test Functions in AlBayan Language
+
+fn add(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn multiply(x: int, y: int) -> int {
+    return x * y;
+}
+
+fn square(n: int) -> int {
+    return n * n;
+}
+
+fn main() -> int {
+    // Test function calls
+    let result1 = add(5, 10);
+    let result2 = multiply(3, 4);
+    let result3 = square(5);
+    
+    // Test nested function calls
+    let nested = add(multiply(2, 3), square(2));
+    
+    // Test multiple operations
+    let complex = add(square(3), multiply(4, 5));
+    
+    return result1;
+}
+

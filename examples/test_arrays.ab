@@ -1,0 +1,41 @@
+// اختبار المصفوفات في لغة البيان
+// Test Arrays in AlBayan Language
+
+fn sum_array(arr: [int]) -> int {
+    let sum = 0;
+    let i = 0;
+    while i < arr.len() {
+        sum = sum + arr[i];
+        i = i + 1;
+    }
+    return sum;
+}
+
+fn max_array(arr: [int]) -> int {
+    let max = arr[0];
+    let i = 1;
+    while i < arr.len() {
+        if arr[i] > max {
+            max = arr[i];
+        }
+        i = i + 1;
+    }
+    return max;
+}
+
+fn main() -> int {
+    // Test array creation and access
+    let arr1 = [1, 2, 3, 4, 5];
+    let arr2 = [10, 20, 30];
+    
+    // Test array operations
+    let sum1 = sum_array(arr1);
+    let sum2 = sum_array(arr2);
+    
+    // Test max
+    let max1 = max_array(arr1);
+    let max2 = max_array(arr2);
+    
+    return sum1;
+}
+

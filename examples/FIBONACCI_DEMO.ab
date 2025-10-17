@@ -1,0 +1,54 @@
+// 🎊 عرض متسلسلة فيبوناتشي - Fibonacci Sequence Demo 🎊
+
+// دالة حساب رقم فيبوناتشي
+fn fibonacci(n: int) -> int {
+    if n <= 1 {
+        return n;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+// دالة حساب مجموع أول n أرقام فيبوناتشي
+fn fibonacci_sum(n: int) -> int {
+    let sum = 0;
+    let i = 0;
+    while i < n {
+        sum = sum + fibonacci(i);
+        i = i + 1;
+    }
+    return sum;
+}
+
+// دالة طباعة أول n أرقام فيبوناتشي
+fn print_fibonacci(n: int) -> int {
+    let i = 0;
+    while i < n {
+        let fib = fibonacci(i);
+        i = i + 1;
+    }
+    return 1;
+}
+
+fn main() -> int {
+    // حساب أرقام فيبوناتشي
+    let fib_0 = fibonacci(0);
+    let fib_1 = fibonacci(1);
+    let fib_2 = fibonacci(2);
+    let fib_3 = fibonacci(3);
+    let fib_4 = fibonacci(4);
+    let fib_5 = fibonacci(5);
+    let fib_6 = fibonacci(6);
+    let fib_7 = fibonacci(7);
+    let fib_8 = fibonacci(8);
+    let fib_9 = fibonacci(9);
+    let fib_10 = fibonacci(10);
+    
+    // حساب مجموع أول 10 أرقام فيبوناتشي
+    let fib_sum = fibonacci_sum(10);
+    
+    // طباعة أول 10 أرقام فيبوناتشي
+    let print_result = print_fibonacci(10);
+    
+    return 1;
+}
+

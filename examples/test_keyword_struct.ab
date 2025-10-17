@@ -1,0 +1,13 @@
+// اختبار كلمة struct - Test keyword: struct
+// هيكل بسيط جداً
+
+struct Point {
+    x: int;
+    y: int;
+}
+
+fn main() -> int {
+    let p = Point { x: 10, y: 20 };
+    return p.x + p.y;
+}
+

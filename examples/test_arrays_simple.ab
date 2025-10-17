@@ -1,0 +1,19 @@
+// اختبار المصفوفات البسيطة في لغة البيان
+// Test Simple Arrays in AlBayan Language
+
+fn main() -> int {
+    // Test array creation
+    let arr1 = [1, 2, 3, 4, 5];
+    let arr2 = [10, 20, 30];
+    
+    // Test array access
+    let first = arr1[0];
+    let second = arr1[1];
+    let third = arr2[2];
+    
+    // Test array operations
+    let sum = first + second + third;
+    
+    return sum;
+}
+

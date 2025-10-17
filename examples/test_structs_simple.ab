@@ -1,0 +1,22 @@
+// اختبار الهياكل البسيطة في لغة البيان
+// Test Simple Structs in AlBayan Language
+
+struct Point {
+    x: int;
+    y: int;
+}
+
+fn main() -> int {
+    // Test struct creation
+    let p1 = Point { x: 10, y: 20 };
+    
+    // Test struct field access
+    let x1 = p1.x;
+    let y1 = p1.y;
+    
+    // Test struct operations
+    let sum = x1 + y1;
+    
+    return sum;
+}
+

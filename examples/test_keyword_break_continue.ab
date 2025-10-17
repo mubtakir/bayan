@@ -1,0 +1,14 @@
+// اختبار كلمات break و continue - Test keywords: break, continue
+// التحكم في الحلقات
+
+fn main() -> int {
+    let i = 0;
+    while i < 10 {
+        if i == 5 {
+            break;
+        }
+        i = i + 1;
+    }
+    return i;
+}
+

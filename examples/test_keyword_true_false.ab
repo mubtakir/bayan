@@ -1,0 +1,13 @@
+// اختبار كلمات true و false - Test keywords: true, false
+// القيم المنطقية
+
+fn main() -> int {
+    let is_true = true;
+    let is_false = false;
+    if is_true {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+

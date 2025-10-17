@@ -1,0 +1,86 @@
+// 🎊 عرض العمليات الرياضية - Math Operations Demo 🎊
+
+// دالة حساب القوة
+fn power(base: int, exp: int) -> int {
+    if exp == 0 {
+        return 1;
+    }
+    return base * power(base, exp - 1);
+}
+
+// دالة حساب الجذر التربيعي (تقريبي)
+fn sqrt_approx(n: int) -> int {
+    let x = n;
+    let i = 0;
+    while i < 10 {
+        x = (x + n / x) / 2;
+        i = i + 1;
+    }
+    return x;
+}
+
+// دالة حساب المضروب
+fn factorial(n: int) -> int {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+// دالة حساب التوليفات C(n, k)
+fn combination(n: int, k: int) -> int {
+    if k > n {
+        return 0;
+    }
+    if k == 0 {
+        return 1;
+    }
+    return (n * combination(n - 1, k - 1)) / k;
+}
+
+// دالة حساب الترتيبات P(n, k)
+fn permutation(n: int, k: int) -> int {
+    if k > n {
+        return 0;
+    }
+    if k == 0 {
+        return 1;
+    }
+    return n * permutation(n - 1, k - 1);
+}
+
+// دالة حساب مجموع المتسلسلة الحسابية
+fn arithmetic_sum(first: int, last: int, count: int) -> int {
+    return (count * (first + last)) / 2;
+}
+
+fn main() -> int {
+    // حساب القوة
+    let power_2_3 = power(2, 3);
+    let power_3_4 = power(3, 4);
+    let power_5_2 = power(5, 2);
+    
+    // حساب الجذر التربيعي
+    let sqrt_16 = sqrt_approx(16);
+    let sqrt_25 = sqrt_approx(25);
+    let sqrt_100 = sqrt_approx(100);
+    
+    // حساب المضروب
+    let fact_5 = factorial(5);
+    let fact_6 = factorial(6);
+    let fact_7 = factorial(7);
+    
+    // حساب التوليفات
+    let comb_5_2 = combination(5, 2);
+    let comb_6_3 = combination(6, 3);
+    
+    // حساب الترتيبات
+    let perm_5_2 = permutation(5, 2);
+    let perm_6_3 = permutation(6, 3);
+    
+    // حساب مجموع المتسلسلة الحسابية
+    let arith_sum = arithmetic_sum(1, 10, 10);
+    
+    return 1;
+}
+

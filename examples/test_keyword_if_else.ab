@@ -1,0 +1,12 @@
+// اختبار كلمات if و else - Test keywords: if, else
+// شروط بسيطة جداً
+
+fn main() -> int {
+    let x = 10;
+    if x > 5 {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+

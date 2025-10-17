@@ -1,0 +1,12 @@
+// اختبار كلمة fn - Test keyword: fn
+// تعريف دالة بسيطة جداً
+
+fn add(a: int, b: int) -> int {
+    return a + b;
+}
+
+fn main() -> int {
+    let result = add(5, 3);
+    return result;
+}
+

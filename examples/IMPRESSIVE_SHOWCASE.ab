@@ -1,0 +1,175 @@
+// 🌟 عرض مبهر لميزات لغة البيان
+// 🌟 Impressive Showcase of AlBayan Language Features
+
+// ============================================
+// 📊 الهياكل - Data Structures
+// ============================================
+
+struct Student {
+    id: int;
+    score: int;
+}
+
+struct Statistics {
+    total: int;
+    average: int;
+    max: int;
+}
+
+// ============================================
+// 🔧 الدوال المساعدة - Helper Functions
+// ============================================
+
+fn fibonacci(n: int) -> int {
+    if n <= 1 {
+        return n;
+    } else {
+        return fibonacci(n - 1) + fibonacci(n - 2);
+    }
+}
+
+fn power(base: int, exp: int) -> int {
+    let result = 1;
+    let i = 0;
+    while i < exp {
+        result = result * base;
+        i = i + 1;
+    }
+    return result;
+}
+
+fn is_prime(n: int) -> int {
+    if n < 2 {
+        return 0;
+    }
+    let i = 2;
+    while i * i <= n {
+        if n % i == 0 {
+            return 0;
+        }
+        i = i + 1;
+    }
+    return 1;
+}
+
+fn gcd(a: int, b: int) -> int {
+    while b != 0 {
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+fn lcm(a: int, b: int) -> int {
+    return (a * b) / gcd(a, b);
+}
+
+// ============================================
+// 🎯 الدالة الرئيسية - Main Function
+// ============================================
+
+fn main() -> int {
+    // ============================================
+    // 1️⃣ الحسابات المتقدمة - Advanced Calculations
+    // ============================================
+
+    let fib_5 = fibonacci(5);
+    let fib_10 = fibonacci(10);
+
+    let power_2_10 = power(2, 10);
+    let power_3_5 = power(3, 5);
+
+    // ============================================
+    // 2️⃣ الأعداد الأولية - Prime Numbers
+    // ============================================
+
+    let is_7_prime = is_prime(7);
+    let is_10_prime = is_prime(10);
+    let is_13_prime = is_prime(13);
+
+    // ============================================
+    // 3️⃣ العمليات الرياضية - Mathematical Operations
+    // ============================================
+
+    let gcd_result = gcd(48, 18);
+    let lcm_result = lcm(12, 18);
+
+    // ============================================
+    // 4️⃣ المصفوفات والعمليات - Arrays & Operations
+    // ============================================
+
+    let scores = [85, 90, 78, 92, 88];
+    let first_score = scores[0];
+    let second_score = scores[1];
+    let sum_scores = first_score + second_score;
+
+    // ============================================
+    // 5️⃣ الهياكل والبيانات - Structs & Data
+    // ============================================
+
+    let student1 = Student { id: 1, score: 95 };
+    let student2 = Student { id: 2, score: 87 };
+
+    let s1_id = student1.id;
+    let s1_score = student1.score;
+    let s2_score = student2.score;
+
+    // ============================================
+    // 6️⃣ الشروط والمنطق - Conditionals & Logic
+    // ============================================
+
+    let max_score = 0;
+    if s1_score > s2_score {
+        max_score = s1_score;
+    } else {
+        max_score = s2_score;
+    }
+
+    // ============================================
+    // 7️⃣ الحلقات والتكرار - Loops & Iteration
+    // ============================================
+
+    let sum_all = 0;
+    let i = 0;
+    while i < 5 {
+        sum_all = sum_all + scores[i];
+        i = i + 1;
+    }
+
+    let average = sum_all / 5;
+
+    // ============================================
+    // 8️⃣ التطابق والأنماط - Match & Patterns
+    // ============================================
+
+    let grade = 0;
+    if average == 90 {
+        grade = 1;
+    } else {
+        if average == 80 {
+            grade = 2;
+        } else {
+            if average == 70 {
+                grade = 3;
+            } else {
+                grade = 0;
+            }
+        }
+    }
+
+    // ============================================
+    // 9️⃣ التعبيرات المعقدة - Complex Expressions
+    // ============================================
+
+    let complex_calc = (power_2_10 + power_3_5) * (gcd_result + lcm_result);
+    let nested_expr = ((fib_5 + fib_10) * (is_7_prime + is_13_prime)) / 2;
+
+    // ============================================
+    // 🔟 النتيجة النهائية - Final Result
+    // ============================================
+
+    let final_result = sum_all + average + max_score + grade;
+
+    return final_result;
+}

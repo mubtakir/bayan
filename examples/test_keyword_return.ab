@@ -1,0 +1,11 @@
+// اختبار كلمة return - Test keyword: return
+// إرجاع قيمة بسيط جداً
+
+fn get_value() -> int {
+    return 42;
+}
+
+fn main() -> int {
+    return get_value();
+}
+

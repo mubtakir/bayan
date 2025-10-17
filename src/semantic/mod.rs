@@ -765,7 +765,9 @@ impl SemanticAnalyzer {
                 Ok(AnnotatedStatement::Return(annotated_ret))
             }
             // Special-case break/continue pseudo-statements early to avoid any lookup paths
-            Statement::Expression(Expression::Identifier(name)) if name == "__break__" || name == "__continue__" => {
+            Statement::Expression(Expression::Identifier(name))
+                if name == "__break__" || name == "__continue__" =>
+            {
                 let annotated_expr = AnnotatedExpression {
                     expr: AnnotatedExpressionKind::Identifier(name.clone()),
                     result_type: ResolvedType::Unit,
@@ -845,10 +847,14 @@ impl SemanticAnalyzer {
                 self.ownership_analyzer.enter_scope();
 
                 // 3) Declare loop variable with the element type
-                self.symbol_table.declare_variable(&for_stmt.variable, &element_type)?;
+                self.symbol_table
+                    .declare_variable(&for_stmt.variable, &element_type)?;
                 // Ownership: declare as immutable by default
-                self.ownership_analyzer
-                    .declare_variable(&for_stmt.variable, element_type.clone(), false)?;
+                self.ownership_analyzer.declare_variable(
+                    &for_stmt.variable,
+                    element_type.clone(),
+                    false,
+                )?;
                 // Register for destruction if needed (mirrors let-stmt behavior)
                 let scope_depth = self.ownership_analyzer.get_scope_depth();
                 self.ownership_analyzer.register_for_destruction(
@@ -999,7 +1005,10 @@ impl SemanticAnalyzer {
             Expression::Match(match_expr) => self.analyze_match_expression(match_expr),
             Expression::Call(call_expr) => self.analyze_call_expression(call_expr),
             Expression::Unary(unary_expr) => self.analyze_unary_expression(unary_expr),
-            _ => todo!("Analysis for other expression types not yet implemented"),
+            Expression::Tuple(tuple_expr) => self.analyze_tuple_literal(tuple_expr),
+            Expression::Lambda(lambda_expr) => self.analyze_lambda_expression(lambda_expr),
+            Expression::Async(async_expr) => self.analyze_async_expression(async_expr),
+            Expression::Await(await_expr) => self.analyze_await_expression(await_expr),
         }
     }
 
@@ -1045,7 +1054,7 @@ impl SemanticAnalyzer {
                     return Err(SemanticError::TypeMismatch {
                         expected: ResolvedType::Struct(struct_expr.name.clone()),
                         found: ResolvedType::String, // placeholder
-                    })
+                    });
                 }
             }
         };
@@ -1119,7 +1128,7 @@ impl SemanticAnalyzer {
                     return Err(SemanticError::TypeMismatch {
                         expected: ResolvedType::Enum(enum_expr.enum_name.clone()),
                         found: ResolvedType::String, // placeholder
-                    })
+                    });
                 }
             }
         };
@@ -1220,7 +1229,7 @@ impl SemanticAnalyzer {
                 return Err(SemanticError::TypeMismatch {
                     expected: ResolvedType::Struct(struct_name.clone()),
                     found: ResolvedType::String, // placeholder
-                })
+                });
             }
         };
 
@@ -2276,6 +2285,7 @@ pub enum AnnotatedExpressionKind {
     Array {
         elements: Vec<AnnotatedExpression>,
     },
+    Tuple(Vec<AnnotatedExpression>),
     Index {
         object: Box<AnnotatedExpression>,
         index: Box<AnnotatedExpression>,
@@ -2289,6 +2299,9 @@ pub enum AnnotatedExpressionKind {
         arguments: Vec<AnnotatedExpression>,
     },
     Unary(AnnotatedUnaryExpression),
+    Lambda(Box<AnnotatedExpression>),
+    Async,
+    Await(Box<AnnotatedExpression>),
 }
 
 /// Annotated unary expression (Expert recommendation: &/&mut support)
@@ -2612,7 +2625,7 @@ impl SemanticAnalyzer {
                                 return Err(SemanticError::TypeMismatch {
                                     expected: ResolvedType::Enum(enum_name.to_string()),
                                     found: ResolvedType::String, // placeholder
-                                })
+                                });
                             }
                         };
 
@@ -2921,7 +2934,7 @@ impl SemanticAnalyzer {
                         return Err(SemanticError::TypeMismatch {
                             expected: ResolvedType::Enum(enum_name.clone()),
                             found: ResolvedType::String, // placeholder
-                        })
+                        });
                     }
                 };
 
@@ -3741,5 +3754,101 @@ impl SemanticAnalyzer {
                 return_type: Some(ResolvedType::Bool),
             },
         );
+    }
+
+    /// Analyze a tuple literal expression
+    fn analyze_tuple_literal(
+        &mut self,
+        tuple_expr: &TupleExpression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
+        let mut annotated_elements = Vec::new();
+        let mut element_types = Vec::new();
+
+        for element in &tuple_expr.elements {
+            let annotated = self.analyze_expression(element)?;
+            element_types.push(annotated.result_type.clone());
+            annotated_elements.push(annotated);
+        }
+
+        Ok(AnnotatedExpression {
+            expr: AnnotatedExpressionKind::Tuple(annotated_elements),
+            result_type: ResolvedType::Tuple(element_types),
+        })
+    }
+
+    /// Analyze a lambda expression
+    fn analyze_lambda_expression(
+        &mut self,
+        lambda_expr: &LambdaExpression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
+        // Create a new scope for lambda parameters
+        self.symbol_table.enter_scope();
+
+        let mut param_types = Vec::new();
+        for param in &lambda_expr.parameters {
+            match param {
+                Parameter::Regular { name, param_type } => {
+                    let resolved_type = self.symbol_table.resolve_type_name(param_type)?;
+                    self.symbol_table.declare_variable(name, &resolved_type)?;
+                    param_types.push(resolved_type);
+                }
+                _ => {
+                    self.symbol_table.exit_scope();
+                    return Err(SemanticError::Other(
+                        "Lambda parameters must be regular parameters".to_string(),
+                    ));
+                }
+            }
+        }
+
+        let body = self.analyze_expression(&lambda_expr.body)?;
+        let return_type = body.result_type.clone();
+
+        self.symbol_table.exit_scope();
+
+        Ok(AnnotatedExpression {
+            expr: AnnotatedExpressionKind::Lambda(Box::new(body)),
+            result_type: ResolvedType::Function(param_types, Box::new(return_type)),
+        })
+    }
+
+    /// Analyze an async expression
+    fn analyze_async_expression(
+        &mut self,
+        async_expr: &AsyncExpression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
+        // Analyze the body of the async block
+        let mut result_type = ResolvedType::Unit;
+
+        for statement in &async_expr.body.statements {
+            match statement {
+                Statement::Expression(expr) => {
+                    let annotated = self.analyze_expression(expr)?;
+                    result_type = annotated.result_type;
+                }
+                _ => {
+                    self.analyze_statement(statement)?;
+                }
+            }
+        }
+
+        Ok(AnnotatedExpression {
+            expr: AnnotatedExpressionKind::Async,
+            result_type,
+        })
+    }
+
+    /// Analyze an await expression
+    fn analyze_await_expression(
+        &mut self,
+        await_expr: &AwaitExpression,
+    ) -> Result<AnnotatedExpression, SemanticError> {
+        let inner = self.analyze_expression(&await_expr.expression)?;
+
+        // The result type of await is the inner type (unwrapped from async)
+        Ok(AnnotatedExpression {
+            expr: AnnotatedExpressionKind::Await(Box::new(inner.clone())),
+            result_type: inner.result_type,
+        })
     }
 }

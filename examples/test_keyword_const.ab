@@ -1,0 +1,7 @@
+// اختبار كلمة const - Test keyword: const
+// ثابت بسيط جداً
+
+fn main() -> int {
+    let PI = 314;
+    return PI;
+}

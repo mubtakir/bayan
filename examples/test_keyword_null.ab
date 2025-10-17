@@ -1,0 +1,8 @@
+// اختبار كلمة null - Test keyword: null
+// القيمة الفارغة
+
+fn main() -> int {
+    let x = null;
+    return 0;
+}
+

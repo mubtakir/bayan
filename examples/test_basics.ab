@@ -1,0 +1,37 @@
+// اختبار الأساسيات في لغة البيان
+// Test Basic Features of AlBayan Language
+
+fn main() -> int {
+    // Test 1: Basic arithmetic
+    let a = 10;
+    let b = 20;
+    let sum = a + b;
+    let product = a * b;
+    let diff = b - a;
+    
+    // Test 2: Variables and assignments
+    let x = 5;
+    let y = 15;
+    let z = x + y;
+    
+    // Test 3: Comparisons
+    let is_greater = b > a;
+    let is_equal = a == 10;
+    let is_less = a < b;
+    
+    // Test 4: Logical operations
+    let and_result = is_greater && is_equal;
+    let or_result = is_greater || is_less;
+    
+    // Test 5: Nested expressions
+    let nested = (a + b) * (b - a);
+    let complex = ((a + b) * (b - a)) / 2;
+    
+    // Test 6: Multiple operations
+    let result1 = a + b + sum;
+    let result2 = a * b * 2;
+    let result3 = (a + b) - (a - b);
+    
+    return sum;
+}
+
