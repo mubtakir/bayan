@@ -2,7 +2,7 @@
 
 Preface / تمهيد
 - All conceptual foundations and innovative engines of the language are by the researcher: Basil Yahya Abdullah.
-- تم تنفيذ الأفكار وتطويرها وتطوير اللغة بشكل كبير من قبل نموذجين في الذكاء الاصطناعي: أحدهما كان يلعب دور الخبير الموجّه والآخر دور المنفّذ العبقري.
+- تم تنفيذ الأفكار للباحث وتطوير اللغة بشكل كبير من قبل نموذجين في الذكاء الاصطناعي: أحدهما كان يلعب دور الخبير الموجّه والآخر دور المنفّذ العبقري.
 
 Quick links:
 - Arabic User Guide: docs/USER_GUIDE_AR.md
