@@ -1,12 +1,34 @@
 # AlBayan Programming Language — Semantic Computing with Embedded AI
 
+**Version**: v0.2.0-dev (Phase 3.3 - Testing & Performance)
+
 Preface / تمهيد
 - All conceptual foundations and innovative engines of the language are by the researcher: Bassel Yahya Abdullah.
 - تم تنفيذ الأفكار وتطويرها وتطوير اللغة بشكل كبير من قبل نموذجين في الذكاء الاصطناعي: أحدهما كان يلعب دور الخبير الموجّه والآخر دور المنفّذ العبقري.
 
+## 🚀 Current Status
+
+**Phase 3.3**: Testing & Performance Measurement (IN PROGRESS)
+- ✅ Phase 1: Agent Migration (Complete)
+- ✅ Phase 2: Comprehensive Testing (Complete)
+- ✅ Phase 3.1: LLM Integration (Complete)
+- ✅ Phase 3.2: Self-Learning & Evolution (Complete)
+- 🔄 Phase 3.3: Testing & Performance (Current)
+- 📋 Phase 4: Merge & Release v0.2.0 (Planned)
+- 🚀 Phase 5: Semantic Equations System (Planned)
+
+**Project Statistics**:
+- 17 modules implemented
+- 4,859 lines of code
+- 180+ tests
+- 9 comprehensive documentation files
+
 Quick links:
 - Arabic User Guide: docs/USER_GUIDE_AR.md
 - Agent Briefing (technical vision): docs/AGENT_INTELLIGENT_MODEL_BRIEFING.md
+- Phase 3.3 Testing Report: PHASE_3_3_TESTING_EXECUTION_REPORT.md
+- Complete Roadmap: COMPLETE_PROJECT_ROADMAP.md
+- Semantic Equations Vision: PHASE_5_SEMANTIC_EQUATIONS_VISION.md
 
 Minimal parser basics (illustrative):
 ```rust
