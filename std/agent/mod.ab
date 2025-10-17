@@ -13,6 +13,11 @@ pub use llm_wrapper;
 pub use llm_nlu;
 pub use llm_nlg;
 pub use learning_engine;
+pub use code_generator;
+pub use code_validator;
+pub use self_learner;
+pub use internet_connector;
+pub use self_evaluator;
 
 // ============================================================================
 // إعادة تصدير الأنواع الرئيسية
@@ -49,6 +54,55 @@ pub type LearningPattern = learning_engine::LearningPattern;
 pub type UserProfile = learning_engine::UserProfile;
 pub type LearningMetrics = learning_engine::LearningMetrics;
 pub type AdaptationStrategy = learning_engine::AdaptationStrategy;
+
+// ============================================================================
+// إعادة تصدير أنواع Code Generator
+// ============================================================================
+
+pub type CodeTemplate = code_generator::CodeTemplate;
+pub type GeneratedCode = code_generator::GeneratedCode;
+pub type CodeGenConfig = code_generator::CodeGenConfig;
+pub type CodeGenMetrics = code_generator::CodeGenMetrics;
+
+// ============================================================================
+// إعادة تصدير أنواع Code Validator
+// ============================================================================
+
+pub type ValidationResult = code_validator::ValidationResult;
+pub type CodeQuality = code_validator::CodeQuality;
+pub type PerformanceMetrics = code_validator::PerformanceMetrics;
+pub type CodeAnalysis = code_validator::CodeAnalysis;
+pub type ValidationConfig = code_validator::ValidationConfig;
+
+// ============================================================================
+// إعادة تصدير أنواع Self Learner
+// ============================================================================
+
+pub type SelfPlayGame = self_learner::SelfPlayGame;
+pub type LearningExperience = self_learner::LearningExperience;
+pub type Strategy = self_learner::Strategy;
+pub type LearningProgress = self_learner::LearningProgress;
+pub type SelfPlayConfig = self_learner::SelfPlayConfig;
+
+// ============================================================================
+// إعادة تصدير أنواع Internet Connector
+// ============================================================================
+
+pub type InternetConnection = internet_connector::InternetConnection;
+pub type DataSource = internet_connector::DataSource;
+pub type FetchedData = internet_connector::FetchedData;
+pub type KnowledgeUpdate = internet_connector::KnowledgeUpdate;
+pub type InternetConfig = internet_connector::InternetConfig;
+
+// ============================================================================
+// إعادة تصدير أنواع Self Evaluator
+// ============================================================================
+
+pub type PerformanceEvaluation = self_evaluator::PerformanceEvaluation;
+pub type WeaknessAnalysis = self_evaluator::WeaknessAnalysis;
+pub type ImprovementPlan = self_evaluator::ImprovementPlan;
+pub type ProgressTracking = self_evaluator::ProgressTracking;
+pub type EvaluationConfig = self_evaluator::EvaluationConfig;
 
 // ============================================================================
 // إعادة تصدير الدوال الرئيسية
@@ -214,6 +268,106 @@ pub fn get_user_accuracy(profile: UserProfile) -> f32 {
 
 pub fn predict_next_intent(profile: UserProfile, recent_intents: list<string>) -> string {
     return learning_engine::predict_next_intent(profile, recent_intents);
+}
+
+// ============================================================================
+// دوال Code Generator
+// ============================================================================
+
+pub fn create_code_gen_config() -> CodeGenConfig {
+    return code_generator::create_code_gen_config();
+}
+
+pub fn create_code_template(template_id: string, template_name: string, template_type: string, template_code: string, complexity: i32) -> CodeTemplate {
+    return code_generator::create_code_template(template_id, template_name, template_type, template_code, complexity);
+}
+
+pub fn generate_test_case(function_name: string, input_values: list<string>, expected_output: string) -> GeneratedCode {
+    return code_generator::generate_test_case(function_name, input_values, expected_output);
+}
+
+pub fn generate_example_code(example_name: string, description: string, code_snippet: string) -> GeneratedCode {
+    return code_generator::generate_example_code(example_name, description, code_snippet);
+}
+
+pub fn generate_function_code(function_name: string, parameters: list<string>, return_type: string, body: string) -> GeneratedCode {
+    return code_generator::generate_function_code(function_name, parameters, return_type, body);
+}
+
+// ============================================================================
+// دوال Code Validator
+// ============================================================================
+
+pub fn create_validation_config() -> ValidationConfig {
+    return code_validator::create_validation_config();
+}
+
+pub fn validate_syntax(code: string) -> ValidationResult {
+    return code_validator::validate_syntax(code);
+}
+
+pub fn validate_semantics(code: string) -> ValidationResult {
+    return code_validator::validate_semantics(code);
+}
+
+pub fn calculate_code_quality(code: string) -> CodeQuality {
+    return code_validator::calculate_code_quality(code);
+}
+
+pub fn analyze_code(code: string, config: ValidationConfig) -> CodeAnalysis {
+    return code_validator::analyze_code(code, config);
+}
+
+pub fn is_code_valid(analysis: CodeAnalysis) -> bool {
+    return code_validator::is_code_valid(analysis);
+}
+
+// ============================================================================
+// دوال Self Learner
+// ============================================================================
+
+pub fn create_self_play_config() -> SelfPlayConfig {
+    return self_learner::create_self_play_config();
+}
+
+pub fn create_strategy(strategy_id: string, strategy_name: string, description: string) -> Strategy {
+    return self_learner::create_strategy(strategy_id, strategy_name, description);
+}
+
+pub fn create_learning_progress() -> LearningProgress {
+    return self_learner::create_learning_progress();
+}
+
+// ============================================================================
+// دوال Internet Connector
+// ============================================================================
+
+pub fn create_internet_config() -> InternetConfig {
+    return internet_connector::create_internet_config();
+}
+
+pub fn check_internet_connection() -> InternetConnection {
+    return internet_connector::check_internet_connection();
+}
+
+pub fn create_data_source(source_id: string, source_name: string, source_url: string, source_type: string) -> DataSource {
+    return internet_connector::create_data_source(source_id, source_name, source_url, source_type);
+}
+
+// ============================================================================
+// دوال Self Evaluator
+// ============================================================================
+
+pub fn create_evaluation_config() -> EvaluationConfig {
+    return self_evaluator::create_evaluation_config();
+}
+
+pub fn evaluate_performance(accuracy: f32, efficiency: f32, reliability: f32, learning: f32) -> PerformanceEvaluation {
+    return self_evaluator::evaluate_performance(accuracy, efficiency, reliability, learning);
+}
+
+pub fn generate_evaluation_report(eval: PerformanceEvaluation) -> string {
+    return self_evaluator::generate_evaluation_report(eval);
 }
 
 // ============================================================================

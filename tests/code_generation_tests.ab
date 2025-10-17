@@ -1,0 +1,236 @@
+// Code Generation Tests
+// اختبارات توليد الأكواد
+
+use std::agent;
+
+// Test 1: Create code generation config
+pub fn test_create_code_gen_config() {
+    let config = agent::create_code_gen_config();
+    assert(config.max_code_length == 500);
+    assert(config.max_complexity == 5);
+    assert(config.enable_comments == true);
+    assert(config.enable_examples == true);
+    assert(config.enable_tests == true);
+    assert(config.language == "albayan");
+    assert(config.style == "documented");
+}
+
+// Test 2: Create code template
+pub fn test_create_code_template() {
+    let template = agent::create_code_template(
+        "template_1".to_string(),
+        "Test Template".to_string(),
+        "function".to_string(),
+        "pub fn test() {}".to_string(),
+        2
+    );
+    assert(template.template_id == "template_1");
+    assert(template.template_name == "Test Template");
+    assert(template.template_type == "function");
+    assert(template.complexity_level == 2);
+}
+
+// Test 3: Generate test case
+pub fn test_generate_test_case() {
+    let mut inputs = Vec::new();
+    inputs.push("5".to_string());
+    inputs.push("10".to_string());
+    
+    let test_code = agent::generate_test_case(
+        "add".to_string(),
+        inputs,
+        "15".to_string()
+    );
+    
+    assert(test_code.code_type == "test");
+    assert(test_code.code_id.contains("test_"));
+    assert(test_code.code_content.contains("add"));
+}
+
+// Test 4: Generate example code
+pub fn test_generate_example_code() {
+    let example = agent::generate_example_code(
+        "hello_world".to_string(),
+        "Simple hello world example".to_string(),
+        "println!(\"Hello, World!\");".to_string()
+    );
+    
+    assert(example.code_type == "example");
+    assert(example.code_id.contains("example_"));
+    assert(example.code_content.contains("hello_world"));
+}
+
+// Test 5: Generate function code
+pub fn test_generate_function_code() {
+    let mut params = Vec::new();
+    params.push("x: i32".to_string());
+    params.push("y: i32".to_string());
+    
+    let func = agent::generate_function_code(
+        "add".to_string(),
+        params,
+        "i32".to_string(),
+        "x + y".to_string()
+    );
+    
+    assert(func.code_type == "function");
+    assert(func.code_id.contains("func_"));
+    assert(func.code_content.contains("add"));
+    assert(func.code_content.contains("i32"));
+}
+
+// Test 6: Code generation metrics
+pub fn test_code_gen_metrics() {
+    let metrics = agent::create_code_gen_metrics();
+    assert(metrics.total_generated == 0);
+    assert(metrics.successful_generation == 0);
+    assert(metrics.failed_generation == 0);
+}
+
+// Test 7: Generate diverse code samples
+pub fn test_generate_diverse_samples() {
+    let template = agent::create_code_template(
+        "template_1".to_string(),
+        "Test Template".to_string(),
+        "function".to_string(),
+        "pub fn test_{index}() {}".to_string(),
+        1
+    );
+    
+    // Note: In real implementation, this would generate multiple samples
+    assert(template.template_id == "template_1");
+}
+
+// Test 8: Code generation with parameters
+pub fn test_code_generation_with_parameters() {
+    let template = agent::create_code_template(
+        "template_2".to_string(),
+        "Parameterized Template".to_string(),
+        "function".to_string(),
+        "pub fn {name}({params}) -> {return_type} {}".to_string(),
+        2
+    );
+    
+    assert(template.template_code.contains("{name}"));
+    assert(template.template_code.contains("{params}"));
+}
+
+// Test 9: Test case generation with multiple inputs
+pub fn test_test_case_multiple_inputs() {
+    let mut inputs = Vec::new();
+    inputs.push("1".to_string());
+    inputs.push("2".to_string());
+    inputs.push("3".to_string());
+    
+    let test = agent::generate_test_case(
+        "sum".to_string(),
+        inputs,
+        "6".to_string()
+    );
+    
+    assert(test.code_type == "test");
+    assert(test.code_content.contains("sum"));
+}
+
+// Test 10: Example code with documentation
+pub fn test_example_with_documentation() {
+    let example = agent::generate_example_code(
+        "fibonacci".to_string(),
+        "Fibonacci sequence generator".to_string(),
+        "fn fib(n: i32) -> i32 { if n <= 1 { n } else { fib(n-1) + fib(n-2) } }".to_string()
+    );
+    
+    assert(example.code_type == "example");
+    assert(example.code_content.contains("fibonacci"));
+    assert(example.code_content.contains("Fibonacci"));
+}
+
+// Test 11: Function code with complex parameters
+pub fn test_function_complex_parameters() {
+    let mut params = Vec::new();
+    params.push("name: String".to_string());
+    params.push("age: i32".to_string());
+    params.push("email: String".to_string());
+    
+    let func = agent::generate_function_code(
+        "create_user".to_string(),
+        params,
+        "User".to_string(),
+        "User { name, age, email }".to_string()
+    );
+    
+    assert(func.code_content.contains("create_user"));
+    assert(func.code_content.contains("String"));
+}
+
+// Test 12: Code generation success rate
+pub fn test_code_generation_success_rate() {
+    let mut metrics = agent::create_code_gen_metrics();
+    
+    // Simulate successful generations
+    metrics.total_generated = 10;
+    metrics.successful_generation = 9;
+    metrics.failed_generation = 1;
+    
+    let success_rate = agent::get_generation_success_rate(&metrics);
+    assert(success_rate > 0.8);
+}
+
+// Test 13: Template with comments
+pub fn test_template_with_comments() {
+    let template = agent::create_code_template(
+        "template_3".to_string(),
+        "Documented Template".to_string(),
+        "function".to_string(),
+        "// Function: {name}\n// Purpose: {purpose}\npub fn {name}() {}".to_string(),
+        2
+    );
+    
+    assert(template.template_code.contains("//"));
+}
+
+// Test 14: Code generation for struct
+pub fn test_code_generation_struct() {
+    let struct_code = agent::generate_example_code(
+        "user_struct".to_string(),
+        "User data structure".to_string(),
+        "pub struct User { pub name: String, pub age: i32 }".to_string()
+    );
+    
+    assert(struct_code.code_type == "example");
+    assert(struct_code.code_content.contains("struct"));
+}
+
+// Test 15: Code generation metrics update
+pub fn test_metrics_update() {
+    let mut metrics = agent::create_code_gen_metrics();
+    
+    assert(metrics.total_generated == 0);
+    
+    // Simulate update
+    metrics.total_generated = 5;
+    metrics.successful_generation = 4;
+    
+    assert(metrics.total_generated == 5);
+    assert(metrics.successful_generation == 4);
+}
+
+// Run all tests
+pub fn run_all_code_generation_tests() {
+    test_create_code_gen_config();
+    test_create_code_template();
+    test_generate_test_case();
+    test_generate_example_code();
+    test_generate_function_code();
+    test_code_gen_metrics();
+    test_generate_diverse_samples();
+    test_code_generation_with_parameters();
+    test_test_case_multiple_inputs();
+    test_example_with_documentation();
+    test_function_complex_parameters();
+    test_code_generation_success_rate();
+    test_template_with_comments();
+    test_code_generation_struct();
+    test_metrics_update();
+}
+

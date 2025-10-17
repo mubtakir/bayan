@@ -1,0 +1,236 @@
+// Internet Connector Module
+// الاتصال بالإنترنت وجلب البيانات
+// Internet connectivity and data fetching
+
+use std::collections::HashMap;
+
+// Internet Connection
+pub struct InternetConnection {
+    pub connection_id: String,
+    pub is_connected: bool,
+    pub connection_type: String,  // "wifi", "ethernet", "mobile"
+    pub bandwidth: f32,
+    pub latency: i32,
+    pub signal_strength: i32,
+}
+
+// Data Source
+pub struct DataSource {
+    pub source_id: String,
+    pub source_name: String,
+    pub source_url: String,
+    pub source_type: String,  // "api", "website", "database", "service"
+    pub is_available: bool,
+    pub last_update: i32,
+    pub update_frequency: i32,
+}
+
+// Fetched Data
+pub struct FetchedData {
+    pub data_id: String,
+    pub source_id: String,
+    pub data_content: String,
+    pub data_type: String,  // "json", "xml", "text", "binary"
+    pub fetch_time: i32,
+    pub data_size: i32,
+    pub is_valid: bool,
+}
+
+// Knowledge Update
+pub struct KnowledgeUpdate {
+    pub update_id: String,
+    pub update_type: String,  // "new_knowledge", "correction", "enhancement"
+    pub previous_knowledge: String,
+    pub new_knowledge: String,
+    pub confidence: f32,
+    pub source: String,
+    pub timestamp: i32,
+}
+
+// Internet Configuration
+pub struct InternetConfig {
+    pub enable_internet: bool,
+    pub auto_update: bool,
+    pub update_interval: i32,  // seconds
+    pub max_data_size: i32,    // MB
+    pub timeout: i32,          // seconds
+    pub retry_count: i32,
+}
+
+// Create default internet config
+pub fn create_internet_config() -> InternetConfig {
+    InternetConfig {
+        enable_internet: true,
+        auto_update: true,
+        update_interval: 3600,
+        max_data_size: 100,
+        timeout: 30,
+        retry_count: 3,
+    }
+}
+
+// Check internet connection
+pub fn check_internet_connection() -> InternetConnection {
+    InternetConnection {
+        connection_id: "conn_1".to_string(),
+        is_connected: true,
+        connection_type: "wifi".to_string(),
+        bandwidth: 100.0,
+        latency: 20,
+        signal_strength: 85,
+    }
+}
+
+// Create data source
+pub fn create_data_source(
+    source_id: String,
+    source_name: String,
+    source_url: String,
+    source_type: String,
+) -> DataSource {
+    DataSource {
+        source_id: source_id,
+        source_name: source_name,
+        source_url: source_url,
+        source_type: source_type,
+        is_available: true,
+        last_update: 0,
+        update_frequency: 3600,
+    }
+}
+
+// Fetch data from source
+pub fn fetch_data(source: &DataSource) -> FetchedData {
+    let data_content = "Sample data from source".to_string();
+    
+    FetchedData {
+        data_id: format!("data_{}", source.source_id),
+        source_id: source.source_id.clone(),
+        data_content: data_content,
+        data_type: "json".to_string(),
+        fetch_time: 100,
+        data_size: 1024,
+        is_valid: true,
+    }
+}
+
+// Validate fetched data
+pub fn validate_fetched_data(data: &FetchedData) -> bool {
+    if data.data_content.is_empty() {
+        return false;
+    }
+    
+    if data.data_size > 1000000 {
+        return false;
+    }
+    
+    true
+}
+
+// Process fetched data
+pub fn process_fetched_data(data: &FetchedData) -> HashMap<String, String> {
+    let mut processed = HashMap::new();
+    
+    processed.insert("source".to_string(), data.source_id.clone());
+    processed.insert("content".to_string(), data.data_content.clone());
+    processed.insert("type".to_string(), data.data_type.clone());
+    processed.insert("size".to_string(), data.data_size.to_string());
+    
+    processed
+}
+
+// Update knowledge base
+pub fn update_knowledge_base(
+    old_knowledge: String,
+    new_data: &FetchedData,
+) -> KnowledgeUpdate {
+    KnowledgeUpdate {
+        update_id: format!("update_{}", new_data.data_id),
+        update_type: "enhancement".to_string(),
+        previous_knowledge: old_knowledge,
+        new_knowledge: new_data.data_content.clone(),
+        confidence: 0.95,
+        source: new_data.source_id.clone(),
+        timestamp: 0,
+    }
+}
+
+// Sync information
+pub fn sync_information(
+    local_data: HashMap<String, String>,
+    remote_data: HashMap<String, String>,
+) -> HashMap<String, String> {
+    let mut synced = local_data.clone();
+    
+    for (key, value) in remote_data {
+        synced.insert(key, value);
+    }
+    
+    synced
+}
+
+// Get data from multiple sources
+pub fn fetch_from_multiple_sources(
+    sources: &Vec<DataSource>,
+) -> Vec<FetchedData> {
+    let mut all_data = Vec::new();
+    
+    for source in sources {
+        let data = fetch_data(source);
+        if validate_fetched_data(&data) {
+            all_data.push(data);
+        }
+    }
+    
+    all_data
+}
+
+// Aggregate data from sources
+pub fn aggregate_data(data_list: &Vec<FetchedData>) -> String {
+    let mut aggregated = String::new();
+    
+    for data in data_list {
+        aggregated = aggregated + &data.data_content;
+        aggregated = aggregated + "\n";
+    }
+    
+    aggregated
+}
+
+// Check data freshness
+pub fn is_data_fresh(data: &FetchedData, max_age: i32) -> bool {
+    data.fetch_time < max_age
+}
+
+// Get connection status
+pub fn get_connection_status(conn: &InternetConnection) -> String {
+    if conn.is_connected {
+        format!(
+            "Connected via {} - Latency: {}ms - Signal: {}%",
+            conn.connection_type,
+            conn.latency,
+            conn.signal_strength
+        )
+    } else {
+        "Not connected".to_string()
+    }
+}
+
+// Retry failed fetch
+pub fn retry_fetch(
+    source: &DataSource,
+    retry_count: i32,
+) -> Option<FetchedData> {
+    let mut attempts = 0;
+    
+    while attempts < retry_count {
+        let data = fetch_data(source);
+        if validate_fetched_data(&data) {
+            return Some(data);
+        }
+        attempts = attempts + 1;
+    }
+    
+    None
+}
+

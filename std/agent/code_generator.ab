@@ -1,0 +1,244 @@
+// Code Generator Module
+// توليد الأكواد التجريبية والحالات الاختبارية
+// Generates experimental code and test cases for self-learning
+
+use std::collections::HashMap;
+
+// Code Generation Templates
+pub struct CodeTemplate {
+    pub template_id: String,
+    pub template_name: String,
+    pub template_type: String,  // "function", "struct", "test", "example"
+    pub template_code: String,
+    pub parameters: Vec<String>,
+    pub complexity_level: i32,  // 1-5
+    pub language: String,
+}
+
+// Generated Code
+pub struct GeneratedCode {
+    pub code_id: String,
+    pub code_content: String,
+    pub code_type: String,  // "function", "struct", "test", "example"
+    pub template_id: String,
+    pub parameters_used: HashMap<String, String>,
+    pub complexity: i32,
+    pub timestamp: i32,
+    pub language: String,
+}
+
+// Code Generation Configuration
+pub struct CodeGenConfig {
+    pub max_code_length: i32,
+    pub max_complexity: i32,
+    pub enable_comments: bool,
+    pub enable_examples: bool,
+    pub enable_tests: bool,
+    pub language: String,
+    pub style: String,  // "minimal", "detailed", "documented"
+}
+
+// Code Generation Metrics
+pub struct CodeGenMetrics {
+    pub total_generated: i32,
+    pub successful_generation: i32,
+    pub failed_generation: i32,
+    pub average_complexity: f32,
+    pub generation_time: i32,
+    pub code_diversity: f32,
+}
+
+// Create default code generation config
+pub fn create_code_gen_config() -> CodeGenConfig {
+    CodeGenConfig {
+        max_code_length: 500,
+        max_complexity: 5,
+        enable_comments: true,
+        enable_examples: true,
+        enable_tests: true,
+        language: "albayan".to_string(),
+        style: "documented".to_string(),
+    }
+}
+
+// Create code template
+pub fn create_code_template(
+    template_id: String,
+    template_name: String,
+    template_type: String,
+    template_code: String,
+    complexity: i32,
+) -> CodeTemplate {
+    CodeTemplate {
+        template_id: template_id,
+        template_name: template_name,
+        template_type: template_type,
+        template_code: template_code,
+        parameters: Vec::new(),
+        complexity_level: complexity,
+        language: "albayan".to_string(),
+    }
+}
+
+// Generate code from template
+pub fn generate_code_from_template(
+    template: &CodeTemplate,
+    parameters: HashMap<String, String>,
+) -> GeneratedCode {
+    let mut code_content = template.template_code.clone();
+    
+    // Replace parameters in template
+    for (key, value) in parameters.clone() {
+        let placeholder = format!("{{{}}}", key);
+        code_content = code_content.replace(&placeholder, &value);
+    }
+    
+    GeneratedCode {
+        code_id: format!("code_{}", 12345),
+        code_content: code_content,
+        code_type: template.template_type.clone(),
+        template_id: template.template_id.clone(),
+        parameters_used: parameters,
+        complexity: template.complexity_level,
+        timestamp: 0,
+        language: template.language.clone(),
+    }
+}
+
+// Generate test case
+pub fn generate_test_case(
+    function_name: String,
+    input_values: Vec<String>,
+    expected_output: String,
+) -> GeneratedCode {
+    let test_code = format!(
+        "pub fn test_{}() {{\n    let result = {}({});\n    assert(result == \"{}\");\n}}",
+        function_name,
+        function_name,
+        input_values.join(", "),
+        expected_output
+    );
+    
+    GeneratedCode {
+        code_id: format!("test_{}", function_name),
+        code_content: test_code,
+        code_type: "test".to_string(),
+        template_id: "test_template".to_string(),
+        parameters_used: HashMap::new(),
+        complexity: 1,
+        timestamp: 0,
+        language: "albayan".to_string(),
+    }
+}
+
+// Generate example code
+pub fn generate_example_code(
+    example_name: String,
+    description: String,
+    code_snippet: String,
+) -> GeneratedCode {
+    let example_code = format!(
+        "// Example: {}\n// {}\n{}",
+        example_name,
+        description,
+        code_snippet
+    );
+    
+    GeneratedCode {
+        code_id: format!("example_{}", example_name),
+        code_content: example_code,
+        code_type: "example".to_string(),
+        template_id: "example_template".to_string(),
+        parameters_used: HashMap::new(),
+        complexity: 1,
+        timestamp: 0,
+        language: "albayan".to_string(),
+    }
+}
+
+// Generate function code
+pub fn generate_function_code(
+    function_name: String,
+    parameters: Vec<String>,
+    return_type: String,
+    body: String,
+) -> GeneratedCode {
+    let params_str = parameters.join(", ");
+    let function_code = format!(
+        "pub fn {}({}) -> {} {{\n    {}\n}}",
+        function_name,
+        params_str,
+        return_type,
+        body
+    );
+    
+    GeneratedCode {
+        code_id: format!("func_{}", function_name),
+        code_content: function_code,
+        code_type: "function".to_string(),
+        template_id: "function_template".to_string(),
+        parameters_used: HashMap::new(),
+        complexity: 2,
+        timestamp: 0,
+        language: "albayan".to_string(),
+    }
+}
+
+// Create code generation metrics
+pub fn create_code_gen_metrics() -> CodeGenMetrics {
+    CodeGenMetrics {
+        total_generated: 0,
+        successful_generation: 0,
+        failed_generation: 0,
+        average_complexity: 0.0,
+        generation_time: 0,
+        code_diversity: 0.0,
+    }
+}
+
+// Update metrics
+pub fn update_code_gen_metrics(
+    metrics: &mut CodeGenMetrics,
+    success: bool,
+    complexity: i32,
+    generation_time: i32,
+) {
+    metrics.total_generated = metrics.total_generated + 1;
+    
+    if success {
+        metrics.successful_generation = metrics.successful_generation + 1;
+    } else {
+        metrics.failed_generation = metrics.failed_generation + 1;
+    }
+    
+    metrics.average_complexity = (metrics.average_complexity + complexity as f32) / 2.0;
+    metrics.generation_time = generation_time;
+}
+
+// Get generation success rate
+pub fn get_generation_success_rate(metrics: &CodeGenMetrics) -> f32 {
+    if metrics.total_generated == 0 {
+        return 0.0;
+    }
+    
+    (metrics.successful_generation as f32) / (metrics.total_generated as f32)
+}
+
+// Generate diverse code samples
+pub fn generate_diverse_code_samples(
+    base_template: &CodeTemplate,
+    count: i32,
+) -> Vec<GeneratedCode> {
+    let mut samples = Vec::new();
+    
+    for i in 0..count {
+        let mut params = HashMap::new();
+        params.insert("index".to_string(), i.to_string());
+        
+        let generated = generate_code_from_template(base_template, params);
+        samples.push(generated);
+    }
+    
+    samples
+}
+

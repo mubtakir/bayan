@@ -1,0 +1,235 @@
+// Self Learning Tests
+// اختبارات التعلم الذاتي
+
+use std::agent;
+
+// Test 1: Create self-play config
+pub fn test_create_self_play_config() {
+    let config = agent::create_self_play_config();
+    assert(config.num_games == 100);
+    assert(config.game_type == "code_generation");
+    assert(config.enable_learning == true);
+    assert(config.enable_strategy_evolution == true);
+    assert(config.learning_rate == 0.1);
+    assert(config.exploration_rate == 0.2);
+}
+
+// Test 2: Create strategy
+pub fn test_create_strategy() {
+    let strategy = agent::create_strategy(
+        "strategy_1".to_string(),
+        "Aggressive Strategy".to_string(),
+        "A strategy that prioritizes speed".to_string()
+    );
+    
+    assert(strategy.strategy_id == "strategy_1");
+    assert(strategy.strategy_name == "Aggressive Strategy");
+    assert(strategy.win_rate == 0.0);
+    assert(strategy.total_games == 0);
+}
+
+// Test 3: Create learning progress
+pub fn test_create_learning_progress() {
+    let progress = agent::create_learning_progress();
+    assert(progress.total_games_played == 0);
+    assert(progress.total_wins == 0);
+    assert(progress.total_losses == 0);
+    assert(progress.total_draws == 0);
+    assert(progress.win_rate == 0.0);
+}
+
+// Test 4: Strategy effectiveness
+pub fn test_strategy_effectiveness() {
+    let strategy = agent::create_strategy(
+        "strategy_2".to_string(),
+        "Conservative Strategy".to_string(),
+        "A strategy that prioritizes accuracy".to_string()
+    );
+    
+    assert(strategy.effectiveness == 0.0);
+}
+
+// Test 5: Learning progress tracking
+pub fn test_learning_progress_tracking() {
+    let mut progress = agent::create_learning_progress();
+    
+    progress.total_games_played = 10;
+    progress.total_wins = 7;
+    progress.total_losses = 2;
+    progress.total_draws = 1;
+    
+    assert(progress.total_games_played == 10);
+    assert(progress.total_wins == 7);
+}
+
+// Test 6: Win rate calculation
+pub fn test_win_rate_calculation() {
+    let mut progress = agent::create_learning_progress();
+    
+    progress.total_games_played = 20;
+    progress.total_wins = 15;
+    
+    progress.win_rate = (progress.total_wins as f32) / (progress.total_games_played as f32);
+    
+    assert(progress.win_rate == 0.75);
+}
+
+// Test 7: Improvement rate
+pub fn test_improvement_rate() {
+    let mut progress = agent::create_learning_progress();
+    
+    progress.total_games_played = 50;
+    progress.total_wins = 40;
+    progress.win_rate = 0.8;
+    
+    let improvement = agent::get_improvement_rate(&progress);
+    assert(improvement == 80.0);
+}
+
+// Test 8: Multiple strategies
+pub fn test_multiple_strategies() {
+    let strategy1 = agent::create_strategy(
+        "strategy_1".to_string(),
+        "Strategy 1".to_string(),
+        "First strategy".to_string()
+    );
+    
+    let strategy2 = agent::create_strategy(
+        "strategy_2".to_string(),
+        "Strategy 2".to_string(),
+        "Second strategy".to_string()
+    );
+    
+    assert(strategy1.strategy_id != strategy2.strategy_id);
+}
+
+// Test 9: Strategy comparison
+pub fn test_strategy_comparison() {
+    let mut strategy1 = agent::create_strategy(
+        "strategy_1".to_string(),
+        "Strategy 1".to_string(),
+        "First strategy".to_string()
+    );
+    
+    let mut strategy2 = agent::create_strategy(
+        "strategy_2".to_string(),
+        "Strategy 2".to_string(),
+        "Second strategy".to_string()
+    );
+    
+    strategy1.effectiveness = 0.8;
+    strategy2.effectiveness = 0.6;
+    
+    assert(strategy1.effectiveness > strategy2.effectiveness);
+}
+
+// Test 10: Learning experience
+pub fn test_learning_experience() {
+    let progress = agent::create_learning_progress();
+    
+    assert(progress.total_games_played == 0);
+    assert(progress.improvement_rate == 0.0);
+}
+
+// Test 11: Strategy evolution
+pub fn test_strategy_evolution() {
+    let mut strategy = agent::create_strategy(
+        "strategy_1".to_string(),
+        "Evolving Strategy".to_string(),
+        "A strategy that evolves".to_string()
+    );
+    
+    strategy.total_games = 100;
+    strategy.win_rate = 0.7;
+    strategy.loss_rate = 0.2;
+    strategy.draw_rate = 0.1;
+    
+    assert(strategy.total_games == 100);
+}
+
+// Test 12: Progress tracking over time
+pub fn test_progress_tracking_over_time() {
+    let mut progress = agent::create_learning_progress();
+    
+    // Simulate games over time
+    progress.total_games_played = 100;
+    progress.total_wins = 60;
+    progress.total_losses = 30;
+    progress.total_draws = 10;
+    
+    progress.win_rate = (progress.total_wins as f32) / (progress.total_games_played as f32);
+    
+    assert(progress.win_rate == 0.6);
+}
+
+// Test 13: Best strategy identification
+pub fn test_best_strategy_identification() {
+    let mut strategies = Vec::new();
+    
+    let mut s1 = agent::create_strategy(
+        "s1".to_string(),
+        "Strategy 1".to_string(),
+        "First".to_string()
+    );
+    s1.effectiveness = 0.7;
+    strategies.push(s1);
+    
+    let mut s2 = agent::create_strategy(
+        "s2".to_string(),
+        "Strategy 2".to_string(),
+        "Second".to_string()
+    );
+    s2.effectiveness = 0.9;
+    strategies.push(s2);
+    
+    // Best strategy should be s2
+    assert(strategies[1].effectiveness > strategies[0].effectiveness);
+}
+
+// Test 14: Learning rate effect
+pub fn test_learning_rate_effect() {
+    let config = agent::create_self_play_config();
+    
+    assert(config.learning_rate == 0.1);
+    assert(config.learning_rate > 0.0);
+    assert(config.learning_rate < 1.0);
+}
+
+// Test 15: Self-play game simulation
+pub fn test_self_play_game_simulation() {
+    let mut progress = agent::create_learning_progress();
+    
+    // Simulate multiple games
+    for i in 0..10 {
+        progress.total_games_played = progress.total_games_played + 1;
+        if i % 2 == 0 {
+            progress.total_wins = progress.total_wins + 1;
+        } else {
+            progress.total_losses = progress.total_losses + 1;
+        }
+    }
+    
+    assert(progress.total_games_played == 10);
+    assert(progress.total_wins == 5);
+    assert(progress.total_losses == 5);
+}
+
+// Run all tests
+pub fn run_all_self_learning_tests() {
+    test_create_self_play_config();
+    test_create_strategy();
+    test_create_learning_progress();
+    test_strategy_effectiveness();
+    test_learning_progress_tracking();
+    test_win_rate_calculation();
+    test_improvement_rate();
+    test_multiple_strategies();
+    test_strategy_comparison();
+    test_learning_experience();
+    test_strategy_evolution();
+    test_progress_tracking_over_time();
+    test_best_strategy_identification();
+    test_learning_rate_effect();
+    test_self_play_game_simulation();
+}
+

@@ -1,0 +1,278 @@
+// Self Evaluator Module
+// التقييم الذاتي والتحسن المستمر
+// Self-evaluation and continuous improvement
+
+use std::collections::HashMap;
+
+// Performance Evaluation
+pub struct PerformanceEvaluation {
+    pub eval_id: String,
+    pub evaluation_date: i32,
+    pub overall_score: f32,
+    pub accuracy_score: f32,
+    pub efficiency_score: f32,
+    pub reliability_score: f32,
+    pub learning_score: f32,
+}
+
+// Weakness Analysis
+pub struct WeaknessAnalysis {
+    pub weakness_id: String,
+    pub weakness_type: String,  // "performance", "accuracy", "efficiency", "reliability"
+    pub description: String,
+    pub severity: i32,  // 1-5
+    pub impact: f32,
+    pub root_cause: String,
+}
+
+// Clone implementation for WeaknessAnalysis
+pub fn clone_weakness(w: &WeaknessAnalysis) -> WeaknessAnalysis {
+    WeaknessAnalysis {
+        weakness_id: w.weakness_id.clone(),
+        weakness_type: w.weakness_type.clone(),
+        description: w.description.clone(),
+        severity: w.severity,
+        impact: w.impact,
+        root_cause: w.root_cause.clone(),
+    }
+}
+
+// Improvement Plan
+pub struct ImprovementPlan {
+    pub plan_id: String,
+    pub weakness_id: String,
+    pub improvement_strategy: String,
+    pub target_score: f32,
+    pub estimated_time: i32,
+    pub priority: i32,
+    pub status: String,  // "planned", "in_progress", "completed"
+}
+
+// Progress Tracking
+pub struct ProgressTracking {
+    pub tracking_id: String,
+    pub plan_id: String,
+    pub current_score: f32,
+    pub target_score: f32,
+    pub progress_percentage: f32,
+    pub last_update: i32,
+    pub estimated_completion: i32,
+}
+
+// Evaluation Configuration
+pub struct EvaluationConfig {
+    pub evaluation_frequency: i32,  // seconds
+    pub enable_auto_evaluation: bool,
+    pub enable_improvement_planning: bool,
+    pub improvement_threshold: f32,
+    pub success_threshold: f32,
+}
+
+// Create default evaluation config
+pub fn create_evaluation_config() -> EvaluationConfig {
+    EvaluationConfig {
+        evaluation_frequency: 3600,
+        enable_auto_evaluation: true,
+        enable_improvement_planning: true,
+        improvement_threshold: 70.0,
+        success_threshold: 90.0,
+    }
+}
+
+// Evaluate performance
+pub fn evaluate_performance(
+    accuracy: f32,
+    efficiency: f32,
+    reliability: f32,
+    learning: f32,
+) -> PerformanceEvaluation {
+    let overall = (accuracy + efficiency + reliability + learning) / 4.0;
+
+    PerformanceEvaluation {
+        eval_id: format!("eval_{}", 12345),
+        evaluation_date: 0,
+        overall_score: overall,
+        accuracy_score: accuracy,
+        efficiency_score: efficiency,
+        reliability_score: reliability,
+        learning_score: learning,
+    }
+}
+
+// Identify weaknesses
+pub fn identify_weaknesses(eval: &PerformanceEvaluation) -> Vec<WeaknessAnalysis> {
+    let mut weaknesses = Vec::new();
+
+    if eval.accuracy_score < 80.0 {
+        weaknesses.push(WeaknessAnalysis {
+            weakness_id: "weak_accuracy".to_string(),
+            weakness_type: "accuracy".to_string(),
+            description: "Accuracy score below target".to_string(),
+            severity: 3,
+            impact: 100.0 - eval.accuracy_score,
+            root_cause: "Insufficient training data".to_string(),
+        });
+    }
+
+    if eval.efficiency_score < 80.0 {
+        weaknesses.push(WeaknessAnalysis {
+            weakness_id: "weak_efficiency".to_string(),
+            weakness_type: "efficiency".to_string(),
+            description: "Efficiency score below target".to_string(),
+            severity: 2,
+            impact: 100.0 - eval.efficiency_score,
+            root_cause: "Suboptimal algorithms".to_string(),
+        });
+    }
+
+    if eval.reliability_score < 80.0 {
+        weaknesses.push(WeaknessAnalysis {
+            weakness_id: "weak_reliability".to_string(),
+            weakness_type: "reliability".to_string(),
+            description: "Reliability score below target".to_string(),
+            severity: 4,
+            impact: 100.0 - eval.reliability_score,
+            root_cause: "Error handling issues".to_string(),
+        });
+    }
+
+    weaknesses
+}
+
+// Create improvement plan
+pub fn create_improvement_plan(
+    weakness: &WeaknessAnalysis,
+) -> ImprovementPlan {
+    let strategy = match weakness.weakness_type.as_str() {
+        "accuracy" => "Increase training data and improve model".to_string(),
+        "efficiency" => "Optimize algorithms and reduce complexity".to_string(),
+        "reliability" => "Improve error handling and testing".to_string(),
+        _ => "General improvement".to_string(),
+    };
+
+    ImprovementPlan {
+        plan_id: format!("plan_{}", weakness.weakness_id),
+        weakness_id: weakness.weakness_id.clone(),
+        improvement_strategy: strategy,
+        target_score: 95.0,
+        estimated_time: 7 * 24 * 3600,  // 7 days
+        priority: weakness.severity,
+        status: "planned".to_string(),
+    }
+}
+
+// Track improvement progress
+pub fn track_improvement_progress(
+    plan: &ImprovementPlan,
+    current_score: f32,
+) -> ProgressTracking {
+    let progress = ((current_score - 70.0) / (plan.target_score - 70.0)) * 100.0;
+
+    ProgressTracking {
+        tracking_id: format!("track_{}", plan.plan_id),
+        plan_id: plan.plan_id.clone(),
+        current_score: current_score,
+        target_score: plan.target_score,
+        progress_percentage: progress,
+        last_update: 0,
+        estimated_completion: plan.estimated_time,
+    }
+}
+
+// Generate improvement recommendations
+pub fn generate_recommendations(
+    weaknesses: &Vec<WeaknessAnalysis>,
+) -> Vec<String> {
+    let mut recommendations = Vec::new();
+
+    for weakness in weaknesses {
+        let rec = format!(
+            "Address {}: {} (Severity: {})",
+            weakness.weakness_type,
+            weakness.description,
+            weakness.severity
+        );
+        recommendations.push(rec);
+    }
+
+    recommendations
+}
+
+// Compare evaluations
+pub fn compare_evaluations(
+    eval1: &PerformanceEvaluation,
+    eval2: &PerformanceEvaluation,
+) -> HashMap<String, f32> {
+    let mut comparison = HashMap::new();
+
+    comparison.insert(
+        "overall_improvement".to_string(),
+        eval2.overall_score - eval1.overall_score,
+    );
+    comparison.insert(
+        "accuracy_improvement".to_string(),
+        eval2.accuracy_score - eval1.accuracy_score,
+    );
+    comparison.insert(
+        "efficiency_improvement".to_string(),
+        eval2.efficiency_score - eval1.efficiency_score,
+    );
+    comparison.insert(
+        "reliability_improvement".to_string(),
+        eval2.reliability_score - eval1.reliability_score,
+    );
+
+    comparison
+}
+
+// Generate evaluation report
+pub fn generate_evaluation_report(eval: &PerformanceEvaluation) -> String {
+    let mut report = String::new();
+    report = report + "=== Performance Evaluation Report ===\n";
+    report = report + "Overall Score: ";
+    report = report + &eval.overall_score.to_string();
+    report = report + "\n";
+    report = report + "Accuracy: ";
+    report = report + &eval.accuracy_score.to_string();
+    report = report + "\n";
+    report = report + "Efficiency: ";
+    report = report + &eval.efficiency_score.to_string();
+    report = report + "\n";
+    report = report + "Reliability: ";
+    report = report + &eval.reliability_score.to_string();
+    report = report + "\n";
+    report = report + "Learning: ";
+    report = report + &eval.learning_score.to_string();
+    report = report + "\n";
+
+    report
+}
+
+// Check if improvement is needed
+pub fn needs_improvement(eval: &PerformanceEvaluation, threshold: f32) -> bool {
+    eval.overall_score < threshold
+}
+
+// Get improvement priority
+pub fn get_improvement_priority(weaknesses: &Vec<WeaknessAnalysis>) -> Vec<WeaknessAnalysis> {
+    let mut sorted = Vec::new();
+
+    // Copy weaknesses
+    for w in weaknesses {
+        sorted.push(clone_weakness(w));
+    }
+
+    // Simple bubble sort by severity
+    let len = sorted.len();
+    for i in 0..len {
+        for j in 0..(len - i - 1) {
+            if sorted[j].severity < sorted[j + 1].severity {
+                let temp = clone_weakness(&sorted[j]);
+                sorted[j] = clone_weakness(&sorted[j + 1]);
+                sorted[j + 1] = temp;
+            }
+        }
+    }
+
+    sorted
+}

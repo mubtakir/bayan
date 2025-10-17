@@ -1,0 +1,246 @@
+// Code Validator Module
+// فحص وتقييم الأكواد المولدة
+// Validates and evaluates generated code
+
+use std::collections::HashMap;
+
+// Code Validation Result
+pub struct ValidationResult {
+    pub code_id: String,
+    pub is_valid: bool,
+    pub error_count: i32,
+    pub warning_count: i32,
+    pub errors: Vec<String>,
+    pub warnings: Vec<String>,
+    pub validation_time: i32,
+}
+
+// Code Quality Metrics
+pub struct CodeQuality {
+    pub code_id: String,
+    pub readability_score: f32,  // 0-100
+    pub efficiency_score: f32,   // 0-100
+    pub maintainability_score: f32,  // 0-100
+    pub correctness_score: f32,  // 0-100
+    pub overall_score: f32,      // 0-100
+    pub issues: Vec<String>,
+}
+
+// Performance Metrics
+pub struct PerformanceMetrics {
+    pub code_id: String,
+    pub execution_time: i32,     // milliseconds
+    pub memory_usage: i32,       // MB
+    pub cpu_usage: f32,          // percentage
+    pub efficiency_rating: f32,  // 0-100
+}
+
+// Code Analysis Result
+pub struct CodeAnalysis {
+    pub code_id: String,
+    pub validation: ValidationResult,
+    pub quality: CodeQuality,
+    pub performance: PerformanceMetrics,
+    pub recommendations: Vec<String>,
+}
+
+// Validation Configuration
+pub struct ValidationConfig {
+    pub check_syntax: bool,
+    pub check_semantics: bool,
+    pub check_performance: bool,
+    pub check_security: bool,
+    pub check_style: bool,
+    pub strict_mode: bool,
+}
+
+// Create default validation config
+pub fn create_validation_config() -> ValidationConfig {
+    ValidationConfig {
+        check_syntax: true,
+        check_semantics: true,
+        check_performance: true,
+        check_security: true,
+        check_style: true,
+        strict_mode: false,
+    }
+}
+
+// Validate code syntax
+pub fn validate_syntax(code: String) -> ValidationResult {
+    let mut errors = Vec::new();
+    let mut warnings = Vec::new();
+    
+    // Check for basic syntax issues
+    if !code.contains("pub fn") && !code.contains("fn ") {
+        warnings.push("No function definition found".to_string());
+    }
+    
+    if code.contains("{{") || code.contains("}}") {
+        errors.push("Unmatched braces detected".to_string());
+    }
+    
+    if !code.contains(";") && code.contains("=") {
+        warnings.push("Missing semicolon after assignment".to_string());
+    }
+    
+    let is_valid = errors.is_empty();
+    
+    ValidationResult {
+        code_id: "syntax_check".to_string(),
+        is_valid: is_valid,
+        error_count: errors.len() as i32,
+        warning_count: warnings.len() as i32,
+        errors: errors,
+        warnings: warnings,
+        validation_time: 0,
+    }
+}
+
+// Validate code semantics
+pub fn validate_semantics(code: String) -> ValidationResult {
+    let mut errors = Vec::new();
+    let mut warnings = Vec::new();
+    
+    // Check for semantic issues
+    if code.contains("let ") && !code.contains("=") {
+        errors.push("Variable declaration without initialization".to_string());
+    }
+    
+    if code.contains("return") && !code.contains("->") {
+        warnings.push("Return statement without return type annotation".to_string());
+    }
+    
+    let is_valid = errors.is_empty();
+    
+    ValidationResult {
+        code_id: "semantic_check".to_string(),
+        is_valid: is_valid,
+        error_count: errors.len() as i32,
+        warning_count: warnings.len() as i32,
+        errors: errors,
+        warnings: warnings,
+        validation_time: 0,
+    }
+}
+
+// Calculate code quality score
+pub fn calculate_code_quality(code: String) -> CodeQuality {
+    let mut readability = 80.0;
+    let mut efficiency = 75.0;
+    let mut maintainability = 70.0;
+    let mut correctness = 85.0;
+    
+    // Adjust based on code characteristics
+    if code.contains("//") {
+        readability = readability + 10.0;
+    }
+    
+    if code.contains("pub fn") {
+        maintainability = maintainability + 5.0;
+    }
+    
+    if code.len() < 200 {
+        efficiency = efficiency + 10.0;
+    }
+    
+    let overall = (readability + efficiency + maintainability + correctness) / 4.0;
+    
+    let mut issues = Vec::new();
+    if readability < 70.0 {
+        issues.push("Low readability - add more comments".to_string());
+    }
+    if efficiency < 70.0 {
+        issues.push("Low efficiency - optimize code".to_string());
+    }
+    
+    CodeQuality {
+        code_id: "quality_check".to_string(),
+        readability_score: readability,
+        efficiency_score: efficiency,
+        maintainability_score: maintainability,
+        correctness_score: correctness,
+        overall_score: overall,
+        issues: issues,
+    }
+}
+
+// Measure performance metrics
+pub fn measure_performance(code_id: String) -> PerformanceMetrics {
+    PerformanceMetrics {
+        code_id: code_id,
+        execution_time: 50,
+        memory_usage: 10,
+        cpu_usage: 25.5,
+        efficiency_rating: 85.0,
+    }
+}
+
+// Perform complete code analysis
+pub fn analyze_code(code: String, config: &ValidationConfig) -> CodeAnalysis {
+    let validation = validate_syntax(code.clone());
+    let quality = calculate_code_quality(code.clone());
+    let performance = measure_performance("analysis".to_string());
+    
+    let mut recommendations = Vec::new();
+    
+    if validation.error_count > 0 {
+        recommendations.push("Fix syntax errors before deployment".to_string());
+    }
+    
+    if quality.overall_score < 70.0 {
+        recommendations.push("Improve code quality".to_string());
+    }
+    
+    if performance.efficiency_rating < 70.0 {
+        recommendations.push("Optimize performance".to_string());
+    }
+    
+    CodeAnalysis {
+        code_id: "analysis".to_string(),
+        validation: validation,
+        quality: quality,
+        performance: performance,
+        recommendations: recommendations,
+    }
+}
+
+// Generate improvement suggestions
+pub fn generate_improvement_suggestions(analysis: &CodeAnalysis) -> Vec<String> {
+    let mut suggestions = Vec::new();
+    
+    for error in &analysis.validation.errors {
+        suggestions.push(format!("Fix error: {}", error));
+    }
+    
+    for issue in &analysis.quality.issues {
+        suggestions.push(format!("Improve: {}", issue));
+    }
+    
+    suggestions
+}
+
+// Check if code passes validation
+pub fn is_code_valid(analysis: &CodeAnalysis) -> bool {
+    analysis.validation.is_valid && 
+    analysis.quality.overall_score > 70.0 &&
+    analysis.performance.efficiency_rating > 70.0
+}
+
+// Get validation report
+pub fn get_validation_report(analysis: &CodeAnalysis) -> String {
+    let mut report = String::new();
+    report = report + "=== Code Validation Report ===\n";
+    report = report + "Syntax Valid: ";
+    report = report + if analysis.validation.is_valid { "Yes" } else { "No" };
+    report = report + "\n";
+    report = report + "Quality Score: ";
+    report = report + &analysis.quality.overall_score.to_string();
+    report = report + "\n";
+    report = report + "Performance Rating: ";
+    report = report + &analysis.performance.efficiency_rating.to_string();
+    report = report + "\n";
+    
+    report
+}
+

@@ -1,0 +1,197 @@
+// Internet Connector Tests
+// اختبارات الاتصال بالإنترنت
+
+use std::agent;
+
+// Test 1: Create internet config
+pub fn test_create_internet_config() {
+    let config = agent::create_internet_config();
+    assert(config.enable_internet == true);
+    assert(config.auto_update == true);
+    assert(config.update_interval == 3600);
+    assert(config.max_data_size == 100);
+    assert(config.timeout == 30);
+    assert(config.retry_count == 3);
+}
+
+// Test 2: Check internet connection
+pub fn test_check_internet_connection() {
+    let conn = agent::check_internet_connection();
+    assert(conn.connection_id == "conn_1");
+    assert(conn.is_connected == true);
+    assert(conn.connection_type == "wifi");
+    assert(conn.bandwidth == 100.0);
+    assert(conn.latency == 20);
+    assert(conn.signal_strength == 85);
+}
+
+// Test 3: Create data source
+pub fn test_create_data_source() {
+    let source = agent::create_data_source(
+        "source_1".to_string(),
+        "API Source".to_string(),
+        "https://api.example.com".to_string(),
+        "api".to_string()
+    );
+    
+    assert(source.source_id == "source_1");
+    assert(source.source_name == "API Source");
+    assert(source.source_url == "https://api.example.com");
+    assert(source.source_type == "api");
+    assert(source.is_available == true);
+}
+
+// Test 4: Multiple data sources
+pub fn test_multiple_data_sources() {
+    let source1 = agent::create_data_source(
+        "source_1".to_string(),
+        "API 1".to_string(),
+        "https://api1.example.com".to_string(),
+        "api".to_string()
+    );
+    
+    let source2 = agent::create_data_source(
+        "source_2".to_string(),
+        "API 2".to_string(),
+        "https://api2.example.com".to_string(),
+        "api".to_string()
+    );
+    
+    assert(source1.source_id != source2.source_id);
+    assert(source1.source_url != source2.source_url);
+}
+
+// Test 5: Connection status
+pub fn test_connection_status() {
+    let conn = agent::check_internet_connection();
+    
+    assert(conn.is_connected == true);
+    assert(conn.latency < 100);
+    assert(conn.signal_strength > 0);
+}
+
+// Test 6: Data source availability
+pub fn test_data_source_availability() {
+    let source = agent::create_data_source(
+        "source_1".to_string(),
+        "Test Source".to_string(),
+        "https://test.example.com".to_string(),
+        "api".to_string()
+    );
+    
+    assert(source.is_available == true);
+}
+
+// Test 7: Internet configuration validation
+pub fn test_internet_config_validation() {
+    let config = agent::create_internet_config();
+    
+    assert(config.timeout > 0);
+    assert(config.retry_count > 0);
+    assert(config.max_data_size > 0);
+}
+
+// Test 8: Connection types
+pub fn test_connection_types() {
+    let conn = agent::check_internet_connection();
+    
+    let valid_types = vec!["wifi", "ethernet", "mobile"];
+    assert(conn.connection_type == "wifi");
+}
+
+// Test 9: Bandwidth measurement
+pub fn test_bandwidth_measurement() {
+    let conn = agent::check_internet_connection();
+    
+    assert(conn.bandwidth > 0.0);
+    assert(conn.bandwidth < 1000.0);
+}
+
+// Test 10: Latency measurement
+pub fn test_latency_measurement() {
+    let conn = agent::check_internet_connection();
+    
+    assert(conn.latency > 0);
+    assert(conn.latency < 1000);
+}
+
+// Test 11: Signal strength
+pub fn test_signal_strength() {
+    let conn = agent::check_internet_connection();
+    
+    assert(conn.signal_strength >= 0);
+    assert(conn.signal_strength <= 100);
+}
+
+// Test 12: Data source types
+pub fn test_data_source_types() {
+    let api_source = agent::create_data_source(
+        "api_1".to_string(),
+        "API".to_string(),
+        "https://api.example.com".to_string(),
+        "api".to_string()
+    );
+    
+    let web_source = agent::create_data_source(
+        "web_1".to_string(),
+        "Website".to_string(),
+        "https://example.com".to_string(),
+        "website".to_string()
+    );
+    
+    assert(api_source.source_type == "api");
+    assert(web_source.source_type == "website");
+}
+
+// Test 13: Update frequency
+pub fn test_update_frequency() {
+    let source = agent::create_data_source(
+        "source_1".to_string(),
+        "Test".to_string(),
+        "https://test.com".to_string(),
+        "api".to_string()
+    );
+    
+    assert(source.update_frequency == 3600);
+}
+
+// Test 14: Connection retry logic
+pub fn test_connection_retry_logic() {
+    let config = agent::create_internet_config();
+    
+    assert(config.retry_count == 3);
+    assert(config.timeout == 30);
+}
+
+// Test 15: Internet configuration for different scenarios
+pub fn test_internet_config_scenarios() {
+    let config = agent::create_internet_config();
+    
+    // Test default configuration
+    assert(config.enable_internet == true);
+    assert(config.auto_update == true);
+    
+    // Configuration should support different scenarios
+    assert(config.update_interval > 0);
+    assert(config.max_data_size > 0);
+}
+
+// Run all tests
+pub fn run_all_internet_tests() {
+    test_create_internet_config();
+    test_check_internet_connection();
+    test_create_data_source();
+    test_multiple_data_sources();
+    test_connection_status();
+    test_data_source_availability();
+    test_internet_config_validation();
+    test_connection_types();
+    test_bandwidth_measurement();
+    test_latency_measurement();
+    test_signal_strength();
+    test_data_source_types();
+    test_update_frequency();
+    test_connection_retry_logic();
+    test_internet_config_scenarios();
+}
+

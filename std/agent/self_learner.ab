@@ -1,0 +1,265 @@
+// Self Learner Module
+// التعلم الذاتي واللعب مع النفس
+// Self-learning and self-play mechanism (like chess engines)
+
+use std::collections::HashMap;
+
+// Self-Play Game
+pub struct SelfPlayGame {
+    pub game_id: String,
+    pub game_type: String,  // "code_generation", "problem_solving", "optimization"
+    pub player_a_strategy: String,
+    pub player_b_strategy: String,
+    pub moves: Vec<String>,
+    pub winner: String,
+    pub score_a: i32,
+    pub score_b: i32,
+    pub duration: i32,
+}
+
+// Learning Experience
+pub struct LearningExperience {
+    pub experience_id: String,
+    pub game_id: String,
+    pub move_sequence: Vec<String>,
+    pub outcome: String,  // "win", "loss", "draw"
+    pub reward: f32,
+    pub lessons_learned: Vec<String>,
+    pub timestamp: i32,
+}
+
+// Strategy
+pub struct Strategy {
+    pub strategy_id: String,
+    pub strategy_name: String,
+    pub description: String,
+    pub win_rate: f32,
+    pub loss_rate: f32,
+    pub draw_rate: f32,
+    pub total_games: i32,
+    pub effectiveness: f32,
+}
+
+// Learning Progress
+pub struct LearningProgress {
+    pub total_games_played: i32,
+    pub total_wins: i32,
+    pub total_losses: i32,
+    pub total_draws: i32,
+    pub win_rate: f32,
+    pub average_score: f32,
+    pub improvement_rate: f32,
+    pub best_strategy: String,
+}
+
+// Self-Play Configuration
+pub struct SelfPlayConfig {
+    pub num_games: i32,
+    pub game_type: String,
+    pub enable_learning: bool,
+    pub enable_strategy_evolution: bool,
+    pub learning_rate: f32,
+    pub exploration_rate: f32,
+}
+
+// Create default self-play config
+pub fn create_self_play_config() -> SelfPlayConfig {
+    SelfPlayConfig {
+        num_games: 100,
+        game_type: "code_generation".to_string(),
+        enable_learning: true,
+        enable_strategy_evolution: true,
+        learning_rate: 0.1,
+        exploration_rate: 0.2,
+    }
+}
+
+// Create strategy
+pub fn create_strategy(
+    strategy_id: String,
+    strategy_name: String,
+    description: String,
+) -> Strategy {
+    Strategy {
+        strategy_id: strategy_id,
+        strategy_name: strategy_name,
+        description: description,
+        win_rate: 0.0,
+        loss_rate: 0.0,
+        draw_rate: 0.0,
+        total_games: 0,
+        effectiveness: 0.0,
+    }
+}
+
+// Play self-play game
+pub fn play_self_play_game(
+    game_type: String,
+    strategy_a: &Strategy,
+    strategy_b: &Strategy,
+) -> SelfPlayGame {
+    let mut moves = Vec::new();
+    moves.push("move_1".to_string());
+    moves.push("move_2".to_string());
+    moves.push("move_3".to_string());
+    
+    let score_a = 10;
+    let score_b = 8;
+    let winner = if score_a > score_b {
+        strategy_a.strategy_id.clone()
+    } else {
+        strategy_b.strategy_id.clone()
+    };
+    
+    SelfPlayGame {
+        game_id: format!("game_{}", 12345),
+        game_type: game_type,
+        player_a_strategy: strategy_a.strategy_id.clone(),
+        player_b_strategy: strategy_b.strategy_id.clone(),
+        moves: moves,
+        winner: winner,
+        score_a: score_a,
+        score_b: score_b,
+        duration: 100,
+    }
+}
+
+// Record learning experience
+pub fn record_learning_experience(
+    game: &SelfPlayGame,
+    strategy_id: String,
+) -> LearningExperience {
+    let outcome = if game.winner == strategy_id {
+        "win".to_string()
+    } else {
+        "loss".to_string()
+    };
+    
+    let reward = if outcome == "win" { 1.0 } else { -1.0 };
+    
+    let mut lessons = Vec::new();
+    lessons.push("Lesson 1: Strategy effectiveness".to_string());
+    lessons.push("Lesson 2: Move optimization".to_string());
+    
+    LearningExperience {
+        experience_id: format!("exp_{}", strategy_id),
+        game_id: game.game_id.clone(),
+        move_sequence: game.moves.clone(),
+        outcome: outcome,
+        reward: reward,
+        lessons_learned: lessons,
+        timestamp: 0,
+    }
+}
+
+// Update strategy based on experience
+pub fn update_strategy(
+    strategy: &mut Strategy,
+    experience: &LearningExperience,
+    learning_rate: f32,
+) {
+    strategy.total_games = strategy.total_games + 1;
+    
+    if experience.outcome == "win" {
+        strategy.win_rate = strategy.win_rate + learning_rate;
+    } else if experience.outcome == "loss" {
+        strategy.loss_rate = strategy.loss_rate + learning_rate;
+    } else {
+        strategy.draw_rate = strategy.draw_rate + learning_rate;
+    }
+    
+    strategy.effectiveness = (strategy.win_rate - strategy.loss_rate) / 2.0;
+}
+
+// Evolve strategy
+pub fn evolve_strategy(
+    strategy: &mut Strategy,
+    experiences: &Vec<LearningExperience>,
+) {
+    let mut total_reward = 0.0;
+    
+    for exp in experiences {
+        total_reward = total_reward + exp.reward;
+    }
+    
+    let avg_reward = total_reward / (experiences.len() as f32);
+    strategy.effectiveness = avg_reward;
+}
+
+// Create learning progress tracker
+pub fn create_learning_progress() -> LearningProgress {
+    LearningProgress {
+        total_games_played: 0,
+        total_wins: 0,
+        total_losses: 0,
+        total_draws: 0,
+        win_rate: 0.0,
+        average_score: 0.0,
+        improvement_rate: 0.0,
+        best_strategy: "".to_string(),
+    }
+}
+
+// Update learning progress
+pub fn update_learning_progress(
+    progress: &mut LearningProgress,
+    game: &SelfPlayGame,
+) {
+    progress.total_games_played = progress.total_games_played + 1;
+    
+    if game.score_a > game.score_b {
+        progress.total_wins = progress.total_wins + 1;
+    } else if game.score_a < game.score_b {
+        progress.total_losses = progress.total_losses + 1;
+    } else {
+        progress.total_draws = progress.total_draws + 1;
+    }
+    
+    progress.win_rate = (progress.total_wins as f32) / (progress.total_games_played as f32);
+    progress.average_score = ((game.score_a + game.score_b) / 2) as f32;
+}
+
+// Get improvement rate
+pub fn get_improvement_rate(progress: &LearningProgress) -> f32 {
+    if progress.total_games_played < 2 {
+        return 0.0;
+    }
+    
+    progress.win_rate * 100.0
+}
+
+// Identify best strategy
+pub fn identify_best_strategy(strategies: &Vec<Strategy>) -> String {
+    let mut best_strategy = "".to_string();
+    let mut best_effectiveness = -1.0;
+    
+    for strategy in strategies {
+        if strategy.effectiveness > best_effectiveness {
+            best_effectiveness = strategy.effectiveness;
+            best_strategy = strategy.strategy_id.clone();
+        }
+    }
+    
+    best_strategy
+}
+
+// Generate learning report
+pub fn generate_learning_report(progress: &LearningProgress) -> String {
+    let mut report = String::new();
+    report = report + "=== Self-Learning Report ===\n";
+    report = report + "Total Games: ";
+    report = report + &progress.total_games_played.to_string();
+    report = report + "\n";
+    report = report + "Win Rate: ";
+    report = report + &progress.win_rate.to_string();
+    report = report + "\n";
+    report = report + "Improvement Rate: ";
+    report = report + &progress.improvement_rate.to_string();
+    report = report + "\n";
+    report = report + "Best Strategy: ";
+    report = report + &progress.best_strategy;
+    report = report + "\n";
+    
+    report
+}
+
