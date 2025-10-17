@@ -1,0 +1,380 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// Learning Engine Module - Continuous Learning and Adaptation
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// This module provides continuous learning capabilities:
+// - Interaction tracking and analysis
+// - Pattern learning and recognition
+// - User preference adaptation
+// - Performance monitoring and improvement
+//
+// ═══════════════════════════════════════════════════════════════════════════
+
+use std::collections::HashMap;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Data Structures
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub struct Interaction {
+    pub id: i32,
+    pub input: String,
+    pub intent: String,
+    pub response: String,
+    pub success: bool,
+    pub user_feedback: String,
+    pub timestamp: i32,
+    pub duration: i32,
+}
+
+pub struct LearningPattern {
+    pub pattern_id: i32,
+    pub pattern_type: String,  // "intent", "entity", "style", "error"
+    pub pattern_data: String,
+    pub frequency: i32,
+    pub success_rate: f32,
+    pub last_seen: i32,
+}
+
+pub struct UserProfile {
+    pub user_id: String,
+    pub preferred_language: String,
+    pub preferred_style: String,
+    pub common_intents: Vec<String>,
+    pub learned_patterns: Vec<LearningPattern>,
+    pub accuracy_history: Vec<f32>,
+    pub total_interactions: i32,
+}
+
+pub struct LearningMetrics {
+    pub total_interactions: i32,
+    pub successful_interactions: i32,
+    pub failed_interactions: i32,
+    pub patterns_learned: i32,
+    pub accuracy_improvement: f32,
+    pub average_confidence: f32,
+}
+
+pub struct AdaptationStrategy {
+    pub strategy_id: i32,
+    pub strategy_type: String,
+    pub parameters: HashMap<String, String>,
+    pub effectiveness: f32,
+    pub usage_count: i32,
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Interaction Tracking Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn create_interaction(
+    id: i32,
+    input: String,
+    intent: String,
+    response: String,
+    success: bool,
+    duration: i32,
+) -> Interaction {
+    Interaction {
+        id: id,
+        input: input,
+        intent: intent,
+        response: response,
+        success: success,
+        user_feedback: "".to_string(),
+        timestamp: 0,
+        duration: duration,
+    }
+}
+
+pub fn record_user_feedback(
+    interaction: &mut Interaction,
+    feedback: String,
+) {
+    interaction.user_feedback = feedback;
+}
+
+pub fn analyze_interaction(interaction: &Interaction) -> HashMap<String, String> {
+    let mut analysis = HashMap::new();
+    
+    analysis.insert("success".to_string(), interaction.success.to_string());
+    analysis.insert("intent".to_string(), interaction.intent.clone());
+    analysis.insert("duration".to_string(), interaction.duration.to_string());
+    analysis.insert("has_feedback".to_string(), (!interaction.user_feedback.is_empty()).to_string());
+    
+    analysis
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Pattern Learning Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn create_learning_pattern(
+    pattern_id: i32,
+    pattern_type: String,
+    pattern_data: String,
+) -> LearningPattern {
+    LearningPattern {
+        pattern_id: pattern_id,
+        pattern_type: pattern_type,
+        pattern_data: pattern_data,
+        frequency: 1,
+        success_rate: 0.0,
+        last_seen: 0,
+    }
+}
+
+pub fn identify_patterns(interactions: &Vec<Interaction>) -> Vec<LearningPattern> {
+    let mut patterns = Vec::new();
+    let mut intent_counts = HashMap::new();
+
+    // Count intent frequencies
+    for interaction in interactions {
+        let count = intent_counts.get(&interaction.intent).unwrap_or(&0) + 1;
+        intent_counts.insert(interaction.intent.clone(), count);
+    }
+
+    // Create patterns from frequent intents
+    let mut pattern_id = 0;
+    for (intent, count) in intent_counts {
+        if count > 2 {
+            let pattern = create_learning_pattern(
+                pattern_id,
+                "intent".to_string(),
+                intent,
+            );
+            patterns.push(pattern);
+            pattern_id = pattern_id + 1;
+        }
+    }
+
+    patterns
+}
+
+pub fn update_pattern_frequency(pattern: &mut LearningPattern) {
+    pattern.frequency = pattern.frequency + 1;
+}
+
+pub fn calculate_pattern_success_rate(
+    pattern: &LearningPattern,
+    interactions: &Vec<Interaction>,
+) -> f32 {
+    let mut successful = 0;
+    let mut total = 0;
+
+    for interaction in interactions {
+        if interaction.intent == pattern.pattern_data {
+            total = total + 1;
+            if interaction.success {
+                successful = successful + 1;
+            }
+        }
+    }
+
+    if total == 0 {
+        0.0
+    } else {
+        (successful as f32) / (total as f32)
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// User Profile Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn create_user_profile(user_id: String) -> UserProfile {
+    UserProfile {
+        user_id: user_id,
+        preferred_language: "english".to_string(),
+        preferred_style: "professional".to_string(),
+        common_intents: Vec::new(),
+        learned_patterns: Vec::new(),
+        accuracy_history: Vec::new(),
+        total_interactions: 0,
+    }
+}
+
+pub fn update_user_profile(
+    profile: &mut UserProfile,
+    interaction: &Interaction,
+) {
+    profile.total_interactions = profile.total_interactions + 1;
+
+    // Track common intents
+    if !profile.common_intents.contains(&interaction.intent) {
+        profile.common_intents.push(interaction.intent.clone());
+    }
+
+    // Track accuracy
+    if interaction.success {
+        profile.accuracy_history.push(1.0);
+    } else {
+        profile.accuracy_history.push(0.0);
+    }
+
+    // Keep only recent history
+    if profile.accuracy_history.len() > 100 {
+        profile.accuracy_history.remove(0);
+    }
+}
+
+pub fn get_user_accuracy(profile: &UserProfile) -> f32 {
+    if profile.accuracy_history.len() == 0 {
+        0.0
+    } else {
+        let sum: f32 = profile.accuracy_history.iter().sum();
+        sum / (profile.accuracy_history.len() as f32)
+    }
+}
+
+pub fn get_common_intents(profile: &UserProfile) -> Vec<String> {
+    profile.common_intents.clone()
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Adaptation Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn create_adaptation_strategy(
+    strategy_id: i32,
+    strategy_type: String,
+) -> AdaptationStrategy {
+    AdaptationStrategy {
+        strategy_id: strategy_id,
+        strategy_type: strategy_type,
+        parameters: HashMap::new(),
+        effectiveness: 0.0,
+        usage_count: 0,
+    }
+}
+
+pub fn adapt_to_user_style(
+    profile: &UserProfile,
+) -> String {
+    profile.preferred_style.clone()
+}
+
+pub fn adapt_to_user_language(
+    profile: &UserProfile,
+) -> String {
+    profile.preferred_language.clone()
+}
+
+pub fn predict_next_intent(
+    profile: &UserProfile,
+    recent_intents: &Vec<String>,
+) -> String {
+    // Simple prediction based on common intents
+    if profile.common_intents.len() > 0 {
+        profile.common_intents[0].clone()
+    } else {
+        "unknown".to_string()
+    }
+}
+
+pub fn suggest_improvement(
+    profile: &UserProfile,
+    current_accuracy: f32,
+) -> String {
+    let historical_accuracy = get_user_accuracy(profile);
+    
+    if current_accuracy < historical_accuracy {
+        "Performance has decreased. Consider reviewing recent changes.".to_string()
+    } else if current_accuracy > historical_accuracy {
+        "Great! Performance has improved.".to_string()
+    } else {
+        "Performance is stable.".to_string()
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Metrics and Monitoring Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn create_learning_metrics() -> LearningMetrics {
+    LearningMetrics {
+        total_interactions: 0,
+        successful_interactions: 0,
+        failed_interactions: 0,
+        patterns_learned: 0,
+        accuracy_improvement: 0.0,
+        average_confidence: 0.0,
+    }
+}
+
+pub fn update_learning_metrics(
+    metrics: &mut LearningMetrics,
+    interaction: &Interaction,
+) {
+    metrics.total_interactions = metrics.total_interactions + 1;
+    
+    if interaction.success {
+        metrics.successful_interactions = metrics.successful_interactions + 1;
+    } else {
+        metrics.failed_interactions = metrics.failed_interactions + 1;
+    }
+}
+
+pub fn get_success_rate(metrics: &LearningMetrics) -> f32 {
+    if metrics.total_interactions == 0 {
+        0.0
+    } else {
+        (metrics.successful_interactions as f32) / (metrics.total_interactions as f32)
+    }
+}
+
+pub fn calculate_accuracy_improvement(
+    old_accuracy: f32,
+    new_accuracy: f32,
+) -> f32 {
+    new_accuracy - old_accuracy
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Continuous Improvement Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn analyze_failure_patterns(
+    interactions: &Vec<Interaction>,
+) -> Vec<String> {
+    let mut failure_patterns = Vec::new();
+    
+    for interaction in interactions {
+        if !interaction.success {
+            failure_patterns.push(interaction.intent.clone());
+        }
+    }
+    
+    failure_patterns
+}
+
+pub fn generate_improvement_recommendations(
+    metrics: &LearningMetrics,
+    failure_patterns: &Vec<String>,
+) -> Vec<String> {
+    let mut recommendations = Vec::new();
+    
+    let success_rate = get_success_rate(metrics);
+    
+    if success_rate < 0.8 {
+        recommendations.push("Improve intent recognition accuracy".to_string());
+    }
+    
+    if failure_patterns.len() > 0 {
+        recommendations.push("Focus on improving handling of complex intents".to_string());
+    }
+    
+    recommendations
+}
+
+pub fn apply_learning_update(
+    profile: &mut UserProfile,
+    patterns: &Vec<LearningPattern>,
+) {
+    profile.learned_patterns = patterns.clone();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// End of Learning Engine Module
+// ═══════════════════════════════════════════════════════════════════════════
+

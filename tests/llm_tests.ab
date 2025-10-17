@@ -1,0 +1,260 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LLM Integration Tests - Phase 3
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Comprehensive tests for LLM wrapper, NLU, NLG, and Learning Engine modules
+//
+// ═══════════════════════════════════════════════════════════════════════════
+
+use std::agent;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 1: LLM Wrapper Configuration
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_create_ollama_config() {
+    let config = agent::create_ollama_config(
+        "mistral".to_string(),
+        "http://localhost:11434".to_string(),
+        30000,
+        2048,
+    );
+    
+    assert(config.model_name == "mistral");
+    assert(config.base_url == "http://localhost:11434");
+    assert(config.timeout == 30000);
+    assert(config.max_tokens == 2048);
+    println!("✅ Test 1 passed: LLM Wrapper Configuration");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 2: Default Configuration
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_create_default_config() {
+    let config = agent::create_default_config();
+    
+    assert(config.model_name == "mistral");
+    assert(config.base_url == "http://localhost:11434");
+    assert(config.timeout > 0);
+    assert(config.max_tokens > 0);
+    println!("✅ Test 2 passed: Default Configuration");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 3: Arabic Configuration
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_create_arabic_config() {
+    let config = agent::create_arabic_config();
+    
+    assert(config.model_name == "aralama");
+    assert(config.base_url == "http://localhost:11434");
+    println!("✅ Test 3 passed: Arabic Configuration");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 4: LLM Cache Creation
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_create_llm_cache() {
+    let cache = agent::create_llm_cache(100);
+    
+    assert(cache.max_size == 100);
+    assert(cache.hit_count == 0);
+    assert(cache.miss_count == 0);
+    println!("✅ Test 4 passed: LLM Cache Creation");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 5: LLM Metrics Creation
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_create_llm_metrics() {
+    let metrics = agent::create_llm_metrics();
+    
+    assert(metrics.total_requests == 0);
+    assert(metrics.successful_requests == 0);
+    assert(metrics.failed_requests == 0);
+    println!("✅ Test 5 passed: LLM Metrics Creation");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 6: Hybrid NLU Configuration
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_create_hybrid_nlu_config() {
+    let config = agent::create_hybrid_nlu_config();
+    
+    assert(config.use_traditional == true);
+    assert(config.use_llm == true);
+    assert(config.confidence_threshold > 0.0);
+    assert(config.cache_enabled == true);
+    println!("✅ Test 6 passed: Hybrid NLU Configuration");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 7: NLU Context Creation
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_create_nlu_context() {
+    let context = agent::create_nlu_context(
+        "english".to_string(),
+        "programming".to_string(),
+    );
+    
+    assert(context.language == "english");
+    assert(context.domain == "programming");
+    println!("✅ Test 7 passed: NLU Context Creation");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 8: NLG Configuration
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_create_nlg_config() {
+    let config = agent::create_nlg_config();
+    
+    assert(config.use_traditional == true);
+    assert(config.use_llm == true);
+    assert(config.max_length > 0);
+    println!("✅ Test 8 passed: NLG Configuration");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 9: NLG Metrics Creation
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_create_nlg_metrics() {
+    let metrics = agent::create_nlg_metrics();
+    
+    assert(metrics.total_generations == 0);
+    assert(metrics.traditional_used == 0);
+    assert(metrics.llm_used == 0);
+    println!("✅ Test 9 passed: NLG Metrics Creation");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 10: User Profile Creation
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_create_user_profile() {
+    let profile = agent::create_user_profile("user123".to_string());
+    
+    assert(profile.user_id == "user123");
+    assert(profile.preferred_language == "english");
+    assert(profile.total_interactions == 0);
+    println!("✅ Test 10 passed: User Profile Creation");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 11: Learning Metrics Creation
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_create_learning_metrics() {
+    let metrics = agent::create_learning_metrics();
+    
+    assert(metrics.total_interactions == 0);
+    assert(metrics.successful_interactions == 0);
+    assert(metrics.failed_interactions == 0);
+    println!("✅ Test 11 passed: Learning Metrics Creation");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 12: User Accuracy Calculation
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_get_user_accuracy() {
+    let profile = agent::create_user_profile("user123".to_string());
+    let accuracy = agent::get_user_accuracy(profile);
+    
+    assert(accuracy == 0.0);
+    println!("✅ Test 12 passed: User Accuracy Calculation");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 13: Intent Prediction
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_predict_next_intent() {
+    let profile = agent::create_user_profile("user123".to_string());
+    let recent_intents = vec!["run".to_string(), "compile".to_string()];
+    
+    let predicted = agent::predict_next_intent(profile, recent_intents);
+    assert(predicted == "unknown");
+    println!("✅ Test 13 passed: Intent Prediction");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 14: Hybrid Intent Parsing
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_parse_intent_hybrid() {
+    let config = agent::create_hybrid_nlu_config();
+    let context = agent::create_nlu_context(
+        "english".to_string(),
+        "programming".to_string(),
+    );
+    
+    let intent = agent::parse_intent_hybrid(
+        "run the code".to_string(),
+        context,
+        config,
+    );
+    
+    assert(intent.confidence > 0.0);
+    println!("✅ Test 14 passed: Hybrid Intent Parsing");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Test 15: Response Generation
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn test_generate_response_hybrid() {
+    let config = agent::create_nlg_config();
+    let data = vec!["result".to_string(), "success".to_string()];
+    
+    let response = agent::generate_response_hybrid(
+        "success".to_string(),
+        data,
+        "context".to_string(),
+        "english".to_string(),
+        config,
+    );
+    
+    assert(!response.text.is_empty());
+    println!("✅ Test 15 passed: Response Generation");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Main Test Runner
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn main() {
+    println!("═══════════════════════════════════════════════════════════════");
+    println!("🧪 Running LLM Integration Tests - Phase 3");
+    println!("═══════════════════════════════════════════════════════════════");
+    println!("");
+    
+    test_create_ollama_config();
+    test_create_default_config();
+    test_create_arabic_config();
+    test_create_llm_cache();
+    test_create_llm_metrics();
+    test_create_hybrid_nlu_config();
+    test_create_nlu_context();
+    test_create_nlg_config();
+    test_create_nlg_metrics();
+    test_create_user_profile();
+    test_create_learning_metrics();
+    test_get_user_accuracy();
+    test_predict_next_intent();
+    test_parse_intent_hybrid();
+    test_generate_response_hybrid();
+    
+    println!("");
+    println!("═══════════════════════════════════════════════════════════════");
+    println!("✅ All 15 LLM Integration Tests Passed!");
+    println!("═══════════════════════════════════════════════════════════════");
+}
+

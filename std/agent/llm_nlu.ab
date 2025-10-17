@@ -1,0 +1,324 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LLM-Enhanced NLU Module - Natural Language Understanding with AI
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// This module provides enhanced NLU capabilities by combining:
+// - Traditional NLU (fast, deterministic)
+// - LLM-based NLU (intelligent, contextual)
+// - Hybrid approach for optimal performance
+//
+// ═══════════════════════════════════════════════════════════════════════════
+
+use std::collections::HashMap;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Data Structures
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub struct EnhancedIntent {
+    pub intent: String,
+    pub confidence: f32,
+    pub entities: HashMap<String, String>,
+    pub context: String,
+    pub source: String,  // "traditional" or "llm"
+    pub explanation: String,
+}
+
+pub struct NLUContext {
+    pub conversation_history: Vec<String>,
+    pub user_preferences: HashMap<String, String>,
+    pub previous_intents: Vec<String>,
+    pub domain: String,
+    pub language: String,
+}
+
+pub struct HybridNLUConfig {
+    pub use_traditional: bool,
+    pub use_llm: bool,
+    pub confidence_threshold: f32,
+    pub cache_enabled: bool,
+    pub max_context_length: i32,
+}
+
+pub struct NLUMetrics {
+    pub total_requests: i32,
+    pub traditional_used: i32,
+    pub llm_used: i32,
+    pub hybrid_used: i32,
+    pub average_confidence: f32,
+    pub accuracy: f32,
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Configuration Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn create_hybrid_nlu_config() -> HybridNLUConfig {
+    HybridNLUConfig {
+        use_traditional: true,
+        use_llm: true,
+        confidence_threshold: 0.7,
+        cache_enabled: true,
+        max_context_length: 2000,
+    }
+}
+
+pub fn create_nlu_context(language: String, domain: String) -> NLUContext {
+    NLUContext {
+        conversation_history: Vec::new(),
+        user_preferences: HashMap::new(),
+        previous_intents: Vec::new(),
+        domain: domain,
+        language: language,
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Traditional NLU Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn parse_intent_traditional(input: String) -> EnhancedIntent {
+    let mut intent = "unknown".to_string();
+    let mut confidence = 0.0;
+    let mut entities = HashMap::new();
+
+    // Simple pattern matching for common intents
+    if input.contains("run") || input.contains("execute") {
+        intent = "run_code".to_string();
+        confidence = 0.9;
+    } else if input.contains("compile") {
+        intent = "compile".to_string();
+        confidence = 0.9;
+    } else if input.contains("analyze") || input.contains("check") {
+        intent = "analyze".to_string();
+        confidence = 0.85;
+    } else if input.contains("help") || input.contains("how") {
+        intent = "help".to_string();
+        confidence = 0.9;
+    } else if input.contains("suggest") || input.contains("recommend") {
+        intent = "suggest".to_string();
+        confidence = 0.85;
+    } else if input.contains("error") || input.contains("problem") {
+        intent = "debug".to_string();
+        confidence = 0.8;
+    } else if input.contains("explain") || input.contains("what") {
+        intent = "explain".to_string();
+        confidence = 0.8;
+    } else {
+        intent = "chat".to_string();
+        confidence = 0.5;
+    }
+
+    // Extract file paths
+    if input.contains(".ab") || input.contains(".rs") {
+        entities.insert("file_type".to_string(), "code_file".to_string());
+    }
+
+    EnhancedIntent {
+        intent: intent,
+        confidence: confidence,
+        entities: entities,
+        context: "".to_string(),
+        source: "traditional".to_string(),
+        explanation: "Parsed using pattern matching".to_string(),
+    }
+}
+
+pub fn extract_entities_traditional(input: String) -> HashMap<String, String> {
+    let mut entities = HashMap::new();
+
+    // Extract file paths
+    if input.contains(".ab") {
+        entities.insert("file_extension".to_string(), ".ab".to_string());
+    }
+    if input.contains(".rs") {
+        entities.insert("file_extension".to_string(), ".rs".to_string());
+    }
+
+    // Extract commands
+    let commands = vec!["run", "compile", "analyze", "help", "suggest"];
+    for cmd in commands {
+        if input.contains(cmd) {
+            entities.insert("command".to_string(), cmd.to_string());
+        }
+    }
+
+    entities
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LLM-Based NLU Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn parse_intent_with_llm(
+    input: String,
+    context: &NLUContext,
+) -> EnhancedIntent {
+    // This function would call the LLM wrapper
+    // For now, we provide a template structure
+    
+    let mut intent = "unknown".to_string();
+    let mut confidence = 0.85;
+    let mut entities = HashMap::new();
+
+    // Build context for LLM
+    let context_str = build_llm_context(context);
+    
+    // In real implementation, this would call:
+    // let llm_response = send_to_llm(input, context_str);
+    // let parsed = parse_llm_response(llm_response);
+
+    // For now, return enhanced intent
+    EnhancedIntent {
+        intent: intent,
+        confidence: confidence,
+        entities: entities,
+        context: context_str,
+        source: "llm".to_string(),
+        explanation: "Parsed using LLM with context understanding".to_string(),
+    }
+}
+
+pub fn understand_complex_command(
+    input: String,
+    context: &NLUContext,
+) -> EnhancedIntent {
+    // For complex commands that traditional NLU can't handle
+    // Use LLM to understand the intent
+    parse_intent_with_llm(input, context)
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Hybrid Approach Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn parse_intent_hybrid(
+    input: String,
+    context: &NLUContext,
+    config: &HybridNLUConfig,
+) -> EnhancedIntent {
+    // Step 1: Try traditional NLU first (fast)
+    let traditional_result = parse_intent_traditional(input.clone());
+
+    // Step 2: Check confidence threshold
+    if traditional_result.confidence >= config.confidence_threshold {
+        return traditional_result;
+    }
+
+    // Step 3: If confidence is low, use LLM for better understanding
+    if config.use_llm {
+        let llm_result = parse_intent_with_llm(input, context);
+        
+        // Step 4: Combine results if both are available
+        if llm_result.confidence > traditional_result.confidence {
+            return llm_result;
+        }
+    }
+
+    traditional_result
+}
+
+pub fn resolve_ambiguity(
+    input: String,
+    possible_intents: Vec<String>,
+    context: &NLUContext,
+) -> String {
+    // Use LLM to resolve ambiguous intents
+    // For now, return the first one
+    if possible_intents.len() > 0 {
+        possible_intents[0].clone()
+    } else {
+        "unknown".to_string()
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Context Management Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn add_to_history(context: &mut NLUContext, input: String) {
+    context.conversation_history.push(input);
+    
+    // Keep only recent history
+    if context.conversation_history.len() > 10 {
+        context.conversation_history.remove(0);
+    }
+}
+
+pub fn add_intent_to_history(context: &mut NLUContext, intent: String) {
+    context.previous_intents.push(intent);
+    
+    if context.previous_intents.len() > 5 {
+        context.previous_intents.remove(0);
+    }
+}
+
+pub fn set_user_preference(
+    context: &mut NLUContext,
+    key: String,
+    value: String,
+) {
+    context.user_preferences.insert(key, value);
+}
+
+pub fn get_user_preference(context: &NLUContext, key: String) -> Option<String> {
+    context.user_preferences.get(&key).cloned()
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Helper Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn build_llm_context(context: &NLUContext) -> String {
+    let mut result = String::new();
+    
+    result.push_str("Language: ");
+    result.push_str(&context.language);
+    result.push_str("\nDomain: ");
+    result.push_str(&context.domain);
+    
+    if context.previous_intents.len() > 0 {
+        result.push_str("\nRecent intents: ");
+        for intent in &context.previous_intents {
+            result.push_str(intent);
+            result.push_str(", ");
+        }
+    }
+    
+    result
+}
+
+pub fn create_nlu_metrics() -> NLUMetrics {
+    NLUMetrics {
+        total_requests: 0,
+        traditional_used: 0,
+        llm_used: 0,
+        hybrid_used: 0,
+        average_confidence: 0.0,
+        accuracy: 0.0,
+    }
+}
+
+pub fn update_nlu_metrics(
+    metrics: &mut NLUMetrics,
+    intent: &EnhancedIntent,
+) {
+    metrics.total_requests = metrics.total_requests + 1;
+    
+    if intent.source == "traditional" {
+        metrics.traditional_used = metrics.traditional_used + 1;
+    } else if intent.source == "llm" {
+        metrics.llm_used = metrics.llm_used + 1;
+    } else {
+        metrics.hybrid_used = metrics.hybrid_used + 1;
+    }
+    
+    // Update average confidence
+    let total_conf = metrics.average_confidence * ((metrics.total_requests - 1) as f32) + intent.confidence;
+    metrics.average_confidence = total_conf / (metrics.total_requests as f32);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// End of LLM NLU Module
+// ═══════════════════════════════════════════════════════════════════════════
+

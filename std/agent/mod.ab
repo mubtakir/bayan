@@ -9,6 +9,10 @@ pub use nlg;
 pub use optimizer;
 pub use bridge;
 pub use core;
+pub use llm_wrapper;
+pub use llm_nlu;
+pub use llm_nlg;
+pub use learning_engine;
 
 // ============================================================================
 // إعادة تصدير الأنواع الرئيسية
@@ -20,6 +24,31 @@ pub type Config = types::Config;
 pub type Event = types::Event;
 pub type BayanAgent = types::BayanAgent;
 pub type BayanBridge = bridge::BayanBridge;
+
+// ============================================================================
+// إعادة تصدير أنواع LLM
+// ============================================================================
+
+pub type OllamaConfig = llm_wrapper::OllamaConfig;
+pub type LLMResponse = llm_wrapper::LLMResponse;
+pub type LLMCache = llm_wrapper::LLMCache;
+pub type LLMMetrics = llm_wrapper::LLMMetrics;
+
+pub type EnhancedIntent = llm_nlu::EnhancedIntent;
+pub type NLUContext = llm_nlu::NLUContext;
+pub type HybridNLUConfig = llm_nlu::HybridNLUConfig;
+pub type NLUMetrics = llm_nlu::NLUMetrics;
+
+pub type GeneratedResponse = llm_nlg::GeneratedResponse;
+pub type ResponseTemplate = llm_nlg::ResponseTemplate;
+pub type NLGConfig = llm_nlg::NLGConfig;
+pub type NLGMetrics = llm_nlg::NLGMetrics;
+
+pub type Interaction = learning_engine::Interaction;
+pub type LearningPattern = learning_engine::LearningPattern;
+pub type UserProfile = learning_engine::UserProfile;
+pub type LearningMetrics = learning_engine::LearningMetrics;
+pub type AdaptationStrategy = learning_engine::AdaptationStrategy;
 
 // ============================================================================
 // إعادة تصدير الدوال الرئيسية
@@ -112,6 +141,81 @@ pub fn get_goodbye_message(agent: BayanAgent) -> string {
 }
 
 // ============================================================================
-// نهاية وحدة الوكيل
+// دوال LLM Wrapper
 // ============================================================================
 
+pub fn create_ollama_config(model_name: string, base_url: string, timeout: i32, max_tokens: i32) -> OllamaConfig {
+    return llm_wrapper::create_ollama_config(model_name, base_url, timeout, max_tokens);
+}
+
+pub fn create_default_config() -> OllamaConfig {
+    return llm_wrapper::create_default_config();
+}
+
+pub fn create_arabic_config() -> OllamaConfig {
+    return llm_wrapper::create_arabic_config();
+}
+
+pub fn create_llm_cache(max_size: i32) -> LLMCache {
+    return llm_wrapper::create_llm_cache(max_size);
+}
+
+pub fn create_llm_metrics() -> LLMMetrics {
+    return llm_wrapper::create_llm_metrics();
+}
+
+// ============================================================================
+// دوال LLM NLU
+// ============================================================================
+
+pub fn create_hybrid_nlu_config() -> HybridNLUConfig {
+    return llm_nlu::create_hybrid_nlu_config();
+}
+
+pub fn create_nlu_context(language: string, domain: string) -> NLUContext {
+    return llm_nlu::create_nlu_context(language, domain);
+}
+
+pub fn parse_intent_hybrid(input: string, context: NLUContext, config: HybridNLUConfig) -> EnhancedIntent {
+    return llm_nlu::parse_intent_hybrid(input, context, config);
+}
+
+// ============================================================================
+// دوال LLM NLG
+// ============================================================================
+
+pub fn create_nlg_config() -> NLGConfig {
+    return llm_nlg::create_nlg_config();
+}
+
+pub fn generate_response_hybrid(intent: string, data: list<string>, context: string, language: string, config: NLGConfig) -> GeneratedResponse {
+    return llm_nlg::generate_response_hybrid(intent, data, context, language, config);
+}
+
+pub fn create_nlg_metrics() -> NLGMetrics {
+    return llm_nlg::create_nlg_metrics();
+}
+
+// ============================================================================
+// دوال Learning Engine
+// ============================================================================
+
+pub fn create_user_profile(user_id: string) -> UserProfile {
+    return learning_engine::create_user_profile(user_id);
+}
+
+pub fn create_learning_metrics() -> LearningMetrics {
+    return learning_engine::create_learning_metrics();
+}
+
+pub fn get_user_accuracy(profile: UserProfile) -> f32 {
+    return learning_engine::get_user_accuracy(profile);
+}
+
+pub fn predict_next_intent(profile: UserProfile, recent_intents: list<string>) -> string {
+    return learning_engine::predict_next_intent(profile, recent_intents);
+}
+
+// ============================================================================
+// نهاية وحدة الوكيل
+// ============================================================================

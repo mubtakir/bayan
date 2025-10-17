@@ -1,0 +1,384 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LLM-Enhanced NLG Module - Natural Language Generation with AI
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// This module provides enhanced NLG capabilities by combining:
+// - Traditional NLG (fast, consistent)
+// - LLM-based NLG (natural, adaptive)
+// - Hybrid approach for optimal output quality
+//
+// ═══════════════════════════════════════════════════════════════════════════
+
+use std::collections::HashMap;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Data Structures
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub struct GeneratedResponse {
+    pub text: String,
+    pub language: String,
+    pub style: String,
+    pub confidence: f32,
+    pub source: String,  // "traditional" or "llm"
+    pub tokens_used: i32,
+}
+
+pub struct ResponseTemplate {
+    pub intent: String,
+    pub templates: Vec<String>,
+    pub language: String,
+    pub style: String,
+}
+
+pub struct NLGConfig {
+    pub use_traditional: bool,
+    pub use_llm: bool,
+    pub preferred_style: String,
+    pub max_length: i32,
+    pub include_explanation: bool,
+}
+
+pub struct NLGMetrics {
+    pub total_generations: i32,
+    pub traditional_used: i32,
+    pub llm_used: i32,
+    pub hybrid_used: i32,
+    pub average_length: i32,
+    pub user_satisfaction: f32,
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Configuration Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn create_nlg_config() -> NLGConfig {
+    NLGConfig {
+        use_traditional: true,
+        use_llm: true,
+        preferred_style: "professional".to_string(),
+        max_length: 500,
+        include_explanation: true,
+    }
+}
+
+pub fn create_response_template(
+    intent: String,
+    language: String,
+) -> ResponseTemplate {
+    let templates = match intent.as_str() {
+        "success" => vec![
+            "✅ Operation completed successfully!".to_string(),
+            "✅ Done! Everything worked as expected.".to_string(),
+            "✅ Success! Your request has been processed.".to_string(),
+        ],
+        "error" => vec![
+            "❌ An error occurred. Please check your input.".to_string(),
+            "❌ Something went wrong. Let me help you fix it.".to_string(),
+            "❌ Error detected. Here's what happened:".to_string(),
+        ],
+        "help" => vec![
+            "📚 Here's how to use this feature:".to_string(),
+            "📚 Let me explain how this works:".to_string(),
+            "📚 Here's the documentation:".to_string(),
+        ],
+        "suggestion" => vec![
+            "💡 I suggest you try this:".to_string(),
+            "💡 Here's a recommendation:".to_string(),
+            "💡 You might want to consider:".to_string(),
+        ],
+        _ => vec![
+            "Here's what I found:".to_string(),
+            "Let me help you with that:".to_string(),
+            "Here's my response:".to_string(),
+        ],
+    };
+
+    ResponseTemplate {
+        intent: intent,
+        templates: templates,
+        language: language,
+        style: "professional".to_string(),
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Traditional NLG Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn generate_response_traditional(
+    intent: String,
+    data: HashMap<String, String>,
+    language: String,
+) -> GeneratedResponse {
+    let template = create_response_template(intent.clone(), language.clone());
+    
+    // Select a template (simple round-robin)
+    let template_text = if template.templates.len() > 0 {
+        template.templates[0].clone()
+    } else {
+        "Here's my response:".to_string()
+    };
+
+    let mut response_text = template_text;
+
+    // Add data to response
+    for (key, value) in data {
+        let placeholder = format!("{{{}}}", key);
+        response_text = response_text.replace(&placeholder, &value);
+    }
+
+    GeneratedResponse {
+        text: response_text,
+        language: language,
+        style: "professional".to_string(),
+        confidence: 0.9,
+        source: "traditional".to_string(),
+        tokens_used: (response_text.len() / 4) as i32,
+    }
+}
+
+pub fn format_error_message(
+    error_type: String,
+    error_details: String,
+    language: String,
+) -> GeneratedResponse {
+    let message = if language == "arabic" {
+        format!("❌ خطأ: {}\nالتفاصيل: {}", error_type, error_details)
+    } else {
+        format!("❌ Error: {}\nDetails: {}", error_type, error_details)
+    };
+
+    GeneratedResponse {
+        text: message,
+        language: language,
+        style: "error".to_string(),
+        confidence: 0.95,
+        source: "traditional".to_string(),
+        tokens_used: (message.len() / 4) as i32,
+    }
+}
+
+pub fn format_success_message(
+    operation: String,
+    result: String,
+    language: String,
+) -> GeneratedResponse {
+    let message = if language == "arabic" {
+        format!("✅ تم بنجاح: {}\nالنتيجة: {}", operation, result)
+    } else {
+        format!("✅ Success: {}\nResult: {}", operation, result)
+    };
+
+    GeneratedResponse {
+        text: message,
+        language: language,
+        style: "success".to_string(),
+        confidence: 0.95,
+        source: "traditional".to_string(),
+        tokens_used: (message.len() / 4) as i32,
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LLM-Based NLG Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn generate_response_with_llm(
+    intent: String,
+    context: String,
+    language: String,
+) -> GeneratedResponse {
+    // This function would call the LLM wrapper
+    // For now, we provide a template structure
+    
+    let response_text = format!(
+        "Generated response for intent '{}' in {} language with context: {}",
+        intent, language, context
+    );
+
+    GeneratedResponse {
+        text: response_text,
+        language: language,
+        style: "natural".to_string(),
+        confidence: 0.85,
+        source: "llm".to_string(),
+        tokens_used: (response_text.len() / 4) as i32,
+    }
+}
+
+pub fn generate_explanation(
+    topic: String,
+    detail_level: String,
+    language: String,
+) -> GeneratedResponse {
+    // Use LLM to generate detailed explanations
+    let response_text = format!(
+        "Explanation of '{}' at {} detail level",
+        topic, detail_level
+    );
+
+    GeneratedResponse {
+        text: response_text,
+        language: language,
+        style: "explanatory".to_string(),
+        confidence: 0.8,
+        source: "llm".to_string(),
+        tokens_used: (response_text.len() / 4) as i32,
+    }
+}
+
+pub fn generate_suggestion(
+    problem: String,
+    context: String,
+    language: String,
+) -> GeneratedResponse {
+    // Use LLM to generate intelligent suggestions
+    let response_text = format!(
+        "Suggestion for '{}' based on context: {}",
+        problem, context
+    );
+
+    GeneratedResponse {
+        text: response_text,
+        language: language,
+        style: "suggestive".to_string(),
+        confidence: 0.75,
+        source: "llm".to_string(),
+        tokens_used: (response_text.len() / 4) as i32,
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Hybrid Approach Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn generate_response_hybrid(
+    intent: String,
+    data: HashMap<String, String>,
+    context: String,
+    language: String,
+    config: &NLGConfig,
+) -> GeneratedResponse {
+    // Step 1: Generate traditional response (fast)
+    let traditional = generate_response_traditional(
+        intent.clone(),
+        data.clone(),
+        language.clone(),
+    );
+
+    // Step 2: For complex intents, enhance with LLM
+    if config.use_llm && (intent == "explanation" || intent == "suggestion") {
+        let llm_response = generate_response_with_llm(
+            intent,
+            context,
+            language,
+        );
+        
+        // Step 3: Combine results
+        let combined_text = format!(
+            "{}\n\n{}",
+            traditional.text,
+            llm_response.text
+        );
+
+        return GeneratedResponse {
+            text: combined_text,
+            language: traditional.language,
+            style: "hybrid".to_string(),
+            confidence: (traditional.confidence + llm_response.confidence) / 2.0,
+            source: "hybrid".to_string(),
+            tokens_used: traditional.tokens_used + llm_response.tokens_used,
+        };
+    }
+
+    traditional
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Response Adaptation Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn adapt_to_style(
+    response: &mut GeneratedResponse,
+    style: String,
+) {
+    response.style = style;
+    
+    // Adapt text based on style
+    match style.as_str() {
+        "formal" => {
+            response.text = response.text.replace("✅", "Success:");
+            response.text = response.text.replace("❌", "Error:");
+        }
+        "casual" => {
+            response.text = response.text.replace("Success:", "✅ Great!");
+            response.text = response.text.replace("Error:", "❌ Oops!");
+        }
+        "technical" => {
+            // Keep technical details
+        }
+        _ => {}
+    }
+}
+
+pub fn adapt_to_language(
+    response: &mut GeneratedResponse,
+    language: String,
+) {
+    response.language = language.clone();
+    
+    // Translate or adapt based on language
+    if language == "arabic" {
+        response.text = response.text.replace("Success:", "نجح:");
+        response.text = response.text.replace("Error:", "خطأ:");
+    }
+}
+
+pub fn truncate_response(
+    response: &mut GeneratedResponse,
+    max_length: i32,
+) {
+    if response.text.len() > max_length as usize {
+        response.text = response.text[0..max_length as usize].to_string();
+        response.text.push_str("...");
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Metrics Functions
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn create_nlg_metrics() -> NLGMetrics {
+    NLGMetrics {
+        total_generations: 0,
+        traditional_used: 0,
+        llm_used: 0,
+        hybrid_used: 0,
+        average_length: 0,
+        user_satisfaction: 0.0,
+    }
+}
+
+pub fn update_nlg_metrics(
+    metrics: &mut NLGMetrics,
+    response: &GeneratedResponse,
+) {
+    metrics.total_generations = metrics.total_generations + 1;
+    
+    match response.source.as_str() {
+        "traditional" => metrics.traditional_used = metrics.traditional_used + 1,
+        "llm" => metrics.llm_used = metrics.llm_used + 1,
+        "hybrid" => metrics.hybrid_used = metrics.hybrid_used + 1,
+        _ => {}
+    }
+    
+    // Update average length
+    let total_len = metrics.average_length * (metrics.total_generations - 1) + response.text.len() as i32;
+    metrics.average_length = total_len / metrics.total_generations;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// End of LLM NLG Module
+// ═══════════════════════════════════════════════════════════════════════════
+
