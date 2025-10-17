@@ -1,7 +1,7 @@
 # AlBayan Programming Language — Semantic Computing with Embedded AI
 
 Preface / تمهيد
-- All conceptual foundations and innovative engines of the language are by the researcher: Bassel Yahya Abdullah.
+- All conceptual foundations and innovative engines of the language are by the researcher: Basil Yahya Abdullah.
 - تم تنفيذ الأفكار وتطويرها وتطوير اللغة بشكل كبير من قبل نموذجين في الذكاء الاصطناعي: أحدهما كان يلعب دور الخبير الموجّه والآخر دور المنفّذ العبقري.
 
 Quick links:
