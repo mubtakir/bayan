@@ -1,0 +1,152 @@
+// ============================================================================
+// ⚡ وحدة المحسّن - Optimizer Module
+// ============================================================================
+// تتبع الأحداث وتقديم الاقتراحات للتحسين
+
+use types;
+
+// ============================================================================
+// 1. تسجيل حدث جديد
+// ============================================================================
+
+fn observe_event(agent: mut BayanAgent, event: Event) {
+    agent.events.push(event);
+}
+
+// ============================================================================
+// 2. حساب إحصائيات الأحداث
+// ============================================================================
+
+fn count_events_by_intent(agent: BayanAgent, intent: string) -> int {
+    let count = 0;
+    let i = 0;
+
+    while i < agent.events.len() {
+        let event = agent.events[i];
+        if event.intent == intent {
+            count = count + 1;
+        }
+        i = i + 1;
+    }
+
+    return count;
+}
+
+// ============================================================================
+// 3. حساب معدل النجاح
+// ============================================================================
+
+fn calculate_success_rate(agent: BayanAgent, intent: string) -> int {
+    let total = count_events_by_intent(agent, intent);
+    if total == 0 {
+        return 0;
+    }
+
+    let success = 0;
+    let i = 0;
+
+    while i < agent.events.len() {
+        let event = agent.events[i];
+        if event.intent == intent && event.ok {
+            success = success + 1;
+        }
+        i = i + 1;
+    }
+
+    return (success * 100) / total;
+}
+
+// ============================================================================
+// 4. تقديم الاقتراحات
+// ============================================================================
+
+fn propose_optimizations(agent: BayanAgent) -> list<string> {
+    let suggestions = [];
+
+    // اقتراح 1: إذا كان معدل الفشل عالياً
+    let compile_rate = calculate_success_rate(agent, "compile");
+    if compile_rate < 50 && compile_rate > 0 {
+        suggestions.push("⚠️ معدل فشل الترجمة مرتفع. تحقق من الأخطاء الشائعة.");
+    }
+
+    // اقتراح 2: إذا كان هناك الكثير من الأخطاء
+    let analyze_count = count_events_by_intent(agent, "analyze");
+    if analyze_count > 10 {
+        suggestions.push("💡 لديك الكثير من عمليات التحليل. جرب استخدام الأدوات الآلية.");
+    }
+
+    // اقتراح 3: إذا كان الوكيل يعمل بشكل جيد
+    if agent.events.len() > 0 && compile_rate > 80 {
+        suggestions.push("✅ أداء ممتاز! استمر في هذا المسار.");
+    }
+
+    // اقتراح 4: إذا لم يكن هناك نشاط
+    if agent.events.len() == 0 {
+        suggestions.push("👋 مرحباً! ابدأ بتشغيل أو ترجمة ملف.");
+    }
+
+    return suggestions;
+}
+
+// ============================================================================
+// 5. الحصول على ملخص الأحداث
+// ============================================================================
+
+fn get_event_summary(agent: BayanAgent) -> string {
+    let total = agent.events.len();
+    let run_count = count_events_by_intent(agent, "run");
+    let compile_count = count_events_by_intent(agent, "compile");
+    let analyze_count = count_events_by_intent(agent, "analyze");
+
+    let summary = "📊 ملخص الأحداث:\n";
+    summary = summary + "  إجمالي الأحداث: " + total + "\n";
+    summary = summary + "  عمليات التشغيل: " + run_count + "\n";
+    summary = summary + "  عمليات الترجمة: " + compile_count + "\n";
+    summary = summary + "  عمليات التحليل: " + analyze_count;
+
+    return summary;
+}
+
+// ============================================================================
+// 6. إعادة تعيين الأحداث
+// ============================================================================
+
+fn reset_events(agent: mut BayanAgent) {
+    agent.events = [];
+}
+
+// ============================================================================
+// 7. الحصول على آخر حدث
+// ============================================================================
+
+fn get_last_event(agent: BayanAgent) -> Event {
+    if agent.events.len() > 0 {
+        return agent.events[agent.events.len() - 1];
+    }
+
+    return types::create_event("none", false);
+}
+
+// ============================================================================
+// 8. التحقق من الأداء
+// ============================================================================
+
+fn is_performing_well(agent: BayanAgent) -> bool {
+    if agent.events.len() < 5 {
+        return false;
+    }
+
+    let compile_rate = calculate_success_rate(agent, "compile");
+    let run_rate = calculate_success_rate(agent, "run");
+
+    if compile_rate > 70 && run_rate > 70 {
+        return true;
+    }
+
+    return false;
+}
+
+// ============================================================================
+// نهاية وحدة Optimizer
+// ============================================================================
+

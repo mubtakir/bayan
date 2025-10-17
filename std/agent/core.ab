@@ -1,0 +1,155 @@
+// ============================================================================
+// 🎯 وحدة النواة - Core Module
+// ============================================================================
+// منسّق الوكيل الرئيسي
+
+use types;
+use nlu;
+use nlg;
+use optimizer;
+use bridge;
+
+// ============================================================================
+// 1. معالجة الإدخال الرئيسية
+// ============================================================================
+
+fn process_input(agent: mut BayanAgent, input: string, bayan_bridge: bridge::BayanBridge) -> Response {
+    // تحليل النية
+    let intent = nlu::parse_intent(input);
+
+    // معالجة حسب النية
+    let response = handle_intent(agent, intent, bayan_bridge);
+
+    // تسجيل الحدث
+    let event = types::create_event(intent.intent, response.ok);
+    optimizer::observe_event(agent, event);
+
+    return response;
+}
+
+// ============================================================================
+// 2. معالجة النية
+// ============================================================================
+
+fn handle_intent(agent: mut BayanAgent, intent: types::Intent, bayan_bridge: bridge::BayanBridge) -> Response {
+    if intent.intent == "run" {
+        return handle_run(agent, intent, bayan_bridge);
+    } else if intent.intent == "compile" {
+        return handle_compile(agent, intent, bayan_bridge);
+    } else if intent.intent == "analyze" {
+        return handle_analyze(agent, intent, bayan_bridge);
+    } else if intent.intent == "suggest" {
+        return handle_suggest(agent, intent);
+    } else if intent.intent == "chat" {
+        return handle_chat(agent, intent);
+    } else {
+        return types::create_response("error", "❌ نية غير معروفة", false);
+    }
+}
+
+// ============================================================================
+// 3. معالجة أمر التشغيل
+// ============================================================================
+
+fn handle_run(agent: mut BayanAgent, intent: types::Intent, bayan_bridge: bridge::BayanBridge) -> Response {
+    if intent.target.len() == 0 {
+        return types::create_response("run", "❌ يرجى تحديد ملف للتشغيل", false);
+    }
+
+    let response = bridge::run_file(bayan_bridge, intent.target);
+    return response;
+}
+
+// ============================================================================
+// 4. معالجة أمر الترجمة
+// ============================================================================
+
+fn handle_compile(agent: mut BayanAgent, intent: types::Intent, bayan_bridge: bridge::BayanBridge) -> Response {
+    if intent.target.len() == 0 {
+        return types::create_response("compile", "❌ يرجى تحديد ملف للترجمة", false);
+    }
+
+    let response = bridge::compile_file(bayan_bridge, intent.target);
+    return response;
+}
+
+// ============================================================================
+// 5. معالجة أمر التحليل
+// ============================================================================
+
+fn handle_analyze(agent: mut BayanAgent, intent: types::Intent, bayan_bridge: bridge::BayanBridge) -> Response {
+    if intent.code.len() == 0 {
+        return types::create_response("analyze", "❌ يرجى توفير كود للتحليل", false);
+    }
+
+    let response = bridge::analyze_code(bayan_bridge, intent.code);
+    return response;
+}
+
+// ============================================================================
+// 6. معالجة أمر الاقتراح
+// ============================================================================
+
+fn handle_suggest(agent: mut BayanAgent, intent: types::Intent) -> Response {
+    let suggestions = optimizer::propose_optimizations(agent);
+
+    let text = nlg::generate_reply(agent.config.language, "suggest", suggestions);
+    let response = types::create_response("suggest", text, true);
+    response.data = suggestions;
+
+    return response;
+}
+
+// ============================================================================
+// 7. معالجة الدردشة العادية
+// ============================================================================
+
+fn handle_chat(agent: mut BayanAgent, intent: types::Intent) -> Response {
+    let text = nlg::generate_reply(agent.config.language, "chat", []);
+    return types::create_response("chat", text, true);
+}
+
+// ============================================================================
+// 8. معالجة الأوامر الخاصة
+// ============================================================================
+
+fn handle_special_command(agent: mut BayanAgent, command: string) -> Response {
+    if command == "help" {
+        let text = nlg::generate_help_message(agent.config.language);
+        return types::create_response("help", text, true);
+    } else if command == "status" {
+        let text = optimizer::get_event_summary(agent);
+        return types::create_response("status", text, true);
+    } else if command == "reset" {
+        optimizer::reset_events(agent);
+        let text = "✅ تم إعادة تعيين الأحداث";
+        return types::create_response("reset", text, true);
+    } else {
+        return types::create_response("error", "❌ أمر غير معروف", false);
+    }
+}
+
+// ============================================================================
+// 9. الحصول على رسالة الترحيب
+// ============================================================================
+
+fn get_welcome_message(agent: BayanAgent) -> string {
+    return nlg::generate_welcome_message(agent.config.language);
+}
+
+// ============================================================================
+// 10. الحصول على رسالة الوداع
+// ============================================================================
+
+fn get_goodbye_message(agent: BayanAgent) -> string {
+    if agent.config.language == "ar" {
+        return "👋 وداعاً! شكراً لاستخدام وكيل البيان.";
+    } else {
+        return "👋 Goodbye! Thank you for using AlBayan Agent.";
+    }
+}
+
+// ============================================================================
+// نهاية وحدة Core
+// ============================================================================
+

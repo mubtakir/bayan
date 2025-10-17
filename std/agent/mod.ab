@@ -1,0 +1,117 @@
+// ============================================================================
+// 📦 وحدة الوكيل - Agent Module
+// ============================================================================
+// تصدير جميع وحدات الوكيل
+
+pub use types;
+pub use nlu;
+pub use nlg;
+pub use optimizer;
+pub use bridge;
+pub use core;
+
+// ============================================================================
+// إعادة تصدير الأنواع الرئيسية
+// ============================================================================
+
+pub type Intent = types::Intent;
+pub type Response = types::Response;
+pub type Config = types::Config;
+pub type Event = types::Event;
+pub type BayanAgent = types::BayanAgent;
+pub type BayanBridge = bridge::BayanBridge;
+
+// ============================================================================
+// إعادة تصدير الدوال الرئيسية
+// ============================================================================
+
+// دوال الأنواع
+pub fn create_intent(intent: string, target: string, code: string, hint: string) -> Intent {
+    return types::create_intent(intent, target, code, hint);
+}
+
+pub fn create_response(intent: string, text: string, ok: bool) -> Response {
+    return types::create_response(intent, text, ok);
+}
+
+pub fn create_config(language: string, dry_run: bool) -> Config {
+    return types::create_config(language, dry_run);
+}
+
+pub fn create_agent(config: Config) -> BayanAgent {
+    return types::create_agent(config);
+}
+
+// دوال NLU
+pub fn parse_intent(text: string) -> Intent {
+    return nlu::parse_intent(text);
+}
+
+pub fn extract_path(text: string) -> string {
+    return nlu::extract_path(text);
+}
+
+pub fn extract_code(text: string) -> string {
+    return nlu::extract_code(text);
+}
+
+// دوال NLG
+pub fn generate_reply(language: string, intent: string, data: list<string>) -> string {
+    return nlg::generate_reply(language, intent, data);
+}
+
+pub fn generate_welcome_message(language: string) -> string {
+    return nlg::generate_welcome_message(language);
+}
+
+pub fn generate_help_message(language: string) -> string {
+    return nlg::generate_help_message(language);
+}
+
+// دوال Optimizer
+pub fn observe_event(agent: mut BayanAgent, event: Event) {
+    optimizer::observe_event(agent, event);
+}
+
+pub fn propose_optimizations(agent: BayanAgent) -> list<string> {
+    return optimizer::propose_optimizations(agent);
+}
+
+pub fn get_event_summary(agent: BayanAgent) -> string {
+    return optimizer::get_event_summary(agent);
+}
+
+// دوال Bridge
+pub fn create_bridge(binary_path: string, working_dir: string) -> BayanBridge {
+    return bridge::create_bridge(binary_path, working_dir);
+}
+
+pub fn compile_file(bridge: BayanBridge, file_path: string) -> Response {
+    return bridge::compile_file(bridge, file_path);
+}
+
+pub fn run_file(bridge: BayanBridge, file_path: string) -> Response {
+    return bridge::run_file(bridge, file_path);
+}
+
+pub fn analyze_code(bridge: BayanBridge, code: string) -> Response {
+    return bridge::analyze_code(bridge, code);
+}
+
+// دوال Core
+pub fn process_input(agent: mut BayanAgent, input: string, bayan_bridge: BayanBridge) -> Response {
+    return core::process_input(agent, input, bayan_bridge);
+}
+
+pub fn get_welcome_message(agent: BayanAgent) -> string {
+    return core::get_welcome_message(agent);
+}
+
+pub fn get_goodbye_message(agent: BayanAgent) -> string {
+    return core::get_goodbye_message(agent);
+}
+
+// ============================================================================
+// نهاية وحدة الوكيل
+// ============================================================================
+

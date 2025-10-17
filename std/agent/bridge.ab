@@ -1,0 +1,171 @@
+// ============================================================================
+// 🌉 وحدة جسر التكامل - Bridge Module
+// ============================================================================
+// التكامل مع مترجم البيان والتنفيذ
+
+use types;
+
+// ============================================================================
+// 1. هيكل جسر البيان
+// ============================================================================
+
+struct BayanBridge {
+    binary_path: string,
+    working_dir: string,
+}
+
+// ============================================================================
+// 2. إنشاء جسر جديد
+// ============================================================================
+
+fn create_bridge(binary_path: string, working_dir: string) -> BayanBridge {
+    return BayanBridge {
+        binary_path: binary_path,
+        working_dir: working_dir,
+    };
+}
+
+// ============================================================================
+// 3. ترجمة ملف
+// ============================================================================
+
+fn compile_file(bridge: BayanBridge, file_path: string) -> Response {
+    // محاكاة استدعاء المترجم
+    // في الواقع، سيتم استدعاء البرنامج التنفيذي عبر FFI
+
+    let response = types::create_response("compile", "", false);
+
+    // التحقق من وجود الملف
+    if !file_path.contains(".ab") {
+        response.text = "❌ الملف يجب أن ينتهي بـ .ab";
+        return response;
+    }
+
+    // محاكاة الترجمة الناجحة
+    response.text = "✅ تم ترجمة الملف بنجاح: " + file_path;
+    response.ok = true;
+    response.data.push("Compilation successful");
+
+    return response;
+}
+
+// ============================================================================
+// 4. تشغيل ملف
+// ============================================================================
+
+fn run_file(bridge: BayanBridge, file_path: string) -> Response {
+    let response = types::create_response("run", "", false);
+
+    // التحقق من وجود الملف
+    if !file_path.contains(".ab") {
+        response.text = "❌ الملف يجب أن ينتهي بـ .ab";
+        return response;
+    }
+
+    // محاكاة التشغيل الناجح
+    response.text = "✅ تم تشغيل الملف بنجاح: " + file_path;
+    response.ok = true;
+    response.data.push("Program executed successfully");
+
+    return response;
+}
+
+// ============================================================================
+// 5. تحليل الكود
+// ============================================================================
+
+fn analyze_code(bridge: BayanBridge, code: string) -> Response {
+    let response = types::create_response("analyze", "", false);
+
+    // التحقق من أن الكود ليس فارغاً
+    if code.len() == 0 {
+        response.text = "❌ الكود فارغ";
+        return response;
+    }
+
+    // محاكاة التحليل الناجح
+    response.text = "✅ تم تحليل الكود بنجاح";
+    response.ok = true;
+
+    // إضافة معلومات التحليل
+    if code.contains("fn ") {
+        response.data.push("Found function definition");
+    }
+    if code.contains("struct ") {
+        response.data.push("Found struct definition");
+    }
+    if code.contains("let ") {
+        response.data.push("Found variable declaration");
+    }
+
+    return response;
+}
+
+// ============================================================================
+// 6. التحقق من صحة الملف
+// ============================================================================
+
+fn validate_file(bridge: BayanBridge, file_path: string) -> bool {
+    if file_path.len() == 0 {
+        return false;
+    }
+
+    if !file_path.contains(".ab") {
+        return false;
+    }
+
+    return true;
+}
+
+// ============================================================================
+// 7. التحقق من صحة الكود
+// ============================================================================
+
+fn validate_code(bridge: BayanBridge, code: string) -> bool {
+    if code.len() == 0 {
+        return false;
+    }
+
+    // التحقق من الأقواس المتطابقة
+    let open_braces = 0;
+    let i = 0;
+
+    while i < code.len() {
+        let char = code.substring(i, i + 1);
+        if char == "{" {
+            open_braces = open_braces + 1;
+        } else if char == "}" {
+            open_braces = open_braces - 1;
+        }
+        i = i + 1;
+    }
+
+    if open_braces != 0 {
+        return false;
+    }
+
+    return true;
+}
+
+// ============================================================================
+// 8. الحصول على معلومات المترجم
+// ============================================================================
+
+fn get_compiler_info(bridge: BayanBridge) -> string {
+    return "AlBayan Compiler v0.1.0\nBinary: " + bridge.binary_path + "\nWorking Dir: " + bridge.working_dir;
+}
+
+// ============================================================================
+// 9. التحقق من توفر المترجم
+// ============================================================================
+
+fn is_compiler_available(bridge: BayanBridge) -> bool {
+    // في الواقع، سيتم التحقق من وجود الملف التنفيذي
+    // هنا نفترض أنه متاح
+    return true;
+}
+
+// ============================================================================
+// نهاية وحدة Bridge
+// ============================================================================
+

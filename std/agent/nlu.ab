@@ -1,0 +1,160 @@
+// ============================================================================
+// 🧠 وحدة فهم النية الطبيعية - NLU Module
+// ============================================================================
+// معالجة النصوص الطبيعية واستخراج النية والبيانات
+
+use types;
+
+// ============================================================================
+// 1. تحليل النية من النص
+// ============================================================================
+
+fn parse_intent(text: string) -> Intent {
+    let intent = "chat";
+    let target = "";
+    let code = "";
+    let hint = "";
+
+    // تحليل الكلمات المفتاحية للعربية
+    if text.contains("شغل") || text.contains("تشغيل") || text.contains("run") {
+        intent = "run";
+        target = extract_path(text);
+    } else if text.contains("ترجم") || text.contains("compile") || text.contains("بناء") {
+        intent = "compile";
+        target = extract_path(text);
+    } else if text.contains("حلل") || text.contains("analyze") || text.contains("فحص") {
+        intent = "analyze";
+        code = extract_code(text);
+    } else if text.contains("اقترح") || text.contains("suggest") || text.contains("نصيحة") {
+        intent = "suggest";
+        hint = extract_hint(text);
+    } else {
+        intent = "chat";
+        hint = text;
+    }
+
+    return types::create_intent(intent, target, code, hint);
+}
+
+// ============================================================================
+// 2. استخراج المسار من النص
+// ============================================================================
+
+fn extract_path(text: string) -> string {
+    // البحث عن أنماط المسارات الشائعة
+    if text.contains("examples/") {
+        let start = text.find("examples/");
+        if start >= 0 {
+            let end = start + 20;
+            if end > text.len() {
+                end = text.len();
+            }
+            return text.substring(start, end);
+        }
+    }
+
+    if text.contains(".ab") {
+        let start = text.find(".ab");
+        if start >= 0 {
+            let end = start + 3;
+            let begin = 0;
+            if start > 20 {
+                begin = start - 20;
+            }
+            return text.substring(begin, end);
+        }
+    }
+
+    // إذا لم نجد مسار، نرجع نص فارغ
+    return "";
+}
+
+// ============================================================================
+// 3. استخراج الكود من النص
+// ============================================================================
+
+fn extract_code(text: string) -> string {
+    // البحث عن كود بين علامات معينة
+    if text.contains("```") {
+        let start = text.find("```");
+        if start >= 0 {
+            let end = text.find("```", start + 3);
+            if end >= 0 {
+                return text.substring(start + 3, end);
+            }
+        }
+    }
+
+    // إذا كان النص يحتوي على كود مباشرة
+    if text.contains("fn ") || text.contains("struct ") || text.contains("let ") {
+        return text;
+    }
+
+    return "";
+}
+
+// ============================================================================
+// 4. استخراج التلميح من النص
+// ============================================================================
+
+fn extract_hint(text: string) -> string {
+    // إزالة الكلمات المفتاحية والحفاظ على الجزء المهم
+    let hint = text;
+
+    if hint.contains("اقترح") {
+        hint = hint.replace("اقترح", "");
+    }
+    if hint.contains("suggest") {
+        hint = hint.replace("suggest", "");
+    }
+    if hint.contains("نصيحة") {
+        hint = hint.replace("نصيحة", "");
+    }
+
+    return hint;
+}
+
+// ============================================================================
+// 5. دوال مساعدة للمعالجة
+// ============================================================================
+
+// دالة مساعدة للبحث عن موضع نص
+fn find(text: string, pattern: string) -> int {
+    // محاكاة البحث البسيط
+    let i = 0;
+    let text_len = text.len();
+    let pattern_len = pattern.len();
+
+    while i < text_len {
+        if i + pattern_len <= text_len {
+            let substr = text.substring(i, i + pattern_len);
+            if substr == pattern {
+                return i;
+            }
+        }
+        i = i + 1;
+    }
+
+    return -1;
+}
+
+// دالة مساعدة للاستبدال
+fn replace(text: string, old: string, new: string) -> string {
+    // محاكاة الاستبدال البسيط
+    let result = text;
+    let pos = find(result, old);
+
+    while pos >= 0 {
+        let before = result.substring(0, pos);
+        let after = result.substring(pos + old.len(), result.len());
+        result = before + new + after;
+        pos = find(result, old);
+    }
+
+    return result;
+}
+
+// ============================================================================
+// نهاية وحدة NLU
+// ============================================================================
+
