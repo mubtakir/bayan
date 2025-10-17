@@ -1,0 +1,7 @@
+// برنامج بسيط جداً لاختبار لغة البيان
+// Simple test program for AlBayan Language
+
+fn main() -> int {
+    return 1;
+}
+
