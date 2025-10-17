@@ -1,0 +1,252 @@
+// 📊 Statistics Library for AlBayan
+// مكتبة الإحصائيات للبيان
+
+use std::math::ndarray::NDArray;
+
+pub struct Statistics;
+
+impl Statistics {
+    // حساب المتوسط الحسابي
+    pub fn mean(data: List<f64>) -> f64 {
+        if data.len() == 0 {
+            return 0.0;
+        }
+        
+        let mut sum = 0.0;
+        let mut i = 0;
+        while i < data.len() {
+            sum = sum + data[i];
+            i = i + 1;
+        }
+        
+        sum / (data.len() as f64)
+    }
+    
+    // حساب الوسيط
+    pub fn median(data: List<f64>) -> f64 {
+        if data.len() == 0 {
+            return 0.0;
+        }
+        
+        // ترتيب البيانات (فرز بسيط)
+        let mut sorted = data;
+        let mut i = 0;
+        while i < sorted.len() {
+            let mut j = i + 1;
+            while j < sorted.len() {
+                if sorted[j] < sorted[i] {
+                    let temp = sorted[i];
+                    sorted[i] = sorted[j];
+                    sorted[j] = temp;
+                }
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        
+        let n = sorted.len();
+        if n % 2 == 1 {
+            return sorted[n / 2];
+        } else {
+            return (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0;
+        }
+    }
+    
+    // حساب الانحراف المعياري
+    pub fn std(data: List<f64>) -> f64 {
+        if data.len() == 0 {
+            return 0.0;
+        }
+        
+        let mean_val = Statistics::mean(data);
+        let mut sum_sq_diff = 0.0;
+        let mut i = 0;
+        
+        while i < data.len() {
+            let diff = data[i] - mean_val;
+            sum_sq_diff = sum_sq_diff + diff * diff;
+            i = i + 1;
+        }
+        
+        let variance = sum_sq_diff / (data.len() as f64);
+        // حساب الجذر التربيعي بطريقة تقريبية
+        Statistics::sqrt(variance)
+    }
+    
+    // حساب التباين
+    pub fn variance(data: List<f64>) -> f64 {
+        if data.len() == 0 {
+            return 0.0;
+        }
+        
+        let mean_val = Statistics::mean(data);
+        let mut sum_sq_diff = 0.0;
+        let mut i = 0;
+        
+        while i < data.len() {
+            let diff = data[i] - mean_val;
+            sum_sq_diff = sum_sq_diff + diff * diff;
+            i = i + 1;
+        }
+        
+        sum_sq_diff / (data.len() as f64)
+    }
+    
+    // حساب الحد الأقصى
+    pub fn max(data: List<f64>) -> f64 {
+        if data.len() == 0 {
+            return 0.0;
+        }
+        
+        let mut max_val = data[0];
+        let mut i = 1;
+        while i < data.len() {
+            if data[i] > max_val {
+                max_val = data[i];
+            }
+            i = i + 1;
+        }
+        
+        max_val
+    }
+    
+    // حساب الحد الأدنى
+    pub fn min(data: List<f64>) -> f64 {
+        if data.len() == 0 {
+            return 0.0;
+        }
+        
+        let mut min_val = data[0];
+        let mut i = 1;
+        while i < data.len() {
+            if data[i] < min_val {
+                min_val = data[i];
+            }
+            i = i + 1;
+        }
+        
+        min_val
+    }
+    
+    // حساب المدى
+    pub fn range(data: List<f64>) -> f64 {
+        Statistics::max(data) - Statistics::min(data)
+    }
+    
+    // حساب الربيعيات
+    pub fn quartiles(data: List<f64>) -> List<f64> {
+        let mut sorted = data;
+        let mut i = 0;
+        while i < sorted.len() {
+            let mut j = i + 1;
+            while j < sorted.len() {
+                if sorted[j] < sorted[i] {
+                    let temp = sorted[i];
+                    sorted[i] = sorted[j];
+                    sorted[j] = temp;
+                }
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        
+        let n = sorted.len();
+        let q1 = sorted[n / 4];
+        let q2 = Statistics::median(sorted);
+        let q3 = sorted[(3 * n) / 4];
+        
+        List::from([q1, q2, q3])
+    }
+    
+    // حساب الارتباط بين متغيرين
+    pub fn correlation(x: List<f64>, y: List<f64>) -> f64 {
+        if x.len() != y.len() || x.len() == 0 {
+            return 0.0;
+        }
+        
+        let mean_x = Statistics::mean(x);
+        let mean_y = Statistics::mean(y);
+        let std_x = Statistics::std(x);
+        let std_y = Statistics::std(y);
+        
+        if std_x == 0.0 || std_y == 0.0 {
+            return 0.0;
+        }
+        
+        let mut sum_product = 0.0;
+        let mut i = 0;
+        while i < x.len() {
+            sum_product = sum_product + (x[i] - mean_x) * (y[i] - mean_y);
+            i = i + 1;
+        }
+        
+        let covariance = sum_product / (x.len() as f64);
+        covariance / (std_x * std_y)
+    }
+    
+    // حساب المئينات
+    pub fn percentile(data: List<f64>, p: f64) -> f64 {
+        if data.len() == 0 {
+            return 0.0;
+        }
+        
+        let mut sorted = data;
+        let mut i = 0;
+        while i < sorted.len() {
+            let mut j = i + 1;
+            while j < sorted.len() {
+                if sorted[j] < sorted[i] {
+                    let temp = sorted[i];
+                    sorted[i] = sorted[j];
+                    sorted[j] = temp;
+                }
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        
+        let index = ((p / 100.0) * (sorted.len() as f64)) as i32;
+        if index >= sorted.len() as i32 {
+            return sorted[sorted.len() - 1];
+        }
+        
+        sorted[index]
+    }
+    
+    // دالة مساعدة: حساب الجذر التربيعي
+    fn sqrt(x: f64) -> f64 {
+        if x < 0.0 {
+            return 0.0;
+        }
+        if x == 0.0 {
+            return 0.0;
+        }
+        
+        let mut guess = x / 2.0;
+        let mut i = 0;
+        while i < 10 {
+            guess = (guess + x / guess) / 2.0;
+            i = i + 1;
+        }
+        
+        guess
+    }
+}
+
+// دوال مساعدة عامة
+pub fn describe(data: List<f64>) {
+    print("=== Statistical Summary ===");
+    print("Count: ");
+    print(data.len());
+    print("Mean: ");
+    print(Statistics::mean(data));
+    print("Std: ");
+    print(Statistics::std(data));
+    print("Min: ");
+    print(Statistics::min(data));
+    print("Max: ");
+    print(Statistics::max(data));
+    print("Median: ");
+    print(Statistics::median(data));
+}
+

@@ -1,0 +1,236 @@
+// 🧪 Math Libraries Tests
+// اختبارات مكتبات الرياضيات
+
+use std::math::ndarray::NDArray;
+use std::math::matrix::Matrix;
+use std::math::statistics::Statistics;
+use std::math;
+
+fn test_ndarray_creation() {
+    print("Test: NDArray Creation");
+    let shape = List::from([3, 4]);
+    let arr = NDArray::new(shape);
+    
+    assert_eq(arr.get_size(), 12);
+    assert_eq(arr.get_ndim(), 2);
+    print("✅ NDArray creation test passed");
+}
+
+fn test_ndarray_zeros() {
+    print("Test: NDArray Zeros");
+    let shape = List::from([2, 3]);
+    let arr = NDArray::zeros(shape);
+    
+    assert_eq(arr.get(List::from([0, 0])), 0.0);
+    assert_eq(arr.get(List::from([1, 2])), 0.0);
+    print("✅ NDArray zeros test passed");
+}
+
+fn test_ndarray_ones() {
+    print("Test: NDArray Ones");
+    let shape = List::from([2, 2]);
+    let arr = NDArray::ones(shape);
+    
+    assert_eq(arr.get(List::from([0, 0])), 1.0);
+    assert_eq(arr.get(List::from([1, 1])), 1.0);
+    print("✅ NDArray ones test passed");
+}
+
+fn test_ndarray_reshape() {
+    print("Test: NDArray Reshape");
+    let shape = List::from([2, 3]);
+    let arr = NDArray::new(shape);
+    let reshaped = arr.reshape(List::from([3, 2]));
+    
+    assert_eq(reshaped.get_size(), 6);
+    print("✅ NDArray reshape test passed");
+}
+
+fn test_ndarray_sum() {
+    print("Test: NDArray Sum");
+    let data = List::from([1.0, 2.0, 3.0, 4.0]);
+    let arr = NDArray::array(data);
+    
+    assert_eq(arr.sum(), 10.0);
+    print("✅ NDArray sum test passed");
+}
+
+fn test_ndarray_mean() {
+    print("Test: NDArray Mean");
+    let data = List::from([1.0, 2.0, 3.0, 4.0]);
+    let arr = NDArray::array(data);
+    
+    assert_eq(arr.mean(), 2.5);
+    print("✅ NDArray mean test passed");
+}
+
+fn test_matrix_creation() {
+    print("Test: Matrix Creation");
+    let matrix = Matrix::new(3, 3);
+    
+    assert_eq(matrix.rows(), 3);
+    assert_eq(matrix.cols(), 3);
+    print("✅ Matrix creation test passed");
+}
+
+fn test_matrix_identity() {
+    print("Test: Matrix Identity");
+    let matrix = Matrix::identity(3);
+    
+    assert_eq(matrix.get(0, 0), 1.0);
+    assert_eq(matrix.get(1, 1), 1.0);
+    assert_eq(matrix.get(0, 1), 0.0);
+    print("✅ Matrix identity test passed");
+}
+
+fn test_matrix_add() {
+    print("Test: Matrix Addition");
+    let mut m1 = Matrix::new(2, 2);
+    let mut m2 = Matrix::new(2, 2);
+    
+    m1.set(0, 0, 1.0);
+    m1.set(0, 1, 2.0);
+    m1.set(1, 0, 3.0);
+    m1.set(1, 1, 4.0);
+    
+    m2.set(0, 0, 1.0);
+    m2.set(0, 1, 1.0);
+    m2.set(1, 0, 1.0);
+    m2.set(1, 1, 1.0);
+    
+    let result = m1.add(m2);
+    
+    assert_eq(result.get(0, 0), 2.0);
+    assert_eq(result.get(1, 1), 5.0);
+    print("✅ Matrix addition test passed");
+}
+
+fn test_matrix_multiply() {
+    print("Test: Matrix Multiplication");
+    let mut m1 = Matrix::new(2, 2);
+    let mut m2 = Matrix::new(2, 2);
+    
+    m1.set(0, 0, 1.0);
+    m1.set(0, 1, 2.0);
+    m1.set(1, 0, 3.0);
+    m1.set(1, 1, 4.0);
+    
+    m2.set(0, 0, 2.0);
+    m2.set(0, 1, 0.0);
+    m2.set(1, 0, 1.0);
+    m2.set(1, 1, 2.0);
+    
+    let result = m1.multiply(m2);
+    
+    assert_eq(result.get(0, 0), 4.0);
+    assert_eq(result.get(0, 1), 4.0);
+    print("✅ Matrix multiplication test passed");
+}
+
+fn test_matrix_transpose() {
+    print("Test: Matrix Transpose");
+    let mut m = Matrix::new(2, 3);
+    
+    m.set(0, 0, 1.0);
+    m.set(0, 1, 2.0);
+    m.set(0, 2, 3.0);
+    m.set(1, 0, 4.0);
+    m.set(1, 1, 5.0);
+    m.set(1, 2, 6.0);
+    
+    let transposed = m.transpose();
+    
+    assert_eq(transposed.rows(), 3);
+    assert_eq(transposed.cols(), 2);
+    assert_eq(transposed.get(0, 0), 1.0);
+    assert_eq(transposed.get(2, 1), 6.0);
+    print("✅ Matrix transpose test passed");
+}
+
+fn test_statistics_mean() {
+    print("Test: Statistics Mean");
+    let data = List::from([1.0, 2.0, 3.0, 4.0, 5.0]);
+    let mean_val = Statistics::mean(data);
+    
+    assert_eq(mean_val, 3.0);
+    print("✅ Statistics mean test passed");
+}
+
+fn test_statistics_median() {
+    print("Test: Statistics Median");
+    let data = List::from([1.0, 2.0, 3.0, 4.0, 5.0]);
+    let median_val = Statistics::median(data);
+    
+    assert_eq(median_val, 3.0);
+    print("✅ Statistics median test passed");
+}
+
+fn test_statistics_max_min() {
+    print("Test: Statistics Max/Min");
+    let data = List::from([1.0, 5.0, 3.0, 2.0, 4.0]);
+    
+    assert_eq(Statistics::max(data), 5.0);
+    assert_eq(Statistics::min(data), 1.0);
+    print("✅ Statistics max/min test passed");
+}
+
+fn test_math_functions() {
+    print("Test: Math Functions");
+    
+    assert_eq(math::abs(-5.0), 5.0);
+    assert_eq(math::max(3.0, 5.0), 5.0);
+    assert_eq(math::min(3.0, 5.0), 3.0);
+    
+    print("✅ Math functions test passed");
+}
+
+fn assert_eq(a: f64, b: f64) {
+    if a != b {
+        print("Assertion failed: ");
+        print(a);
+        print(" != ");
+        print(b);
+    }
+}
+
+fn main() {
+    print("═══════════════════════════════════════════════════════════");
+    print("🧪 Running Math Libraries Tests");
+    print("═══════════════════════════════════════════════════════════");
+    print("");
+    
+    // NDArray Tests
+    test_ndarray_creation();
+    test_ndarray_zeros();
+    test_ndarray_ones();
+    test_ndarray_reshape();
+    test_ndarray_sum();
+    test_ndarray_mean();
+    
+    print("");
+    
+    // Matrix Tests
+    test_matrix_creation();
+    test_matrix_identity();
+    test_matrix_add();
+    test_matrix_multiply();
+    test_matrix_transpose();
+    
+    print("");
+    
+    // Statistics Tests
+    test_statistics_mean();
+    test_statistics_median();
+    test_statistics_max_min();
+    
+    print("");
+    
+    // Math Functions Tests
+    test_math_functions();
+    
+    print("");
+    print("═══════════════════════════════════════════════════════════");
+    print("✅ All tests completed!");
+    print("═══════════════════════════════════════════════════════════");
+}
+

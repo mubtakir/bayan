@@ -1,0 +1,233 @@
+// 🔢 Matrix Operations Library for AlBayan
+// مكتبة عمليات المصفوفات للبيان
+
+use std::math::ndarray::NDArray;
+
+pub struct Matrix {
+    data: NDArray,
+}
+
+impl Matrix {
+    // إنشاء مصفوفة جديدة
+    pub fn new(rows: i32, cols: i32) -> Matrix {
+        let shape = List::from([rows, cols]);
+        Matrix {
+            data: NDArray::new(shape),
+        }
+    }
+    
+    // إنشاء مصفوفة الهوية
+    pub fn identity(n: i32) -> Matrix {
+        let mut matrix = Matrix::new(n, n);
+        let mut i = 0;
+        while i < n {
+            matrix.set(i, i, 1.0);
+            i = i + 1;
+        }
+        matrix
+    }
+    
+    // إنشاء مصفوفة عشوائية
+    pub fn random(rows: i32, cols: i32) -> Matrix {
+        let mut matrix = Matrix::new(rows, cols);
+        let mut i = 0;
+        while i < rows {
+            let mut j = 0;
+            while j < cols {
+                // محاكاة رقم عشوائي بسيط
+                let random_val = ((i * 73856093) ^ (j * 19349663)) as f64 / 1000000.0;
+                matrix.set(i, j, random_val);
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        matrix
+    }
+    
+    // الحصول على عنصر
+    pub fn get(self, row: i32, col: i32) -> f64 {
+        self.data.get(List::from([row, col]))
+    }
+    
+    // تعيين عنصر
+    pub fn set(mut self, row: i32, col: i32, value: f64) {
+        self.data.set(List::from([row, col]), value);
+    }
+    
+    // الحصول على عدد الصفوف
+    pub fn rows(self) -> i32 {
+        self.data.get_shape()[0]
+    }
+    
+    // الحصول على عدد الأعمدة
+    pub fn cols(self) -> i32 {
+        self.data.get_shape()[1]
+    }
+    
+    // ضرب مصفوفتين
+    pub fn multiply(self, other: Matrix) -> Matrix {
+        let m = self.rows();
+        let n = self.cols();
+        let p = other.cols();
+        
+        if n != other.rows() {
+            print("Error: Matrix dimensions do not match for multiplication");
+            return self;
+        }
+        
+        let mut result = Matrix::new(m, p);
+        
+        let mut i = 0;
+        while i < m {
+            let mut j = 0;
+            while j < p {
+                let mut sum = 0.0;
+                let mut k = 0;
+                while k < n {
+                    sum = sum + self.get(i, k) * other.get(k, j);
+                    k = k + 1;
+                }
+                result.set(i, j, sum);
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        
+        result
+    }
+    
+    // جمع مصفوفتين
+    pub fn add(self, other: Matrix) -> Matrix {
+        if self.rows() != other.rows() || self.cols() != other.cols() {
+            print("Error: Matrix dimensions do not match for addition");
+            return self;
+        }
+        
+        let mut result = Matrix::new(self.rows(), self.cols());
+        
+        let mut i = 0;
+        while i < self.rows() {
+            let mut j = 0;
+            while j < self.cols() {
+                result.set(i, j, self.get(i, j) + other.get(i, j));
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        
+        result
+    }
+    
+    // طرح مصفوفتين
+    pub fn subtract(self, other: Matrix) -> Matrix {
+        if self.rows() != other.rows() || self.cols() != other.cols() {
+            print("Error: Matrix dimensions do not match for subtraction");
+            return self;
+        }
+        
+        let mut result = Matrix::new(self.rows(), self.cols());
+        
+        let mut i = 0;
+        while i < self.rows() {
+            let mut j = 0;
+            while j < self.cols() {
+                result.set(i, j, self.get(i, j) - other.get(i, j));
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        
+        result
+    }
+    
+    // ضرب مصفوفة بعدد
+    pub fn scale(self, scalar: f64) -> Matrix {
+        let mut result = Matrix::new(self.rows(), self.cols());
+        
+        let mut i = 0;
+        while i < self.rows() {
+            let mut j = 0;
+            while j < self.cols() {
+                result.set(i, j, self.get(i, j) * scalar);
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        
+        result
+    }
+    
+    // نقل المصفوفة
+    pub fn transpose(self) -> Matrix {
+        let transposed_data = self.data.transpose();
+        Matrix {
+            data: transposed_data,
+        }
+    }
+    
+    // حساب المحدد (للمصفوفات 2x2 و 3x3)
+    pub fn determinant(self) -> f64 {
+        if self.rows() != self.cols() {
+            print("Error: Determinant only for square matrices");
+            return 0.0;
+        }
+        
+        if self.rows() == 2 {
+            return self.get(0, 0) * self.get(1, 1) - self.get(0, 1) * self.get(1, 0);
+        }
+        
+        if self.rows() == 3 {
+            let a = self.get(0, 0);
+            let b = self.get(0, 1);
+            let c = self.get(0, 2);
+            let d = self.get(1, 0);
+            let e = self.get(1, 1);
+            let f = self.get(1, 2);
+            let g = self.get(2, 0);
+            let h = self.get(2, 1);
+            let i = self.get(2, 2);
+            
+            return a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
+        }
+        
+        print("Error: Determinant only implemented for 2x2 and 3x3 matrices");
+        0.0
+    }
+    
+    // حساب الأثر (مجموع العناصر القطرية)
+    pub fn trace(self) -> f64 {
+        if self.rows() != self.cols() {
+            print("Error: Trace only for square matrices");
+            return 0.0;
+        }
+        
+        let mut sum = 0.0;
+        let mut i = 0;
+        while i < self.rows() {
+            sum = sum + self.get(i, i);
+            i = i + 1;
+        }
+        
+        sum
+    }
+    
+    // حساب مجموع جميع العناصر
+    pub fn sum(self) -> f64 {
+        self.data.sum()
+    }
+    
+    // حساب متوسط جميع العناصر
+    pub fn mean(self) -> f64 {
+        self.data.mean()
+    }
+    
+    // طباعة المصفوفة
+    pub fn print(self) {
+        print("Matrix(");
+        print(self.rows());
+        print("x");
+        print(self.cols());
+        print(")");
+    }
+}
+

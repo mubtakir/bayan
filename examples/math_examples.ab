@@ -1,0 +1,295 @@
+// 📚 AlBayan Math Libraries - Practical Examples
+// أمثلة عملية لمكتبات الرياضيات
+
+use std::math::ndarray::NDArray;
+use std::math::matrix::Matrix;
+use std::math::statistics::Statistics;
+use std::math;
+
+// Example 1: Working with NDArrays
+fn example_ndarray() {
+    print("═══════════════════════════════════════════════════════════");
+    print("Example 1: Working with NDArrays");
+    print("═══════════════════════════════════════════════════════════");
+    
+    // Create a 3x4 array
+    let arr = NDArray::new(List::from([3, 4]));
+    
+    // Fill with values
+    let mut i = 0;
+    while i < 3 {
+        let mut j = 0;
+        while j < 4 {
+            arr.set(List::from([i, j]), (i * 4 + j) as f64);
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    
+    print("Array shape: ");
+    print(arr.get_shape());
+    print("Array size: ");
+    print(arr.get_size());
+    print("Array sum: ");
+    print(arr.sum());
+    print("Array mean: ");
+    print(arr.mean());
+    print("Array max: ");
+    print(arr.max());
+    print("Array min: ");
+    print(arr.min());
+    
+    // Reshape the array
+    let reshaped = arr.reshape(List::from([2, 6]));
+    print("Reshaped to 2x6");
+    
+    print("");
+}
+
+// Example 2: Matrix Operations
+fn example_matrix() {
+    print("═══════════════════════════════════════════════════════════");
+    print("Example 2: Matrix Operations");
+    print("═══════════════════════════════════════════════════════════");
+    
+    // Create two 2x2 matrices
+    let mut m1 = Matrix::new(2, 2);
+    let mut m2 = Matrix::new(2, 2);
+    
+    // Set values for m1
+    m1.set(0, 0, 1.0);
+    m1.set(0, 1, 2.0);
+    m1.set(1, 0, 3.0);
+    m1.set(1, 1, 4.0);
+    
+    // Set values for m2
+    m2.set(0, 0, 5.0);
+    m2.set(0, 1, 6.0);
+    m2.set(1, 0, 7.0);
+    m2.set(1, 1, 8.0);
+    
+    print("Matrix 1:");
+    m1.print();
+    print("Matrix 2:");
+    m2.print();
+    
+    // Matrix addition
+    let sum = m1.add(m2);
+    print("Matrix 1 + Matrix 2:");
+    sum.print();
+    
+    // Matrix multiplication
+    let product = m1.multiply(m2);
+    print("Matrix 1 * Matrix 2:");
+    product.print();
+    
+    // Matrix transpose
+    let transposed = m1.transpose();
+    print("Matrix 1 transposed:");
+    transposed.print();
+    
+    // Matrix determinant
+    let det = m1.determinant();
+    print("Determinant of Matrix 1: ");
+    print(det);
+    
+    // Matrix trace
+    let trace = m1.trace();
+    print("Trace of Matrix 1: ");
+    print(trace);
+    
+    print("");
+}
+
+// Example 3: Statistical Analysis
+fn example_statistics() {
+    print("═══════════════════════════════════════════════════════════");
+    print("Example 3: Statistical Analysis");
+    print("═══════════════════════════════════════════════════════════");
+    
+    let data = List::from([10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0]);
+    
+    print("Data: ");
+    print(data);
+    
+    print("Mean: ");
+    print(Statistics::mean(data));
+    
+    print("Median: ");
+    print(Statistics::median(data));
+    
+    print("Standard Deviation: ");
+    print(Statistics::std(data));
+    
+    print("Variance: ");
+    print(Statistics::variance(data));
+    
+    print("Min: ");
+    print(Statistics::min(data));
+    
+    print("Max: ");
+    print(Statistics::max(data));
+    
+    print("Range: ");
+    print(Statistics::range(data));
+    
+    let quartiles = Statistics::quartiles(data);
+    print("Quartiles (Q1, Q2, Q3): ");
+    print(quartiles);
+    
+    print("75th Percentile: ");
+    print(Statistics::percentile(data, 75.0));
+    
+    print("");
+}
+
+// Example 4: Mathematical Functions
+fn example_math_functions() {
+    print("═══════════════════════════════════════════════════════════");
+    print("Example 4: Mathematical Functions");
+    print("═══════════════════════════════════════════════════════════");
+    
+    print("Absolute value of -5: ");
+    print(math::abs(-5.0));
+    
+    print("Square root of 16: ");
+    print(math::sqrt(16.0));
+    
+    print("2 to the power of 3: ");
+    print(math::pow(2.0, 3));
+    
+    print("e^1: ");
+    print(math::exp(1.0));
+    
+    print("ln(2.718): ");
+    print(math::log(2.718));
+    
+    print("sin(π/2): ");
+    print(math::sin(1.5708));
+    
+    print("cos(0): ");
+    print(math::cos(0.0));
+    
+    print("tan(π/4): ");
+    print(math::tan(0.7854));
+    
+    print("Floor of 3.7: ");
+    print(math::floor(3.7));
+    
+    print("Ceil of 3.2: ");
+    print(math::ceil(3.2));
+    
+    print("Round of 3.5: ");
+    print(math::round(3.5));
+    
+    print("Max of 3 and 5: ");
+    print(math::max(3.0, 5.0));
+    
+    print("Min of 3 and 5: ");
+    print(math::min(3.0, 5.0));
+    
+    print("Clamp 7 between 0 and 5: ");
+    print(math::clamp(7.0, 0.0, 5.0));
+    
+    print("Linear interpolation between 0 and 10 at t=0.5: ");
+    print(math::lerp(0.0, 10.0, 0.5));
+    
+    print("Distance between (0,0) and (3,4): ");
+    print(math::distance(0.0, 0.0, 3.0, 4.0));
+    
+    print("180 degrees to radians: ");
+    print(math::degrees_to_radians(180.0));
+    
+    print("π radians to degrees: ");
+    print(math::radians_to_degrees(3.14159));
+    
+    print("");
+}
+
+// Example 5: Array Creation Functions
+fn example_array_creation() {
+    print("═══════════════════════════════════════════════════════════");
+    print("Example 5: Array Creation Functions");
+    print("═══════════════════════════════════════════════════════════");
+    
+    // Create array from list
+    let arr = NDArray::array(List::from([1.0, 2.0, 3.0, 4.0, 5.0]));
+    print("Array from list: ");
+    print(arr.get_shape());
+    
+    // Create range
+    let range = NDArray::arange(0.0, 10.0, 2.0);
+    print("Range from 0 to 10 with step 2: ");
+    print(range.get_shape());
+    
+    // Create linspace
+    let linspace = NDArray::linspace(0.0, 1.0, 11);
+    print("Linspace from 0 to 1 with 11 points: ");
+    print(linspace.get_shape());
+    
+    print("");
+}
+
+// Example 6: Correlation Analysis
+fn example_correlation() {
+    print("═══════════════════════════════════════════════════════════");
+    print("Example 6: Correlation Analysis");
+    print("═══════════════════════════════════════════════════════════");
+    
+    let x = List::from([1.0, 2.0, 3.0, 4.0, 5.0]);
+    let y = List::from([2.0, 4.0, 6.0, 8.0, 10.0]);
+    
+    print("X data: ");
+    print(x);
+    print("Y data: ");
+    print(y);
+    
+    let corr = Statistics::correlation(x, y);
+    print("Correlation between X and Y: ");
+    print(corr);
+    
+    print("");
+}
+
+// Example 7: Identity Matrix
+fn example_identity_matrix() {
+    print("═══════════════════════════════════════════════════════════");
+    print("Example 7: Identity Matrix");
+    print("═══════════════════════════════════════════════════════════");
+    
+    let identity = Matrix::identity(3);
+    print("3x3 Identity Matrix:");
+    print("Diagonal elements should be 1.0");
+    print("Element [0,0]: ");
+    print(identity.get(0, 0));
+    print("Element [1,1]: ");
+    print(identity.get(1, 1));
+    print("Element [2,2]: ");
+    print(identity.get(2, 2));
+    print("Element [0,1]: ");
+    print(identity.get(0, 1));
+    
+    print("");
+}
+
+fn main() {
+    print("╔════════════════════════════════════════════════════════════╗");
+    print("║                                                            ║");
+    print("║     AlBayan Math Libraries - Practical Examples           ║");
+    print("║                                                            ║");
+    print("╚════════════════════════════════════════════════════════════╝");
+    print("");
+    
+    example_ndarray();
+    example_matrix();
+    example_statistics();
+    example_math_functions();
+    example_array_creation();
+    example_correlation();
+    example_identity_matrix();
+    
+    print("═══════════════════════════════════════════════════════════");
+    print("✅ All examples completed successfully!");
+    print("═══════════════════════════════════════════════════════════");
+}
+

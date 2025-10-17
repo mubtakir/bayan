@@ -1,0 +1,185 @@
+// 🧮 AlBayan Math Libraries Module
+// وحدة مكتبات الرياضيات للبيان
+
+pub mod ndarray;
+pub mod matrix;
+pub mod statistics;
+
+// إعادة تصدير الأنواع الرئيسية
+pub use ndarray::NDArray;
+pub use matrix::Matrix;
+pub use statistics::Statistics;
+
+// دوال مساعدة عامة
+pub fn abs(x: f64) -> f64 {
+    if x < 0.0 {
+        return -x;
+    }
+    x
+}
+
+pub fn sqrt(x: f64) -> f64 {
+    if x < 0.0 {
+        return 0.0;
+    }
+    if x == 0.0 {
+        return 0.0;
+    }
+    
+    let mut guess = x / 2.0;
+    let mut i = 0;
+    while i < 10 {
+        guess = (guess + x / guess) / 2.0;
+        i = i + 1;
+    }
+    
+    guess
+}
+
+pub fn pow(x: f64, n: i32) -> f64 {
+    let mut result = 1.0;
+    let mut i = 0;
+    while i < n {
+        result = result * x;
+        i = i + 1;
+    }
+    result
+}
+
+pub fn exp(x: f64) -> f64 {
+    // تقريب e^x باستخدام متسلسلة تايلور
+    let mut result = 1.0;
+    let mut term = 1.0;
+    let mut i = 1;
+    while i < 20 {
+        term = term * x / (i as f64);
+        result = result + term;
+        i = i + 1;
+    }
+    result
+}
+
+pub fn log(x: f64) -> f64 {
+    if x <= 0.0 {
+        return 0.0;
+    }
+    
+    // تقريب ln(x)
+    let mut result = 0.0;
+    let mut y = (x - 1.0) / (x + 1.0);
+    let mut y_squared = y * y;
+    let mut term = y;
+    let mut i = 1;
+    
+    while i < 20 {
+        result = result + term / (i as f64);
+        term = term * y_squared;
+        i = i + 2;
+    }
+    
+    result * 2.0
+}
+
+pub fn sin(x: f64) -> f64 {
+    // تقريب sin(x) باستخدام متسلسلة تايلور
+    let mut result = 0.0;
+    let mut term = x;
+    let mut i = 1;
+    
+    while i < 20 {
+        result = result + term;
+        term = term * (-x * x) / ((2 * i) as f64 * (2 * i + 1) as f64);
+        i = i + 1;
+    }
+    
+    result
+}
+
+pub fn cos(x: f64) -> f64 {
+    // تقريب cos(x) باستخدام متسلسلة تايلور
+    let mut result = 1.0;
+    let mut term = 1.0;
+    let mut i = 1;
+    
+    while i < 20 {
+        term = term * (-x * x) / ((2 * i - 1) as f64 * (2 * i) as f64);
+        result = result + term;
+        i = i + 1;
+    }
+    
+    result
+}
+
+pub fn tan(x: f64) -> f64 {
+    cos(x) / sin(x)
+}
+
+pub fn floor(x: f64) -> i32 {
+    let mut result = x as i32;
+    if (result as f64) > x {
+        result = result - 1;
+    }
+    result
+}
+
+pub fn ceil(x: f64) -> i32 {
+    let mut result = x as i32;
+    if (result as f64) < x {
+        result = result + 1;
+    }
+    result
+}
+
+pub fn round(x: f64) -> i32 {
+    let floor_val = floor(x);
+    let frac = x - (floor_val as f64);
+    
+    if frac >= 0.5 {
+        return floor_val + 1;
+    }
+    
+    floor_val
+}
+
+pub fn max(a: f64, b: f64) -> f64 {
+    if a > b {
+        return a;
+    }
+    b
+}
+
+pub fn min(a: f64, b: f64) -> f64 {
+    if a < b {
+        return a;
+    }
+    b
+}
+
+pub fn clamp(x: f64, min_val: f64, max_val: f64) -> f64 {
+    if x < min_val {
+        return min_val;
+    }
+    if x > max_val {
+        return max_val;
+    }
+    x
+}
+
+pub fn lerp(a: f64, b: f64, t: f64) -> f64 {
+    a + (b - a) * t
+}
+
+pub fn distance(x1: f64, y1: f64, x2: f64, y2: f64) -> f64 {
+    let dx = x2 - x1;
+    let dy = y2 - y1;
+    sqrt(dx * dx + dy * dy)
+}
+
+pub fn degrees_to_radians(degrees: f64) -> f64 {
+    degrees * 3.14159265359 / 180.0
+}
+
+pub fn radians_to_degrees(radians: f64) -> f64 {
+    radians * 180.0 / 3.14159265359
+}
+
