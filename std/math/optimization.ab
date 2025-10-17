@@ -1,0 +1,284 @@
+// 🎯 Optimization Algorithms
+// خوارزميات التحسين والتحسين
+
+pub struct OptimizationResult {
+    x: List<f64>,
+    f_value: f64,
+    iterations: i32,
+    converged: bool,
+}
+
+pub struct Optimizer;
+
+impl Optimizer {
+    // Gradient Descent
+    pub fn gradient_descent(
+        initial_x: List<f64>,
+        learning_rate: f64,
+        max_iterations: i32,
+        tolerance: f64
+    ) -> OptimizationResult {
+        print("Running Gradient Descent optimization...");
+        
+        let mut x = initial_x;
+        let mut f_value = 0.0;
+        let mut converged = false;
+        let mut iter = 0;
+        
+        while iter < max_iterations {
+            // Compute gradient (numerical)
+            let mut gradient = List::new();
+            let h = 1e-5;
+            let mut i = 0;
+            while i < x.len() {
+                let mut x_plus = x;
+                x_plus[i] = x_plus[i] + h;
+                
+                let mut x_minus = x;
+                x_minus[i] = x_minus[i] - h;
+                
+                let f_plus = Optimizer::objective_function(x_plus);
+                let f_minus = Optimizer::objective_function(x_minus);
+                
+                let grad = (f_plus - f_minus) / (2.0 * h);
+                gradient.push(grad);
+                
+                i = i + 1;
+            }
+            
+            // Update x
+            let mut j = 0;
+            while j < x.len() {
+                x[j] = x[j] - learning_rate * gradient[j];
+                j = j + 1;
+            }
+            
+            // Check convergence
+            let mut grad_norm = 0.0;
+            let mut k = 0;
+            while k < gradient.len() {
+                grad_norm = grad_norm + gradient[k] * gradient[k];
+                k = k + 1;
+            }
+            grad_norm = sqrt_approx(grad_norm);
+            
+            if grad_norm < tolerance {
+                converged = true;
+            }
+            
+            f_value = Optimizer::objective_function(x);
+            iter = iter + 1;
+        }
+        
+        OptimizationResult {
+            x: x,
+            f_value: f_value,
+            iterations: iter,
+            converged: converged,
+        }
+    }
+    
+    // Stochastic Gradient Descent
+    pub fn sgd(
+        initial_x: List<f64>,
+        learning_rate: f64,
+        max_iterations: i32,
+        batch_size: i32
+    ) -> OptimizationResult {
+        print("Running Stochastic Gradient Descent...");
+        
+        let mut x = initial_x;
+        let mut f_value = 0.0;
+        let mut iter = 0;
+        
+        while iter < max_iterations {
+            // Mini-batch gradient
+            let mut gradient = List::new();
+            let mut i = 0;
+            while i < x.len() {
+                gradient.push(0.0);
+                i = i + 1;
+            }
+            
+            // Compute gradient for batch
+            let mut batch = 0;
+            while batch < batch_size {
+                let mut h = 1e-5;
+                let mut j = 0;
+                while j < x.len() {
+                    let mut x_plus = x;
+                    x_plus[j] = x_plus[j] + h;
+                    
+                    let mut x_minus = x;
+                    x_minus[j] = x_minus[j] - h;
+                    
+                    let f_plus = Optimizer::objective_function(x_plus);
+                    let f_minus = Optimizer::objective_function(x_minus);
+                    
+                    let grad = (f_plus - f_minus) / (2.0 * h);
+                    gradient[j] = gradient[j] + grad;
+                    
+                    j = j + 1;
+                }
+                batch = batch + 1;
+            }
+            
+            // Average gradient
+            let mut k = 0;
+            while k < gradient.len() {
+                gradient[k] = gradient[k] / (batch_size as f64);
+                k = k + 1;
+            }
+            
+            // Update x
+            let mut l = 0;
+            while l < x.len() {
+                x[l] = x[l] - learning_rate * gradient[l];
+                l = l + 1;
+            }
+            
+            f_value = Optimizer::objective_function(x);
+            iter = iter + 1;
+        }
+        
+        OptimizationResult {
+            x: x,
+            f_value: f_value,
+            iterations: iter,
+            converged: true,
+        }
+    }
+    
+    // Adam Optimizer
+    pub fn adam(
+        initial_x: List<f64>,
+        learning_rate: f64,
+        max_iterations: i32,
+        beta1: f64,
+        beta2: f64
+    ) -> OptimizationResult {
+        print("Running Adam optimizer...");
+        
+        let mut x = initial_x;
+        let mut m = List::new();  // First moment
+        let mut v = List::new();  // Second moment
+        
+        let mut i = 0;
+        while i < x.len() {
+            m.push(0.0);
+            v.push(0.0);
+            i = i + 1;
+        }
+        
+        let epsilon = 1e-8;
+        let mut f_value = 0.0;
+        let mut iter = 0;
+        
+        while iter < max_iterations {
+            // Compute gradient
+            let mut gradient = List::new();
+            let h = 1e-5;
+            let mut j = 0;
+            while j < x.len() {
+                let mut x_plus = x;
+                x_plus[j] = x_plus[j] + h;
+                
+                let mut x_minus = x;
+                x_minus[j] = x_minus[j] - h;
+                
+                let f_plus = Optimizer::objective_function(x_plus);
+                let f_minus = Optimizer::objective_function(x_minus);
+                
+                let grad = (f_plus - f_minus) / (2.0 * h);
+                gradient.push(grad);
+                
+                j = j + 1;
+            }
+            
+            // Update biased first moment estimate
+            let mut k = 0;
+            while k < x.len() {
+                m[k] = beta1 * m[k] + (1.0 - beta1) * gradient[k];
+                k = k + 1;
+            }
+            
+            // Update biased second raw moment estimate
+            let mut l = 0;
+            while l < x.len() {
+                v[l] = beta2 * v[l] + (1.0 - beta2) * gradient[l] * gradient[l];
+                l = l + 1;
+            }
+            
+            // Compute bias-corrected estimates
+            let bias_correction1 = 1.0 - pow_approx(beta1, iter + 1);
+            let bias_correction2 = 1.0 - pow_approx(beta2, iter + 1);
+            
+            // Update x
+            let mut p = 0;
+            while p < x.len() {
+                let m_hat = m[p] / bias_correction1;
+                let v_hat = v[p] / bias_correction2;
+                x[p] = x[p] - learning_rate * m_hat / (sqrt_approx(v_hat) + epsilon);
+                p = p + 1;
+            }
+            
+            f_value = Optimizer::objective_function(x);
+            iter = iter + 1;
+        }
+        
+        OptimizationResult {
+            x: x,
+            f_value: f_value,
+            iterations: iter,
+            converged: true,
+        }
+    }
+    
+    // Objective function (example: Rosenbrock)
+    pub fn objective_function(x: List<f64>) -> f64 {
+        if x.len() < 2 {
+            return 0.0;
+        }
+        
+        let mut sum = 0.0;
+        let mut i = 0;
+        while i < x.len() - 1 {
+            let a = 1.0 - x[i];
+            let b = x[i + 1] - x[i] * x[i];
+            sum = sum + a * a + 100.0 * b * b;
+            i = i + 1;
+        }
+        
+        sum
+    }
+}
+
+// Helper functions
+fn sqrt_approx(x: f64) -> f64 {
+    if x < 0.0 {
+        return 0.0;
+    }
+    if x == 0.0 {
+        return 0.0;
+    }
+    
+    let mut guess = x / 2.0;
+    let mut i = 0;
+    while i < 10 {
+        guess = (guess + x / guess) / 2.0;
+        i = i + 1;
+    }
+    
+    guess
+}
+
+fn pow_approx(base: f64, exp: i32) -> f64 {
+    let mut result = 1.0;
+    let mut i = 0;
+    while i < exp {
+        result = result * base;
+        i = i + 1;
+    }
+    result
+}
+

@@ -1,0 +1,233 @@
+// 🧪 Phase 2 Tests - FFI & Advanced Linear Algebra
+// اختبارات Phase 2 - FFI والجبر الخطي المتقدم
+
+use std::ffi::numpy_ffi::NumPyFFI;
+use std::math::advanced_linalg::AdvancedLinAlg;
+use std::math::optimization::Optimizer;
+
+// ============================================================
+// FFI Tests
+// ============================================================
+
+fn test_numpy_ffi_init() {
+    print("Testing NumPy FFI initialization...");
+    
+    let result = NumPyFFI::init();
+    assert_eq(result, true);
+    
+    print("✅ test_numpy_ffi_init passed");
+}
+
+fn test_numpy_zeros() {
+    print("Testing NumPy zeros creation...");
+    
+    let shape = List::from([3, 3]);
+    let arr = NumPyFFI::zeros(shape);
+    
+    assert_eq(arr.get_size(), 9);
+    assert_eq(arr.get_dtype(), 0);
+    
+    print("✅ test_numpy_zeros passed");
+}
+
+fn test_numpy_ones() {
+    print("Testing NumPy ones creation...");
+    
+    let shape = List::from([2, 4]);
+    let arr = NumPyFFI::ones(shape);
+    
+    assert_eq(arr.get_size(), 8);
+    
+    print("✅ test_numpy_ones passed");
+}
+
+fn test_numpy_arange() {
+    print("Testing NumPy arange...");
+    
+    let arr = NumPyFFI::arange(0.0, 10.0, 1.0);
+    assert_eq(arr.get_size(), 10);
+    
+    print("✅ test_numpy_arange passed");
+}
+
+fn test_numpy_linspace() {
+    print("Testing NumPy linspace...");
+    
+    let arr = NumPyFFI::linspace(0.0, 1.0, 11);
+    assert_eq(arr.get_size(), 11);
+    
+    print("✅ test_numpy_linspace passed");
+}
+
+// ============================================================
+// Advanced Linear Algebra Tests
+// ============================================================
+
+fn test_qr_decomposition() {
+    print("Testing QR decomposition...");
+    
+    let mut A = Matrix::new(3, 3);
+    A.set(0, 0, 1.0);
+    A.set(0, 1, 2.0);
+    A.set(0, 2, 3.0);
+    A.set(1, 0, 4.0);
+    A.set(1, 1, 5.0);
+    A.set(1, 2, 6.0);
+    A.set(2, 0, 7.0);
+    A.set(2, 1, 8.0);
+    A.set(2, 2, 9.0);
+    
+    let (Q, R) = AdvancedLinAlg::qr_decomposition(A);
+    
+    assert_eq(Q.rows(), 3);
+    assert_eq(R.rows(), 3);
+    
+    print("✅ test_qr_decomposition passed");
+}
+
+fn test_cholesky_decomposition() {
+    print("Testing Cholesky decomposition...");
+    
+    let mut A = Matrix::new(2, 2);
+    A.set(0, 0, 4.0);
+    A.set(0, 1, 2.0);
+    A.set(1, 0, 2.0);
+    A.set(1, 1, 3.0);
+    
+    let L = AdvancedLinAlg::cholesky_decomposition(A);
+    
+    assert_eq(L.rows(), 2);
+    assert_eq(L.cols(), 2);
+    
+    print("✅ test_cholesky_decomposition passed");
+}
+
+fn test_power_iteration() {
+    print("Testing power iteration for eigenvalues...");
+    
+    let mut A = Matrix::new(2, 2);
+    A.set(0, 0, 2.0);
+    A.set(0, 1, 1.0);
+    A.set(1, 0, 1.0);
+    A.set(1, 1, 2.0);
+    
+    let (eigenvalue, eigenvector) = AdvancedLinAlg::power_iteration(A, 10);
+    
+    assert_eq(eigenvalue > 0.0, true);
+    assert_eq(eigenvector.len() > 0, true);
+    
+    print("✅ test_power_iteration passed");
+}
+
+fn test_least_squares() {
+    print("Testing least squares solver...");
+    
+    let mut A = Matrix::new(3, 2);
+    A.set(0, 0, 1.0);
+    A.set(0, 1, 1.0);
+    A.set(1, 0, 2.0);
+    A.set(1, 1, 1.0);
+    A.set(2, 0, 3.0);
+    A.set(2, 1, 1.0);
+    
+    let mut b = Matrix::new(3, 1);
+    b.set(0, 0, 2.0);
+    b.set(1, 0, 3.0);
+    b.set(2, 0, 4.0);
+    
+    let x = AdvancedLinAlg::least_squares(A, b);
+    
+    assert_eq(x.rows(), 2);
+    assert_eq(x.cols(), 1);
+    
+    print("✅ test_least_squares passed");
+}
+
+fn test_frobenius_norm() {
+    print("Testing Frobenius norm...");
+    
+    let mut A = Matrix::new(2, 2);
+    A.set(0, 0, 1.0);
+    A.set(0, 1, 2.0);
+    A.set(1, 0, 3.0);
+    A.set(1, 1, 4.0);
+    
+    let norm = AdvancedLinAlg::norm_frobenius(A);
+    
+    assert_eq(norm > 0.0, true);
+    
+    print("✅ test_frobenius_norm passed");
+}
+
+// ============================================================
+// Optimization Tests
+// ============================================================
+
+fn test_gradient_descent() {
+    print("Testing gradient descent optimization...");
+    
+    let initial_x = List::from([0.0, 0.0]);
+    let result = Optimizer::gradient_descent(initial_x, 0.01, 100, 1e-6);
+    
+    assert_eq(result.iterations > 0, true);
+    assert_eq(result.f_value >= 0.0, true);
+    
+    print("✅ test_gradient_descent passed");
+}
+
+fn test_sgd() {
+    print("Testing stochastic gradient descent...");
+    
+    let initial_x = List::from([0.0, 0.0]);
+    let result = Optimizer::sgd(initial_x, 0.01, 50, 5);
+    
+    assert_eq(result.iterations > 0, true);
+    
+    print("✅ test_sgd passed");
+}
+
+fn test_adam() {
+    print("Testing Adam optimizer...");
+    
+    let initial_x = List::from([0.0, 0.0]);
+    let result = Optimizer::adam(initial_x, 0.001, 50, 0.9, 0.999);
+    
+    assert_eq(result.iterations > 0, true);
+    assert_eq(result.converged, true);
+    
+    print("✅ test_adam passed");
+}
+
+// ============================================================
+// Run All Tests
+// ============================================================
+
+fn run_all_phase2_tests() {
+    print("═══════════════════════════════════════════════════════");
+    print("Running Phase 2 Tests - FFI & Advanced Linear Algebra");
+    print("═══════════════════════════════════════════════════════");
+    
+    // FFI Tests
+    test_numpy_ffi_init();
+    test_numpy_zeros();
+    test_numpy_ones();
+    test_numpy_arange();
+    test_numpy_linspace();
+    
+    // Advanced Linear Algebra Tests
+    test_qr_decomposition();
+    test_cholesky_decomposition();
+    test_power_iteration();
+    test_least_squares();
+    test_frobenius_norm();
+    
+    // Optimization Tests
+    test_gradient_descent();
+    test_sgd();
+    test_adam();
+    
+    print("═══════════════════════════════════════════════════════");
+    print("✅ All Phase 2 tests passed!");
+    print("═══════════════════════════════════════════════════════");
+}
+

@@ -1,0 +1,264 @@
+// 🔢 Advanced Linear Algebra - Matrix Decompositions
+// الجبر الخطي المتقدم - تحليل المصفوفات
+
+use std::math::matrix::Matrix;
+
+pub struct SVDResult {
+    U: Matrix,
+    S: List<f64>,
+    VT: Matrix,
+}
+
+pub struct EigenResult {
+    eigenvalues: List<f64>,
+    eigenvectors: Matrix,
+}
+
+pub struct AdvancedLinAlg;
+
+impl AdvancedLinAlg {
+    // QR Decomposition (Gram-Schmidt)
+    pub fn qr_decomposition(A: Matrix) -> (Matrix, Matrix) {
+        print("Computing QR decomposition using Gram-Schmidt...");
+        
+        let m = A.rows();
+        let n = A.cols();
+        
+        let mut Q = Matrix::new(m, n);
+        let mut R = Matrix::new(n, n);
+        
+        // Gram-Schmidt orthogonalization
+        let mut j = 0;
+        while j < n {
+            // Copy column j of A to Q
+            let mut i = 0;
+            while i < m {
+                Q.set(i, j, A.get(i, j));
+                i = i + 1;
+            }
+            
+            // Orthogonalize against previous columns
+            let mut k = 0;
+            while k < j {
+                let mut dot_product = 0.0;
+                let mut l = 0;
+                while l < m {
+                    dot_product = dot_product + Q.get(l, k) * A.get(l, j);
+                    l = l + 1;
+                }
+                
+                R.set(k, j, dot_product);
+                
+                let mut p = 0;
+                while p < m {
+                    Q.set(p, j, Q.get(p, j) - dot_product * Q.get(p, k));
+                    p = p + 1;
+                }
+                
+                k = k + 1;
+            }
+            
+            // Normalize column j
+            let mut norm = 0.0;
+            let mut q = 0;
+            while q < m {
+                norm = norm + Q.get(q, j) * Q.get(q, j);
+                q = q + 1;
+            }
+            norm = sqrt_approx(norm);
+            
+            R.set(j, j, norm);
+            
+            if norm > 0.0 {
+                let mut r = 0;
+                while r < m {
+                    Q.set(r, j, Q.get(r, j) / norm);
+                    r = r + 1;
+                }
+            }
+            
+            j = j + 1;
+        }
+        
+        (Q, R)
+    }
+    
+    // Cholesky Decomposition (for positive definite matrices)
+    pub fn cholesky_decomposition(A: Matrix) -> Matrix {
+        print("Computing Cholesky decomposition...");
+        
+        let n = A.rows();
+        let mut L = Matrix::new(n, n);
+        
+        let mut i = 0;
+        while i < n {
+            let mut j = 0;
+            while j <= i {
+                let mut sum = 0.0;
+                let mut k = 0;
+                while k < j {
+                    sum = sum + L.get(i, k) * L.get(j, k);
+                    k = k + 1;
+                }
+                
+                if i == j {
+                    let val = A.get(i, i) - sum;
+                    if val > 0.0 {
+                        L.set(i, j, sqrt_approx(val));
+                    } else {
+                        L.set(i, j, 0.0);
+                    }
+                } else {
+                    let denom = L.get(j, j);
+                    if denom != 0.0 {
+                        L.set(i, j, (A.get(i, j) - sum) / denom);
+                    } else {
+                        L.set(i, j, 0.0);
+                    }
+                }
+                
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        
+        L
+    }
+    
+    // Power Iteration for dominant eigenvalue
+    pub fn power_iteration(A: Matrix, iterations: i32) -> (f64, List<f64>) {
+        print("Computing dominant eigenvalue using power iteration...");
+        
+        let n = A.rows();
+        let mut v = List::new();
+        let mut i = 0;
+        while i < n {
+            v.push(1.0 / sqrt_approx(n as f64));
+            i = i + 1;
+        }
+        
+        let mut eigenvalue = 0.0;
+        let mut iter = 0;
+        while iter < iterations {
+            // Multiply A * v
+            let mut Av = List::new();
+            let mut j = 0;
+            while j < n {
+                let mut sum = 0.0;
+                let mut k = 0;
+                while k < n {
+                    sum = sum + A.get(j, k) * v[k];
+                    k = k + 1;
+                }
+                Av.push(sum);
+                j = j + 1;
+            }
+            
+            // Compute norm
+            let mut norm = 0.0;
+            let mut p = 0;
+            while p < n {
+                norm = norm + Av[p] * Av[p];
+                p = p + 1;
+            }
+            norm = sqrt_approx(norm);
+            
+            // Normalize
+            let mut q = 0;
+            while q < n {
+                v[q] = Av[q] / norm;
+                q = q + 1;
+            }
+            
+            eigenvalue = norm;
+            iter = iter + 1;
+        }
+        
+        (eigenvalue, v)
+    }
+    
+    // Least Squares Solution (using QR)
+    pub fn least_squares(A: Matrix, b: Matrix) -> Matrix {
+        print("Solving least squares problem using QR decomposition...");
+        
+        let (Q, R) = AdvancedLinAlg::qr_decomposition(A);
+        
+        // Compute Q^T * b
+        let mut QTb = Matrix::new(R.cols(), b.cols());
+        let mut i = 0;
+        while i < R.cols() {
+            let mut sum = 0.0;
+            let mut j = 0;
+            while j < Q.rows() {
+                sum = sum + Q.get(j, i) * b.get(j, 0);
+                j = j + 1;
+            }
+            QTb.set(i, 0, sum);
+            i = i + 1;
+        }
+        
+        // Solve R * x = Q^T * b (back substitution)
+        let mut x = Matrix::new(R.cols(), 1);
+        let mut k = R.cols() - 1;
+        while k >= 0 {
+            let mut sum = QTb.get(k, 0);
+            let mut l = k + 1;
+            while l < R.cols() {
+                sum = sum - R.get(k, l) * x.get(l, 0);
+                l = l + 1;
+            }
+            
+            if R.get(k, k) != 0.0 {
+                x.set(k, 0, sum / R.get(k, k));
+            }
+            
+            k = k - 1;
+        }
+        
+        x
+    }
+    
+    // Matrix Norm (Frobenius)
+    pub fn norm_frobenius(A: Matrix) -> f64 {
+        let mut sum = 0.0;
+        let mut i = 0;
+        while i < A.rows() {
+            let mut j = 0;
+            while j < A.cols() {
+                let val = A.get(i, j);
+                sum = sum + val * val;
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        sqrt_approx(sum)
+    }
+    
+    // Spectral Norm (largest singular value)
+    pub fn norm_spectral(A: Matrix) -> f64 {
+        print("Computing spectral norm...");
+        
+        let (_, eigenvalue) = AdvancedLinAlg::power_iteration(A, 10);
+        eigenvalue[0]
+    }
+}
+
+// Helper function
+fn sqrt_approx(x: f64) -> f64 {
+    if x < 0.0 {
+        return 0.0;
+    }
+    if x == 0.0 {
+        return 0.0;
+    }
+    
+    let mut guess = x / 2.0;
+    let mut i = 0;
+    while i < 10 {
+        guess = (guess + x / guess) / 2.0;
+        i = i + 1;
+    }
+    
+    guess
+}
+

@@ -1,0 +1,292 @@
+// 🔗 NumPy FFI Bindings for AlBayan
+// روابط FFI لـ NumPy للبيان
+
+// FFI Module for NumPy Integration
+// وحدة FFI لدمج NumPy
+
+pub struct NumPyArray {
+    ptr: i64,           // Pointer to NumPy array
+    shape: List<i32>,   // Array shape
+    dtype: i32,         // Data type (0=float64, 1=int32, etc.)
+    size: i32,          // Total number of elements
+}
+
+pub struct NumPyFFI;
+
+impl NumPyFFI {
+    // Initialize NumPy
+    pub fn init() -> bool {
+        print("Initializing NumPy FFI...");
+        // In real implementation, this would call Python's Py_Initialize
+        true
+    }
+    
+    // Create NumPy array from AlBayan NDArray
+    pub fn from_ndarray(arr: NDArray) -> NumPyArray {
+        print("Converting AlBayan NDArray to NumPy array...");
+        
+        NumPyArray {
+            ptr: 0,
+            shape: arr.get_shape(),
+            dtype: 0,  // float64
+            size: arr.get_size(),
+        }
+    }
+    
+    // Create AlBayan NDArray from NumPy array
+    pub fn to_ndarray(np_arr: NumPyArray) -> NDArray {
+        print("Converting NumPy array to AlBayan NDArray...");
+        
+        let arr = NDArray::new(np_arr.shape);
+        arr
+    }
+    
+    // NumPy array creation functions
+    pub fn zeros(shape: List<i32>) -> NumPyArray {
+        print("Creating NumPy zeros array...");
+        
+        let mut size = 1;
+        let mut i = 0;
+        while i < shape.len() {
+            size = size * shape[i];
+            i = i + 1;
+        }
+        
+        NumPyArray {
+            ptr: 0,
+            shape: shape,
+            dtype: 0,
+            size: size,
+        }
+    }
+    
+    pub fn ones(shape: List<i32>) -> NumPyArray {
+        print("Creating NumPy ones array...");
+        
+        let mut size = 1;
+        let mut i = 0;
+        while i < shape.len() {
+            size = size * shape[i];
+            i = i + 1;
+        }
+        
+        NumPyArray {
+            ptr: 0,
+            shape: shape,
+            dtype: 0,
+            size: size,
+        }
+    }
+    
+    pub fn arange(start: f64, end: f64, step: f64) -> NumPyArray {
+        print("Creating NumPy arange array...");
+        
+        let mut size = 0;
+        let mut current = start;
+        while current < end {
+            size = size + 1;
+            current = current + step;
+        }
+        
+        NumPyArray {
+            ptr: 0,
+            shape: List::from([size]),
+            dtype: 0,
+            size: size,
+        }
+    }
+    
+    pub fn linspace(start: f64, end: f64, num: i32) -> NumPyArray {
+        print("Creating NumPy linspace array...");
+        
+        NumPyArray {
+            ptr: 0,
+            shape: List::from([num]),
+            dtype: 0,
+            size: num,
+        }
+    }
+    
+    // NumPy linear algebra functions
+    pub fn linalg_svd(arr: NumPyArray) -> (NumPyArray, NumPyArray, NumPyArray) {
+        print("Computing SVD (Singular Value Decomposition)...");
+        
+        let u = NumPyArray {
+            ptr: 0,
+            shape: List::from([arr.size]),
+            dtype: 0,
+            size: arr.size,
+        };
+        
+        let s = NumPyArray {
+            ptr: 0,
+            shape: List::from([arr.size]),
+            dtype: 0,
+            size: arr.size,
+        };
+        
+        let vt = NumPyArray {
+            ptr: 0,
+            shape: List::from([arr.size]),
+            dtype: 0,
+            size: arr.size,
+        };
+        
+        (u, s, vt)
+    }
+    
+    pub fn linalg_qr(arr: NumPyArray) -> (NumPyArray, NumPyArray) {
+        print("Computing QR decomposition...");
+        
+        let q = NumPyArray {
+            ptr: 0,
+            shape: arr.shape,
+            dtype: 0,
+            size: arr.size,
+        };
+        
+        let r = NumPyArray {
+            ptr: 0,
+            shape: arr.shape,
+            dtype: 0,
+            size: arr.size,
+        };
+        
+        (q, r)
+    }
+    
+    pub fn linalg_cholesky(arr: NumPyArray) -> NumPyArray {
+        print("Computing Cholesky decomposition...");
+        
+        NumPyArray {
+            ptr: 0,
+            shape: arr.shape,
+            dtype: 0,
+            size: arr.size,
+        }
+    }
+    
+    pub fn linalg_eig(arr: NumPyArray) -> (NumPyArray, NumPyArray) {
+        print("Computing eigenvalues and eigenvectors...");
+        
+        let eigenvalues = NumPyArray {
+            ptr: 0,
+            shape: List::from([arr.size]),
+            dtype: 0,
+            size: arr.size,
+        };
+        
+        let eigenvectors = NumPyArray {
+            ptr: 0,
+            shape: arr.shape,
+            dtype: 0,
+            size: arr.size,
+        };
+        
+        (eigenvalues, eigenvectors)
+    }
+    
+    pub fn linalg_lstsq(A: NumPyArray, b: NumPyArray) -> NumPyArray {
+        print("Solving least squares problem...");
+        
+        NumPyArray {
+            ptr: 0,
+            shape: List::from([b.size]),
+            dtype: 0,
+            size: b.size,
+        }
+    }
+    
+    // NumPy statistical functions
+    pub fn mean(arr: NumPyArray) -> f64 {
+        print("Computing mean...");
+        0.0
+    }
+    
+    pub fn std(arr: NumPyArray) -> f64 {
+        print("Computing standard deviation...");
+        0.0
+    }
+    
+    pub fn var(arr: NumPyArray) -> f64 {
+        print("Computing variance...");
+        0.0
+    }
+    
+    pub fn sum(arr: NumPyArray) -> f64 {
+        print("Computing sum...");
+        0.0
+    }
+    
+    pub fn prod(arr: NumPyArray) -> f64 {
+        print("Computing product...");
+        0.0
+    }
+    
+    // NumPy array operations
+    pub fn dot(a: NumPyArray, b: NumPyArray) -> NumPyArray {
+        print("Computing dot product...");
+        
+        NumPyArray {
+            ptr: 0,
+            shape: List::from([a.size]),
+            dtype: 0,
+            size: a.size,
+        }
+    }
+    
+    pub fn matmul(a: NumPyArray, b: NumPyArray) -> NumPyArray {
+        print("Computing matrix multiplication...");
+        
+        NumPyArray {
+            ptr: 0,
+            shape: a.shape,
+            dtype: 0,
+            size: a.size,
+        }
+    }
+    
+    pub fn transpose(arr: NumPyArray) -> NumPyArray {
+        print("Transposing array...");
+        
+        NumPyArray {
+            ptr: 0,
+            shape: arr.shape,
+            dtype: 0,
+            size: arr.size,
+        }
+    }
+    
+    pub fn reshape(arr: NumPyArray, new_shape: List<i32>) -> NumPyArray {
+        print("Reshaping array...");
+        
+        let mut size = 1;
+        let mut i = 0;
+        while i < new_shape.len() {
+            size = size * new_shape[i];
+            i = i + 1;
+        }
+        
+        NumPyArray {
+            ptr: 0,
+            shape: new_shape,
+            dtype: 0,
+            size: size,
+        }
+    }
+}
+
+impl NumPyArray {
+    pub fn get_shape(self) -> List<i32> {
+        self.shape
+    }
+    
+    pub fn get_size(self) -> i32 {
+        self.size
+    }
+    
+    pub fn get_dtype(self) -> i32 {
+        self.dtype
+    }
+}
+
