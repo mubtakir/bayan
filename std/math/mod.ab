@@ -4,11 +4,19 @@
 pub mod ndarray;
 pub mod matrix;
 pub mod statistics;
+pub mod ndarray_advanced;
+pub mod linalg;
+pub mod distributions;
+pub mod regression;
 
 // إعادة تصدير الأنواع الرئيسية
 pub use ndarray::NDArray;
 pub use matrix::Matrix;
 pub use statistics::Statistics;
+pub use ndarray_advanced::{BroadcastOps, ElementWiseOps};
+pub use linalg::LinearAlgebra;
+pub use distributions::Distributions;
+pub use regression::{Regression, RegressionModel};
 
 // دوال مساعدة عامة
 pub fn abs(x: f64) -> f64 {
@@ -25,14 +33,14 @@ pub fn sqrt(x: f64) -> f64 {
     if x == 0.0 {
         return 0.0;
     }
-    
+
     let mut guess = x / 2.0;
     let mut i = 0;
     while i < 10 {
         guess = (guess + x / guess) / 2.0;
         i = i + 1;
     }
-    
+
     guess
 }
 
@@ -63,20 +71,20 @@ pub fn log(x: f64) -> f64 {
     if x <= 0.0 {
         return 0.0;
     }
-    
+
     // تقريب ln(x)
     let mut result = 0.0;
     let mut y = (x - 1.0) / (x + 1.0);
     let mut y_squared = y * y;
     let mut term = y;
     let mut i = 1;
-    
+
     while i < 20 {
         result = result + term / (i as f64);
         term = term * y_squared;
         i = i + 2;
     }
-    
+
     result * 2.0
 }
 
@@ -85,13 +93,13 @@ pub fn sin(x: f64) -> f64 {
     let mut result = 0.0;
     let mut term = x;
     let mut i = 1;
-    
+
     while i < 20 {
         result = result + term;
         term = term * (-x * x) / ((2 * i) as f64 * (2 * i + 1) as f64);
         i = i + 1;
     }
-    
+
     result
 }
 
@@ -100,13 +108,13 @@ pub fn cos(x: f64) -> f64 {
     let mut result = 1.0;
     let mut term = 1.0;
     let mut i = 1;
-    
+
     while i < 20 {
         term = term * (-x * x) / ((2 * i - 1) as f64 * (2 * i) as f64);
         result = result + term;
         i = i + 1;
     }
-    
+
     result
 }
 
@@ -133,11 +141,11 @@ pub fn ceil(x: f64) -> i32 {
 pub fn round(x: f64) -> i32 {
     let floor_val = floor(x);
     let frac = x - (floor_val as f64);
-    
+
     if frac >= 0.5 {
         return floor_val + 1;
     }
-    
+
     floor_val
 }
 
@@ -182,4 +190,3 @@ pub fn degrees_to_radians(degrees: f64) -> f64 {
 pub fn radians_to_degrees(radians: f64) -> f64 {
     radians * 180.0 / 3.14159265359
 }
-

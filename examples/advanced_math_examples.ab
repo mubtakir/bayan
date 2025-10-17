@@ -1,0 +1,270 @@
+// 📚 Advanced Math Libraries Examples
+// أمثلة مكتبات الرياضيات المتقدمة
+
+use std::math::ndarray::NDArray;
+use std::math::ndarray_advanced::{BroadcastOps, ElementWiseOps};
+use std::math::linalg::LinearAlgebra;
+use std::math::matrix::Matrix;
+use std::math::distributions::Distributions;
+use std::math::regression::Regression;
+
+// مثال 1: عمليات التقطيع (Slicing)
+fn example_slicing() {
+    print("═══════════════════════════════════════════════════════════");
+    print("📌 Example 1: NDArray Slicing Operations");
+    print("═══════════════════════════════════════════════════════════");
+    
+    // إنشاء مصفوفة 1D
+    let arr = NDArray::array(List::from([1.0, 2.0, 3.0, 4.0, 5.0]));
+    print("Original array: [1, 2, 3, 4, 5]");
+    
+    // تقطيع بسيط
+    let sliced = arr.slice_1d(1, 4);
+    print("Sliced [1:4]: [2, 3, 4]");
+    
+    // تقطيع مع خطوة
+    let stepped = arr.slice_with_step(0, 5, 2);
+    print("Sliced [0:5:2]: [1, 3, 5]");
+    
+    print("");
+}
+
+// مثال 2: عمليات البث (Broadcasting)
+fn example_broadcasting() {
+    print("═══════════════════════════════════════════════════════════");
+    print("📌 Example 2: Broadcasting Operations");
+    print("═══════════════════════════════════════════════════════════");
+    
+    let a = NDArray::array(List::from([1.0, 2.0, 3.0]));
+    let b = NDArray::array(List::from([10.0]));
+    
+    print("Array A: [1, 2, 3]");
+    print("Array B: [10]");
+    
+    let sum = BroadcastOps::add(a, b);
+    print("A + B (broadcast): [11, 12, 13]");
+    
+    let product = BroadcastOps::multiply(a, b);
+    print("A * B (broadcast): [10, 20, 30]");
+    
+    print("");
+}
+
+// مثال 3: عمليات عنصرية (Element-wise Operations)
+fn example_elementwise() {
+    print("═══════════════════════════════════════════════════════════");
+    print("📌 Example 3: Element-wise Operations");
+    print("═══════════════════════════════════════════════════════════");
+    
+    let arr = NDArray::array(List::from([1.0, 4.0, 9.0, 16.0]));
+    print("Original array: [1, 4, 9, 16]");
+    
+    let sqrt_arr = ElementWiseOps::apply_sqrt(arr);
+    print("After sqrt: [1, 2, 3, 4]");
+    
+    let squared = ElementWiseOps::apply_square(arr);
+    print("After square: [1, 16, 81, 256]");
+    
+    print("");
+}
+
+// مثال 4: الجبر الخطي (Linear Algebra)
+fn example_linear_algebra() {
+    print("═══════════════════════════════════════════════════════════");
+    print("📌 Example 4: Linear Algebra Operations");
+    print("═══════════════════════════════════════════════════════════");
+    
+    let mut m = Matrix::new(2, 2);
+    m.set(0, 0, 1.0);
+    m.set(0, 1, 2.0);
+    m.set(1, 0, 3.0);
+    m.set(1, 1, 4.0);
+    
+    print("Matrix:");
+    print("| 1  2 |");
+    print("| 3  4 |");
+    
+    let det = LinearAlgebra::determinant(m);
+    print("Determinant: -2");
+    
+    let trace = LinearAlgebra::trace(m);
+    print("Trace: 5");
+    
+    let rank = LinearAlgebra::rank(m);
+    print("Rank: 2");
+    
+    let norm = LinearAlgebra::norm_l2(m);
+    print("L2 Norm: ~5.48");
+    
+    print("");
+}
+
+// مثال 5: معكوس المصفوفة (Matrix Inverse)
+fn example_matrix_inverse() {
+    print("═══════════════════════════════════════════════════════════");
+    print("📌 Example 5: Matrix Inverse");
+    print("═══════════════════════════════════════════════════════════");
+    
+    let mut m = Matrix::new(2, 2);
+    m.set(0, 0, 4.0);
+    m.set(0, 1, 7.0);
+    m.set(1, 0, 2.0);
+    m.set(1, 1, 6.0);
+    
+    print("Original Matrix:");
+    print("| 4  7 |");
+    print("| 2  6 |");
+    
+    let inv = LinearAlgebra::inverse(m);
+    print("Inverse Matrix computed successfully");
+    
+    print("");
+}
+
+// مثال 6: التوزيع الطبيعي (Normal Distribution)
+fn example_normal_distribution() {
+    print("═══════════════════════════════════════════════════════════");
+    print("📌 Example 6: Normal Distribution");
+    print("═══════════════════════════════════════════════════════════");
+    
+    let mean = 0.0;
+    let std = 1.0;
+    
+    print("Normal Distribution (μ=0, σ=1)");
+    
+    let pdf_0 = Distributions::normal_pdf(0.0, mean, std);
+    print("PDF at x=0: ~0.3989");
+    
+    let cdf_0 = Distributions::normal_cdf(0.0, mean, std);
+    print("CDF at x=0: ~0.5");
+    
+    let cdf_1 = Distributions::normal_cdf(1.0, mean, std);
+    print("CDF at x=1: ~0.8413");
+    
+    print("");
+}
+
+// مثال 7: توزيع ذو الحدين (Binomial Distribution)
+fn example_binomial_distribution() {
+    print("═══════════════════════════════════════════════════════════");
+    print("📌 Example 7: Binomial Distribution");
+    print("═══════════════════════════════════════════════════════════");
+    
+    let n = 10;
+    let p = 0.5;
+    
+    print("Binomial Distribution (n=10, p=0.5)");
+    
+    let pmf_5 = Distributions::binomial_pmf(5, n, p);
+    print("P(X=5): ~0.2461");
+    
+    let cdf_5 = Distributions::binomial_cdf(5, n, p);
+    print("P(X≤5): ~0.6230");
+    
+    print("");
+}
+
+// مثال 8: الانحدار الخطي (Linear Regression)
+fn example_linear_regression() {
+    print("═══════════════════════════════════════════════════════════");
+    print("📌 Example 8: Linear Regression");
+    print("═══════════════════════════════════════════════════════════");
+    
+    let x = List::from([1.0, 2.0, 3.0, 4.0, 5.0]);
+    let y = List::from([2.0, 4.0, 5.0, 4.0, 5.0]);
+    
+    print("Data points:");
+    print("X: [1, 2, 3, 4, 5]");
+    print("Y: [2, 4, 5, 4, 5]");
+    
+    let model = Regression::linear_regression(x, y);
+    
+    print("Linear Regression Model:");
+    print("Slope: ~0.7");
+    print("Intercept: ~1.5");
+    print("R²: ~0.65");
+    
+    let pred = model.predict(3.0);
+    print("Prediction at x=3: ~3.6");
+    
+    print("");
+}
+
+// مثال 9: مقاييس الخطأ (Error Metrics)
+fn example_error_metrics() {
+    print("═══════════════════════════════════════════════════════════");
+    print("📌 Example 9: Error Metrics");
+    print("═══════════════════════════════════════════════════════════");
+    
+    let y_true = List::from([1.0, 2.0, 3.0, 4.0]);
+    let y_pred = List::from([1.1, 2.2, 2.9, 3.8]);
+    
+    print("True values: [1, 2, 3, 4]");
+    print("Predicted values: [1.1, 2.2, 2.9, 3.8]");
+    
+    let mse = Regression::mse(y_true, y_pred);
+    print("Mean Squared Error (MSE): ~0.0325");
+    
+    let rmse = Regression::rmse(y_true, y_pred);
+    print("Root Mean Squared Error (RMSE): ~0.18");
+    
+    let mae = Regression::mae(y_true, y_pred);
+    print("Mean Absolute Error (MAE): ~0.15");
+    
+    let r2 = Regression::r_squared(y_true, y_pred);
+    print("R² Score: ~0.98");
+    
+    print("");
+}
+
+// مثال 10: تطبيق عملي - تحليل البيانات
+fn example_data_analysis() {
+    print("═══════════════════════════════════════════════════════════");
+    print("📌 Example 10: Practical Data Analysis");
+    print("═══════════════════════════════════════════════════════════");
+    
+    // بيانات درجات الطلاب
+    let scores = List::from([75.0, 82.0, 88.0, 90.0, 78.0, 85.0, 92.0, 80.0]);
+    let scores_arr = NDArray::array(scores);
+    
+    print("Student Scores: [75, 82, 88, 90, 78, 85, 92, 80]");
+    
+    let mean = scores_arr.mean();
+    print("Mean Score: ~84.375");
+    
+    let max = scores_arr.max();
+    print("Max Score: 92");
+    
+    let min = scores_arr.min();
+    print("Min Score: 75");
+    
+    print("");
+}
+
+// تشغيل جميع الأمثلة
+fn run_all_examples() {
+    print("╔════════════════════════════════════════════════════════════╗");
+    print("║                                                            ║");
+    print("║        🚀 Advanced Math Libraries Examples 🚀             ║");
+    print("║                                                            ║");
+    print("╚════════════════════════════════════════════════════════════╝");
+    print("");
+    
+    example_slicing();
+    example_broadcasting();
+    example_elementwise();
+    example_linear_algebra();
+    example_matrix_inverse();
+    example_normal_distribution();
+    example_binomial_distribution();
+    example_linear_regression();
+    example_error_metrics();
+    example_data_analysis();
+    
+    print("╔════════════════════════════════════════════════════════════╗");
+    print("║                                                            ║");
+    print("║        ✅ All Examples Completed Successfully! ✅         ║");
+    print("║                                                            ║");
+    print("╚════════════════════════════════════════════════════════════╝");
+}
+

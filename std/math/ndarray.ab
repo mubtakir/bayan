@@ -17,16 +17,16 @@ impl NDArray {
             size = size * shape[i];
             i = i + 1;
         }
-        
+
         let mut data = List::new();
         let mut j = 0;
         while j < size {
             data.push(0.0);
             j = j + 1;
         }
-        
+
         let strides = NDArray::compute_strides(shape);
-        
+
         NDArray {
             data: data,
             shape: shape,
@@ -34,12 +34,12 @@ impl NDArray {
             size: size,
         }
     }
-    
+
     // إنشاء مصفوفة مملوءة بالأصفار
     pub fn zeros(shape: List<i32>) -> NDArray {
         NDArray::new(shape)
     }
-    
+
     // إنشاء مصفوفة مملوءة بالواحدات
     pub fn ones(shape: List<i32>) -> NDArray {
         let mut arr = NDArray::new(shape);
@@ -50,7 +50,7 @@ impl NDArray {
         }
         arr
     }
-    
+
     // إنشاء مصفوفة بقيمة ثابتة
     pub fn full(shape: List<i32>, value: f64) -> NDArray {
         let mut arr = NDArray::new(shape);
@@ -61,34 +61,34 @@ impl NDArray {
         }
         arr
     }
-    
+
     // الحصول على عنصر من المصفوفة
     pub fn get(self, indices: List<i32>) -> f64 {
         let flat_index = self.compute_flat_index(indices);
         self.data[flat_index]
     }
-    
+
     // تعيين قيمة لعنصر في المصفوفة
     pub fn set(mut self, indices: List<i32>, value: f64) {
         let flat_index = self.compute_flat_index(indices);
         self.data[flat_index] = value;
     }
-    
+
     // الحصول على شكل المصفوفة
     pub fn get_shape(self) -> List<i32> {
         self.shape
     }
-    
+
     // الحصول على عدد العناصر
     pub fn get_size(self) -> i32 {
         self.size
     }
-    
+
     // الحصول على عدد الأبعاد
     pub fn get_ndim(self) -> i32 {
         self.shape.len()
     }
-    
+
     // تغيير شكل المصفوفة
     pub fn reshape(self, new_shape: List<i32>) -> NDArray {
         let mut new_size = 1;
@@ -97,14 +97,14 @@ impl NDArray {
             new_size = new_size * new_shape[i];
             i = i + 1;
         }
-        
+
         if new_size != self.size {
             print("Error: Cannot reshape array with different size");
             return self;
         }
-        
+
         let new_strides = NDArray::compute_strides(new_shape);
-        
+
         NDArray {
             data: self.data,
             shape: new_shape,
@@ -112,18 +112,18 @@ impl NDArray {
             size: self.size,
         }
     }
-    
+
     // نقل المصفوفة (تبديل الأبعاد)
     pub fn transpose(self) -> NDArray {
         if self.get_ndim() != 2 {
             print("Error: Transpose only works for 2D arrays");
             return self;
         }
-        
+
         let rows = self.shape[0];
         let cols = self.shape[1];
         let mut transposed = NDArray::new(List::from([cols, rows]));
-        
+
         let mut i = 0;
         while i < rows {
             let mut j = 0;
@@ -134,10 +134,10 @@ impl NDArray {
             }
             i = i + 1;
         }
-        
+
         transposed
     }
-    
+
     // جمع جميع العناصر
     pub fn sum(self) -> f64 {
         let mut total = 0.0;
@@ -148,12 +148,12 @@ impl NDArray {
         }
         total
     }
-    
+
     // متوسط العناصر
     pub fn mean(self) -> f64 {
         self.sum() / (self.size as f64)
     }
-    
+
     // الحد الأقصى
     pub fn max(self) -> f64 {
         let mut max_val = self.data[0];
@@ -166,7 +166,7 @@ impl NDArray {
         }
         max_val
     }
-    
+
     // الحد الأدنى
     pub fn min(self) -> f64 {
         let mut min_val = self.data[0];
@@ -179,7 +179,7 @@ impl NDArray {
         }
         min_val
     }
-    
+
     // دالة مساعدة: حساب الفهرس المسطح
     fn compute_flat_index(self, indices: List<i32>) -> i32 {
         let mut flat_index = 0;
@@ -190,19 +190,19 @@ impl NDArray {
         }
         flat_index
     }
-    
+
     // دالة مساعدة: حساب الخطوات
     fn compute_strides(shape: List<i32>) -> List<i32> {
         let mut strides = List::new();
         let mut stride = 1;
         let mut i = shape.len() - 1;
-        
+
         while i >= 0 {
             strides.push(stride);
             stride = stride * shape[i];
             i = i - 1;
         }
-        
+
         // عكس الترتيب
         let mut reversed = List::new();
         let mut j = strides.len() - 1;
@@ -210,10 +210,10 @@ impl NDArray {
             reversed.push(strides[j]);
             j = j - 1;
         }
-        
+
         reversed
     }
-    
+
     // طباعة المصفوفة
     pub fn print(self) {
         print("NDArray(shape=");
@@ -228,7 +228,7 @@ impl NDArray {
 pub fn array(data: List<f64>) -> NDArray {
     let shape = List::from([data.len() as i32]);
     let strides = List::from([1]);
-    
+
     NDArray {
         data: data,
         shape: shape,
@@ -240,12 +240,12 @@ pub fn array(data: List<f64>) -> NDArray {
 pub fn arange(start: f64, end: f64, step: f64) -> NDArray {
     let mut data = List::new();
     let mut current = start;
-    
+
     while current < end {
         data.push(current);
         current = current + step;
     }
-    
+
     array(data)
 }
 
@@ -253,12 +253,76 @@ pub fn linspace(start: f64, end: f64, num: i32) -> NDArray {
     let mut data = List::new();
     let step = (end - start) / ((num - 1) as f64);
     let mut i = 0;
-    
+
     while i < num {
         data.push(start + (i as f64) * step);
         i = i + 1;
     }
-    
+
     array(data)
 }
 
+// عمليات التقطيع (Slicing)
+impl NDArray {
+    // تقطيع 1D
+    pub fn slice_1d(self, start: i32, end: i32) -> NDArray {
+        if self.get_ndim() != 1 {
+            print("Error: slice_1d only works for 1D arrays");
+            return self;
+        }
+
+        let mut sliced_data = List::new();
+        let mut i = start;
+        while i < end && i < self.size {
+            sliced_data.push(self.data[i]);
+            i = i + 1;
+        }
+
+        array(sliced_data)
+    }
+
+    // تقطيع 2D
+    pub fn slice_2d(self, row_start: i32, row_end: i32, col_start: i32, col_end: i32) -> NDArray {
+        if self.get_ndim() != 2 {
+            print("Error: slice_2d only works for 2D arrays");
+            return self;
+        }
+
+        let rows = self.shape[0];
+        let cols = self.shape[1];
+        let new_rows = row_end - row_start;
+        let new_cols = col_end - col_start;
+
+        let mut sliced = NDArray::new(List::from([new_rows, new_cols]));
+
+        let mut i = row_start;
+        while i < row_end {
+            let mut j = col_start;
+            while j < col_end {
+                let value = self.get(List::from([i, j]));
+                sliced.set(List::from([i - row_start, j - col_start]), value);
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+
+        sliced
+    }
+
+    // تقطيع مع خطوة
+    pub fn slice_with_step(self, start: i32, end: i32, step: i32) -> NDArray {
+        if self.get_ndim() != 1 {
+            print("Error: slice_with_step only works for 1D arrays");
+            return self;
+        }
+
+        let mut sliced_data = List::new();
+        let mut i = start;
+        while i < end && i < self.size {
+            sliced_data.push(self.data[i]);
+            i = i + step;
+        }
+
+        array(sliced_data)
+    }
+}

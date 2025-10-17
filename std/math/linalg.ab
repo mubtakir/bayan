@@ -1,0 +1,244 @@
+// 🔢 Linear Algebra Library for AlBayan
+// مكتبة الجبر الخطي للبيان
+
+use std::math::matrix::Matrix;
+
+pub struct LinearAlgebra;
+
+impl LinearAlgebra {
+    // حساب الرتبة (Rank) - تقريب بسيط
+    pub fn rank(m: Matrix) -> i32 {
+        let rows = m.rows();
+        let cols = m.cols();
+        let mut rank = 0;
+        
+        // عد الصفوف غير الصفرية
+        let mut i = 0;
+        while i < rows {
+            let mut is_zero = true;
+            let mut j = 0;
+            while j < cols {
+                if m.get(i, j) != 0.0 {
+                    is_zero = false;
+                }
+                j = j + 1;
+            }
+            if !is_zero {
+                rank = rank + 1;
+            }
+            i = i + 1;
+        }
+        
+        rank
+    }
+    
+    // حساب رقم الشرط (Condition Number)
+    pub fn condition_number(m: Matrix) -> f64 {
+        if m.rows() != m.cols() {
+            print("Error: Condition number only for square matrices");
+            return 0.0;
+        }
+        
+        // تقريب بسيط: نسبة أكبر عنصر إلى أصغر عنصر
+        let max_val = m.get(0, 0);
+        let min_val = m.get(0, 0);
+        
+        if min_val == 0.0 {
+            return 0.0;
+        }
+        
+        max_val / min_val
+    }
+    
+    // حساب معايير المصفوفة
+    pub fn norm_l1(m: Matrix) -> f64 {
+        // L1 norm: أكبر مجموع عمود
+        let mut max_col_sum = 0.0;
+        let mut j = 0;
+        while j < m.cols() {
+            let mut col_sum = 0.0;
+            let mut i = 0;
+            while i < m.rows() {
+                let val = m.get(i, j);
+                if val < 0.0 {
+                    col_sum = col_sum - val;
+                } else {
+                    col_sum = col_sum + val;
+                }
+                i = i + 1;
+            }
+            if col_sum > max_col_sum {
+                max_col_sum = col_sum;
+            }
+            j = j + 1;
+        }
+        max_col_sum
+    }
+    
+    pub fn norm_l2(m: Matrix) -> f64 {
+        // L2 norm: الجذر التربيعي لمجموع مربعات العناصر
+        let mut sum_sq = 0.0;
+        let mut i = 0;
+        while i < m.rows() {
+            let mut j = 0;
+            while j < m.cols() {
+                let val = m.get(i, j);
+                sum_sq = sum_sq + val * val;
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        sqrt_approx(sum_sq)
+    }
+    
+    pub fn norm_frobenius(m: Matrix) -> f64 {
+        // Frobenius norm: الجذر التربيعي لمجموع مربعات جميع العناصر
+        let mut sum_sq = 0.0;
+        let mut i = 0;
+        while i < m.rows() {
+            let mut j = 0;
+            while j < m.cols() {
+                let val = m.get(i, j);
+                sum_sq = sum_sq + val * val;
+                j = j + 1;
+            }
+            i = i + 1;
+        }
+        sqrt_approx(sum_sq)
+    }
+    
+    // حساب الأثر (Trace)
+    pub fn trace(m: Matrix) -> f64 {
+        if m.rows() != m.cols() {
+            print("Error: Trace only for square matrices");
+            return 0.0;
+        }
+        
+        let mut sum = 0.0;
+        let mut i = 0;
+        while i < m.rows() {
+            sum = sum + m.get(i, i);
+            i = i + 1;
+        }
+        
+        sum
+    }
+    
+    // حساب المحدد (Determinant) - محسّن
+    pub fn determinant(m: Matrix) -> f64 {
+        if m.rows() != m.cols() {
+            print("Error: Determinant only for square matrices");
+            return 0.0;
+        }
+        
+        let n = m.rows();
+        
+        if n == 1 {
+            return m.get(0, 0);
+        }
+        
+        if n == 2 {
+            return m.get(0, 0) * m.get(1, 1) - m.get(0, 1) * m.get(1, 0);
+        }
+        
+        if n == 3 {
+            let a = m.get(0, 0);
+            let b = m.get(0, 1);
+            let c = m.get(0, 2);
+            let d = m.get(1, 0);
+            let e = m.get(1, 1);
+            let f = m.get(1, 2);
+            let g = m.get(2, 0);
+            let h = m.get(2, 1);
+            let i = m.get(2, 2);
+            
+            return a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
+        }
+        
+        print("Error: Determinant only implemented for 1x1, 2x2, and 3x3 matrices");
+        0.0
+    }
+    
+    // حساب معكوس المصفوفة (2x2 و 3x3)
+    pub fn inverse(m: Matrix) -> Matrix {
+        if m.rows() != m.cols() {
+            print("Error: Inverse only for square matrices");
+            return m;
+        }
+        
+        let n = m.rows();
+        let det = LinearAlgebra::determinant(m);
+        
+        if det == 0.0 {
+            print("Error: Matrix is singular (determinant is zero)");
+            return m;
+        }
+        
+        if n == 2 {
+            let mut inv = Matrix::new(2, 2);
+            inv.set(0, 0, m.get(1, 1) / det);
+            inv.set(0, 1, -m.get(0, 1) / det);
+            inv.set(1, 0, -m.get(1, 0) / det);
+            inv.set(1, 1, m.get(0, 0) / det);
+            return inv;
+        }
+        
+        if n == 3 {
+            let mut inv = Matrix::new(3, 3);
+            
+            // حساب مصفوفة العوامل المرافقة
+            inv.set(0, 0, (m.get(1, 1) * m.get(2, 2) - m.get(1, 2) * m.get(2, 1)) / det);
+            inv.set(0, 1, -(m.get(0, 1) * m.get(2, 2) - m.get(0, 2) * m.get(2, 1)) / det);
+            inv.set(0, 2, (m.get(0, 1) * m.get(1, 2) - m.get(0, 2) * m.get(1, 1)) / det);
+            
+            inv.set(1, 0, -(m.get(1, 0) * m.get(2, 2) - m.get(1, 2) * m.get(2, 0)) / det);
+            inv.set(1, 1, (m.get(0, 0) * m.get(2, 2) - m.get(0, 2) * m.get(2, 0)) / det);
+            inv.set(1, 2, -(m.get(0, 0) * m.get(1, 2) - m.get(0, 2) * m.get(1, 0)) / det);
+            
+            inv.set(2, 0, (m.get(1, 0) * m.get(2, 1) - m.get(1, 1) * m.get(2, 0)) / det);
+            inv.set(2, 1, -(m.get(0, 0) * m.get(2, 1) - m.get(0, 1) * m.get(2, 0)) / det);
+            inv.set(2, 2, (m.get(0, 0) * m.get(1, 1) - m.get(0, 1) * m.get(1, 0)) / det);
+            
+            return inv;
+        }
+        
+        print("Error: Inverse only implemented for 2x2 and 3x3 matrices");
+        m
+    }
+    
+    // حل نظام معادلات خطية (Ax = b)
+    pub fn solve(A: Matrix, b: Matrix) -> Matrix {
+        if A.rows() != A.cols() {
+            print("Error: A must be square");
+            return b;
+        }
+        
+        if A.rows() != b.rows() {
+            print("Error: Dimensions do not match");
+            return b;
+        }
+        
+        let A_inv = LinearAlgebra::inverse(A);
+        A_inv.multiply(b)
+    }
+}
+
+// دالة مساعدة
+fn sqrt_approx(x: f64) -> f64 {
+    if x < 0.0 {
+        return 0.0;
+    }
+    if x == 0.0 {
+        return 0.0;
+    }
+    
+    let mut guess = x / 2.0;
+    let mut i = 0;
+    while i < 10 {
+        guess = (guess + x / guess) / 2.0;
+        i = i + 1;
+    }
+    
+    guess
+}
+

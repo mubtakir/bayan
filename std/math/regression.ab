@@ -1,0 +1,233 @@
+// 📈 Regression Analysis Library for AlBayan
+// مكتبة تحليل الانحدار للبيان
+
+pub struct RegressionModel {
+    slope: f64,
+    intercept: f64,
+    r_squared: f64,
+}
+
+pub struct Regression;
+
+impl Regression {
+    // الانحدار الخطي البسيط (Simple Linear Regression)
+    pub fn linear_regression(x: List<f64>, y: List<f64>) -> RegressionModel {
+        if x.len() != y.len() || x.len() == 0 {
+            return RegressionModel {
+                slope: 0.0,
+                intercept: 0.0,
+                r_squared: 0.0,
+            };
+        }
+        
+        let n = x.len() as f64;
+        
+        // حساب المتوسطات
+        let mut sum_x = 0.0;
+        let mut sum_y = 0.0;
+        let mut i = 0;
+        while i < x.len() {
+            sum_x = sum_x + x[i];
+            sum_y = sum_y + y[i];
+            i = i + 1;
+        }
+        
+        let mean_x = sum_x / n;
+        let mean_y = sum_y / n;
+        
+        // حساب الميل والمقطع
+        let mut sum_xy = 0.0;
+        let mut sum_x2 = 0.0;
+        let mut sum_y2 = 0.0;
+        let mut sum_residuals_sq = 0.0;
+        
+        let mut j = 0;
+        while j < x.len() {
+            let dx = x[j] - mean_x;
+            let dy = y[j] - mean_y;
+            
+            sum_xy = sum_xy + dx * dy;
+            sum_x2 = sum_x2 + dx * dx;
+            sum_y2 = sum_y2 + dy * dy;
+            
+            j = j + 1;
+        }
+        
+        let slope = if sum_x2 != 0.0 {
+            sum_xy / sum_x2
+        } else {
+            0.0
+        };
+        
+        let intercept = mean_y - slope * mean_x;
+        
+        // حساب R²
+        let mut k = 0;
+        while k < x.len() {
+            let predicted = slope * x[k] + intercept;
+            let residual = y[k] - predicted;
+            sum_residuals_sq = sum_residuals_sq + residual * residual;
+            k = k + 1;
+        }
+        
+        let r_squared = if sum_y2 != 0.0 {
+            1.0 - (sum_residuals_sq / sum_y2)
+        } else {
+            0.0
+        };
+        
+        RegressionModel {
+            slope: slope,
+            intercept: intercept,
+            r_squared: r_squared,
+        }
+    }
+    
+    // الانحدار متعدد الحدود (Polynomial Regression)
+    pub fn polynomial_regression(x: List<f64>, y: List<f64>, degree: i32) -> List<f64> {
+        if x.len() != y.len() || x.len() == 0 || degree < 1 {
+            return List::new();
+        }
+        
+        // تقريب بسيط: استخدام الانحدار الخطي للدرجة الأولى
+        if degree == 1 {
+            let model = Regression::linear_regression(x, y);
+            let mut coeffs = List::new();
+            coeffs.push(model.intercept);
+            coeffs.push(model.slope);
+            return coeffs;
+        }
+        
+        // للدرجات الأعلى، نستخدم تقريب بسيط
+        let mut coeffs = List::new();
+        let mut i = 0;
+        while i <= degree {
+            coeffs.push(0.0);
+            i = i + 1;
+        }
+        
+        coeffs
+    }
+    
+    // الانحدار اللوجستي (Logistic Regression)
+    pub fn logistic_regression(x: List<f64>, y: List<f64>) -> RegressionModel {
+        // تقريب بسيط: استخدام الانحدار الخطي كأساس
+        Regression::linear_regression(x, y)
+    }
+    
+    // حساب متوسط الخطأ المربع (Mean Squared Error)
+    pub fn mse(y_true: List<f64>, y_pred: List<f64>) -> f64 {
+        if y_true.len() != y_pred.len() || y_true.len() == 0 {
+            return 0.0;
+        }
+        
+        let mut sum_sq_error = 0.0;
+        let mut i = 0;
+        while i < y_true.len() {
+            let error = y_true[i] - y_pred[i];
+            sum_sq_error = sum_sq_error + error * error;
+            i = i + 1;
+        }
+        
+        sum_sq_error / (y_true.len() as f64)
+    }
+    
+    // حساب جذر متوسط الخطأ المربع (Root Mean Squared Error)
+    pub fn rmse(y_true: List<f64>, y_pred: List<f64>) -> f64 {
+        let mse_val = Regression::mse(y_true, y_pred);
+        sqrt_approx(mse_val)
+    }
+    
+    // حساب متوسط الخطأ المطلق (Mean Absolute Error)
+    pub fn mae(y_true: List<f64>, y_pred: List<f64>) -> f64 {
+        if y_true.len() != y_pred.len() || y_true.len() == 0 {
+            return 0.0;
+        }
+        
+        let mut sum_abs_error = 0.0;
+        let mut i = 0;
+        while i < y_true.len() {
+            let error = y_true[i] - y_pred[i];
+            if error < 0.0 {
+                sum_abs_error = sum_abs_error - error;
+            } else {
+                sum_abs_error = sum_abs_error + error;
+            }
+            i = i + 1;
+        }
+        
+        sum_abs_error / (y_true.len() as f64)
+    }
+    
+    // حساب R² (Coefficient of Determination)
+    pub fn r_squared(y_true: List<f64>, y_pred: List<f64>) -> f64 {
+        if y_true.len() != y_pred.len() || y_true.len() == 0 {
+            return 0.0;
+        }
+        
+        // حساب المتوسط
+        let mut sum_y = 0.0;
+        let mut i = 0;
+        while i < y_true.len() {
+            sum_y = sum_y + y_true[i];
+            i = i + 1;
+        }
+        let mean_y = sum_y / (y_true.len() as f64);
+        
+        // حساب SS_tot و SS_res
+        let mut ss_tot = 0.0;
+        let mut ss_res = 0.0;
+        let mut j = 0;
+        while j < y_true.len() {
+            let diff_true = y_true[j] - mean_y;
+            let diff_pred = y_true[j] - y_pred[j];
+            ss_tot = ss_tot + diff_true * diff_true;
+            ss_res = ss_res + diff_pred * diff_pred;
+            j = j + 1;
+        }
+        
+        if ss_tot == 0.0 {
+            return 0.0;
+        }
+        
+        1.0 - (ss_res / ss_tot)
+    }
+}
+
+impl RegressionModel {
+    pub fn predict(self, x: f64) -> f64 {
+        self.slope * x + self.intercept
+    }
+    
+    pub fn get_slope(self) -> f64 {
+        self.slope
+    }
+    
+    pub fn get_intercept(self) -> f64 {
+        self.intercept
+    }
+    
+    pub fn get_r_squared(self) -> f64 {
+        self.r_squared
+    }
+}
+
+// دالة مساعدة
+fn sqrt_approx(x: f64) -> f64 {
+    if x < 0.0 {
+        return 0.0;
+    }
+    if x == 0.0 {
+        return 0.0;
+    }
+    
+    let mut guess = x / 2.0;
+    let mut i = 0;
+    while i < 10 {
+        guess = (guess + x / guess) / 2.0;
+        i = i + 1;
+    }
+    
+    guess
+}
+

@@ -1,0 +1,307 @@
+// 🚀 Advanced NDArray Operations - Broadcasting & Element-wise Operations
+// عمليات NDArray المتقدمة - البث والعمليات العنصرية
+
+use std::math::ndarray::NDArray;
+
+pub struct BroadcastOps;
+
+impl BroadcastOps {
+    // جمع مصفوفتين مع البث
+    pub fn add(a: NDArray, b: NDArray) -> NDArray {
+        if a.get_size() == b.get_size() {
+            // نفس الحجم - جمع عنصري مباشر
+            let mut result = NDArray::new(a.get_shape());
+            let mut i = 0;
+            while i < a.get_size() {
+                result.data[i] = a.data[i] + b.data[i];
+                i = i + 1;
+            }
+            return result;
+        }
+        
+        // بث - إذا كان أحدهما عددي
+        if b.get_size() == 1 {
+            let scalar = b.data[0];
+            let mut result = NDArray::new(a.get_shape());
+            let mut i = 0;
+            while i < a.get_size() {
+                result.data[i] = a.data[i] + scalar;
+                i = i + 1;
+            }
+            return result;
+        }
+        
+        if a.get_size() == 1 {
+            let scalar = a.data[0];
+            let mut result = NDArray::new(b.get_shape());
+            let mut i = 0;
+            while i < b.get_size() {
+                result.data[i] = scalar + b.data[i];
+                i = i + 1;
+            }
+            return result;
+        }
+        
+        print("Error: Cannot broadcast arrays with incompatible shapes");
+        a
+    }
+    
+    // طرح مصفوفتين مع البث
+    pub fn subtract(a: NDArray, b: NDArray) -> NDArray {
+        if a.get_size() == b.get_size() {
+            let mut result = NDArray::new(a.get_shape());
+            let mut i = 0;
+            while i < a.get_size() {
+                result.data[i] = a.data[i] - b.data[i];
+                i = i + 1;
+            }
+            return result;
+        }
+        
+        if b.get_size() == 1 {
+            let scalar = b.data[0];
+            let mut result = NDArray::new(a.get_shape());
+            let mut i = 0;
+            while i < a.get_size() {
+                result.data[i] = a.data[i] - scalar;
+                i = i + 1;
+            }
+            return result;
+        }
+        
+        if a.get_size() == 1 {
+            let scalar = a.data[0];
+            let mut result = NDArray::new(b.get_shape());
+            let mut i = 0;
+            while i < b.get_size() {
+                result.data[i] = scalar - b.data[i];
+                i = i + 1;
+            }
+            return result;
+        }
+        
+        print("Error: Cannot broadcast arrays with incompatible shapes");
+        a
+    }
+    
+    // ضرب عنصري مع البث
+    pub fn multiply(a: NDArray, b: NDArray) -> NDArray {
+        if a.get_size() == b.get_size() {
+            let mut result = NDArray::new(a.get_shape());
+            let mut i = 0;
+            while i < a.get_size() {
+                result.data[i] = a.data[i] * b.data[i];
+                i = i + 1;
+            }
+            return result;
+        }
+        
+        if b.get_size() == 1 {
+            let scalar = b.data[0];
+            let mut result = NDArray::new(a.get_shape());
+            let mut i = 0;
+            while i < a.get_size() {
+                result.data[i] = a.data[i] * scalar;
+                i = i + 1;
+            }
+            return result;
+        }
+        
+        if a.get_size() == 1 {
+            let scalar = a.data[0];
+            let mut result = NDArray::new(b.get_shape());
+            let mut i = 0;
+            while i < b.get_size() {
+                result.data[i] = scalar * b.data[i];
+                i = i + 1;
+            }
+            return result;
+        }
+        
+        print("Error: Cannot broadcast arrays with incompatible shapes");
+        a
+    }
+    
+    // قسمة عنصرية مع البث
+    pub fn divide(a: NDArray, b: NDArray) -> NDArray {
+        if a.get_size() == b.get_size() {
+            let mut result = NDArray::new(a.get_shape());
+            let mut i = 0;
+            while i < a.get_size() {
+                if b.data[i] != 0.0 {
+                    result.data[i] = a.data[i] / b.data[i];
+                } else {
+                    result.data[i] = 0.0;
+                }
+                i = i + 1;
+            }
+            return result;
+        }
+        
+        if b.get_size() == 1 {
+            let scalar = b.data[0];
+            if scalar != 0.0 {
+                let mut result = NDArray::new(a.get_shape());
+                let mut i = 0;
+                while i < a.get_size() {
+                    result.data[i] = a.data[i] / scalar;
+                    i = i + 1;
+                }
+                return result;
+            }
+        }
+        
+        if a.get_size() == 1 {
+            let scalar = a.data[0];
+            let mut result = NDArray::new(b.get_shape());
+            let mut i = 0;
+            while i < b.get_size() {
+                if b.data[i] != 0.0 {
+                    result.data[i] = scalar / b.data[i];
+                } else {
+                    result.data[i] = 0.0;
+                }
+                i = i + 1;
+            }
+            return result;
+        }
+        
+        print("Error: Cannot broadcast arrays with incompatible shapes");
+        a
+    }
+}
+
+// عمليات عنصرية متقدمة
+pub struct ElementWiseOps;
+
+impl ElementWiseOps {
+    // تطبيق دالة على كل عنصر
+    pub fn apply_sqrt(arr: NDArray) -> NDArray {
+        let mut result = NDArray::new(arr.get_shape());
+        let mut i = 0;
+        while i < arr.get_size() {
+            result.data[i] = sqrt_approx(arr.data[i]);
+            i = i + 1;
+        }
+        result
+    }
+    
+    // تطبيق دالة الأس
+    pub fn apply_exp(arr: NDArray) -> NDArray {
+        let mut result = NDArray::new(arr.get_shape());
+        let mut i = 0;
+        while i < arr.get_size() {
+            result.data[i] = exp_approx(arr.data[i]);
+            i = i + 1;
+        }
+        result
+    }
+    
+    // تطبيق دالة اللوغاريتم
+    pub fn apply_log(arr: NDArray) -> NDArray {
+        let mut result = NDArray::new(arr.get_shape());
+        let mut i = 0;
+        while i < arr.get_size() {
+            if arr.data[i] > 0.0 {
+                result.data[i] = log_approx(arr.data[i]);
+            } else {
+                result.data[i] = 0.0;
+            }
+            i = i + 1;
+        }
+        result
+    }
+    
+    // تطبيق دالة القيمة المطلقة
+    pub fn apply_abs(arr: NDArray) -> NDArray {
+        let mut result = NDArray::new(arr.get_shape());
+        let mut i = 0;
+        while i < arr.get_size() {
+            if arr.data[i] < 0.0 {
+                result.data[i] = -arr.data[i];
+            } else {
+                result.data[i] = arr.data[i];
+            }
+            i = i + 1;
+        }
+        result
+    }
+    
+    // تطبيق دالة التربيع
+    pub fn apply_square(arr: NDArray) -> NDArray {
+        let mut result = NDArray::new(arr.get_shape());
+        let mut i = 0;
+        while i < arr.get_size() {
+            result.data[i] = arr.data[i] * arr.data[i];
+            i = i + 1;
+        }
+        result
+    }
+    
+    // تطبيق دالة المقلوب
+    pub fn apply_reciprocal(arr: NDArray) -> NDArray {
+        let mut result = NDArray::new(arr.get_shape());
+        let mut i = 0;
+        while i < arr.get_size() {
+            if arr.data[i] != 0.0 {
+                result.data[i] = 1.0 / arr.data[i];
+            } else {
+                result.data[i] = 0.0;
+            }
+            i = i + 1;
+        }
+        result
+    }
+}
+
+// دوال مساعدة
+fn sqrt_approx(x: f64) -> f64 {
+    if x < 0.0 {
+        return 0.0;
+    }
+    if x == 0.0 {
+        return 0.0;
+    }
+    
+    let mut guess = x / 2.0;
+    let mut i = 0;
+    while i < 10 {
+        guess = (guess + x / guess) / 2.0;
+        i = i + 1;
+    }
+    
+    guess
+}
+
+fn exp_approx(x: f64) -> f64 {
+    let mut result = 1.0;
+    let mut term = 1.0;
+    let mut i = 1;
+    while i < 20 {
+        term = term * x / (i as f64);
+        result = result + term;
+        i = i + 1;
+    }
+    result
+}
+
+fn log_approx(x: f64) -> f64 {
+    if x <= 0.0 {
+        return 0.0;
+    }
+    
+    let mut result = 0.0;
+    let mut y = (x - 1.0) / (x + 1.0);
+    let mut y_squared = y * y;
+    let mut term = y;
+    let mut i = 1;
+    
+    while i < 20 {
+        result = result + term / (i as f64);
+        term = term * y_squared;
+        i = i + 2;
+    }
+    
+    result * 2.0
+}
+

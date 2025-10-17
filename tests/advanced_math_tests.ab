@@ -1,0 +1,228 @@
+// 🧪 Advanced Math Libraries Tests
+// اختبارات مكتبات الرياضيات المتقدمة
+
+use std::math::ndarray::NDArray;
+use std::math::ndarray_advanced::{BroadcastOps, ElementWiseOps};
+use std::math::linalg::LinearAlgebra;
+use std::math::matrix::Matrix;
+use std::math::distributions::Distributions;
+use std::math::regression::Regression;
+
+// اختبارات NDArray Slicing
+fn test_ndarray_slice_1d() {
+    let arr = NDArray::array(List::from([1.0, 2.0, 3.0, 4.0, 5.0]));
+    let sliced = arr.slice_1d(1, 4);
+    
+    assert_eq(sliced.get_size(), 3);
+    assert_eq(sliced.get(List::from([0])), 2.0);
+    assert_eq(sliced.get(List::from([2])), 4.0);
+    print("✅ test_ndarray_slice_1d passed");
+}
+
+fn test_ndarray_slice_2d() {
+    let mut arr = NDArray::new(List::from([3, 3]));
+    let mut i = 0;
+    while i < 9 {
+        arr.set(List::from([i / 3, i % 3]), (i as f64) + 1.0);
+        i = i + 1;
+    }
+    
+    let sliced = arr.slice_2d(0, 2, 0, 2);
+    assert_eq(sliced.get_size(), 4);
+    print("✅ test_ndarray_slice_2d passed");
+}
+
+fn test_ndarray_slice_with_step() {
+    let arr = NDArray::array(List::from([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]));
+    let sliced = arr.slice_with_step(0, 6, 2);
+    
+    assert_eq(sliced.get_size(), 3);
+    print("✅ test_ndarray_slice_with_step passed");
+}
+
+// اختبارات Broadcasting
+fn test_broadcast_add() {
+    let a = NDArray::array(List::from([1.0, 2.0, 3.0]));
+    let b = NDArray::array(List::from([10.0]));
+    
+    let result = BroadcastOps::add(a, b);
+    assert_eq(result.get_size(), 3);
+    print("✅ test_broadcast_add passed");
+}
+
+fn test_broadcast_multiply() {
+    let a = NDArray::array(List::from([1.0, 2.0, 3.0]));
+    let b = NDArray::array(List::from([2.0]));
+    
+    let result = BroadcastOps::multiply(a, b);
+    assert_eq(result.get_size(), 3);
+    print("✅ test_broadcast_multiply passed");
+}
+
+// اختبارات Element-wise Operations
+fn test_elementwise_sqrt() {
+    let arr = NDArray::array(List::from([1.0, 4.0, 9.0, 16.0]));
+    let result = ElementWiseOps::apply_sqrt(arr);
+    
+    assert_eq(result.get_size(), 4);
+    print("✅ test_elementwise_sqrt passed");
+}
+
+fn test_elementwise_square() {
+    let arr = NDArray::array(List::from([1.0, 2.0, 3.0]));
+    let result = ElementWiseOps::apply_square(arr);
+    
+    assert_eq(result.get_size(), 3);
+    print("✅ test_elementwise_square passed");
+}
+
+// اختبارات Linear Algebra
+fn test_linalg_rank() {
+    let mut m = Matrix::new(2, 2);
+    m.set(0, 0, 1.0);
+    m.set(0, 1, 2.0);
+    m.set(1, 0, 3.0);
+    m.set(1, 1, 4.0);
+    
+    let rank = LinearAlgebra::rank(m);
+    assert_eq(rank, 2);
+    print("✅ test_linalg_rank passed");
+}
+
+fn test_linalg_determinant() {
+    let mut m = Matrix::new(2, 2);
+    m.set(0, 0, 1.0);
+    m.set(0, 1, 2.0);
+    m.set(1, 0, 3.0);
+    m.set(1, 1, 4.0);
+    
+    let det = LinearAlgebra::determinant(m);
+    // det = 1*4 - 2*3 = -2
+    assert_eq(det, -2.0);
+    print("✅ test_linalg_determinant passed");
+}
+
+fn test_linalg_trace() {
+    let mut m = Matrix::new(2, 2);
+    m.set(0, 0, 1.0);
+    m.set(0, 1, 2.0);
+    m.set(1, 0, 3.0);
+    m.set(1, 1, 4.0);
+    
+    let trace = LinearAlgebra::trace(m);
+    assert_eq(trace, 5.0);
+    print("✅ test_linalg_trace passed");
+}
+
+fn test_linalg_norm_l2() {
+    let mut m = Matrix::new(2, 2);
+    m.set(0, 0, 3.0);
+    m.set(0, 1, 4.0);
+    m.set(1, 0, 0.0);
+    m.set(1, 1, 0.0);
+    
+    let norm = LinearAlgebra::norm_l2(m);
+    // norm = sqrt(9 + 16) = 5
+    assert_eq(norm, 5.0);
+    print("✅ test_linalg_norm_l2 passed");
+}
+
+// اختبارات Distributions
+fn test_normal_pdf() {
+    let pdf = Distributions::normal_pdf(0.0, 0.0, 1.0);
+    // PDF at mean should be approximately 0.3989
+    assert_eq(pdf > 0.0, true);
+    print("✅ test_normal_pdf passed");
+}
+
+fn test_normal_cdf() {
+    let cdf = Distributions::normal_cdf(0.0, 0.0, 1.0);
+    // CDF at mean should be approximately 0.5
+    assert_eq(cdf > 0.4 && cdf < 0.6, true);
+    print("✅ test_normal_cdf passed");
+}
+
+fn test_binomial_pmf() {
+    let pmf = Distributions::binomial_pmf(2, 4, 0.5);
+    assert_eq(pmf > 0.0, true);
+    print("✅ test_binomial_pmf passed");
+}
+
+fn test_poisson_pmf() {
+    let pmf = Distributions::poisson_pmf(2, 3.0);
+    assert_eq(pmf > 0.0, true);
+    print("✅ test_poisson_pmf passed");
+}
+
+// اختبارات Regression
+fn test_linear_regression() {
+    let x = List::from([1.0, 2.0, 3.0, 4.0]);
+    let y = List::from([2.0, 4.0, 6.0, 8.0]);
+    
+    let model = Regression::linear_regression(x, y);
+    let slope = model.get_slope();
+    
+    // slope should be approximately 2.0
+    assert_eq(slope > 1.9 && slope < 2.1, true);
+    print("✅ test_linear_regression passed");
+}
+
+fn test_regression_mse() {
+    let y_true = List::from([1.0, 2.0, 3.0]);
+    let y_pred = List::from([1.1, 2.1, 2.9]);
+    
+    let mse = Regression::mse(y_true, y_pred);
+    assert_eq(mse > 0.0, true);
+    print("✅ test_regression_mse passed");
+}
+
+fn test_regression_mae() {
+    let y_true = List::from([1.0, 2.0, 3.0]);
+    let y_pred = List::from([1.1, 2.1, 2.9]);
+    
+    let mae = Regression::mae(y_true, y_pred);
+    assert_eq(mae > 0.0, true);
+    print("✅ test_regression_mae passed");
+}
+
+// تشغيل جميع الاختبارات
+fn run_all_advanced_tests() {
+    print("═══════════════════════════════════════════════════════════");
+    print("🧪 Running Advanced Math Libraries Tests");
+    print("═══════════════════════════════════════════════════════════");
+    
+    // NDArray Slicing Tests
+    test_ndarray_slice_1d();
+    test_ndarray_slice_2d();
+    test_ndarray_slice_with_step();
+    
+    // Broadcasting Tests
+    test_broadcast_add();
+    test_broadcast_multiply();
+    
+    // Element-wise Operations Tests
+    test_elementwise_sqrt();
+    test_elementwise_square();
+    
+    // Linear Algebra Tests
+    test_linalg_rank();
+    test_linalg_determinant();
+    test_linalg_trace();
+    test_linalg_norm_l2();
+    
+    // Distributions Tests
+    test_normal_pdf();
+    test_normal_cdf();
+    test_binomial_pmf();
+    test_poisson_pmf();
+    
+    // Regression Tests
+    test_linear_regression();
+    test_regression_mse();
+    test_regression_mae();
+    
+    print("═══════════════════════════════════════════════════════════");
+    print("✅ All Advanced Math Tests Passed!");
+    print("═══════════════════════════════════════════════════════════");
+}
+

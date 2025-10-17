@@ -1,0 +1,200 @@
+// 📊 Probability Distributions Library for AlBayan
+// مكتبة التوزيعات الاحتمالية للبيان
+
+pub struct Distributions;
+
+impl Distributions {
+    // التوزيع الطبيعي (Normal Distribution)
+    pub fn normal_pdf(x: f64, mean: f64, std: f64) -> f64 {
+        if std <= 0.0 {
+            return 0.0;
+        }
+        
+        let pi = 3.14159265359;
+        let z = (x - mean) / std;
+        let numerator = exp_approx(-0.5 * z * z);
+        let denominator = std * sqrt_approx(2.0 * pi);
+        
+        numerator / denominator
+    }
+    
+    pub fn normal_cdf(x: f64, mean: f64, std: f64) -> f64 {
+        if std <= 0.0 {
+            return 0.0;
+        }
+        
+        let z = (x - mean) / std;
+        
+        // تقريب Abramowitz and Stegun
+        let a1 = 0.254829592;
+        let a2 = -0.284496736;
+        let a3 = 1.421413741;
+        let a4 = -1.453152027;
+        let a5 = 1.061405429;
+        let p = 0.3275911;
+        
+        let sign = if z < 0.0 { -1.0 } else { 1.0 };
+        let abs_z = if z < 0.0 { -z } else { z };
+        
+        let t = 1.0 / (1.0 + p * abs_z);
+        let t2 = t * t;
+        let t3 = t2 * t;
+        let t4 = t3 * t;
+        let t5 = t4 * t;
+        
+        let erf = 1.0 - (a1 * t + a2 * t2 + a3 * t3 + a4 * t4 + a5 * t5) * exp_approx(-abs_z * abs_z);
+        
+        0.5 * (1.0 + sign * erf)
+    }
+    
+    // التوزيع ذو الحدين (Binomial Distribution)
+    pub fn binomial_pmf(k: i32, n: i32, p: f64) -> f64 {
+        if k < 0 || k > n || p < 0.0 || p > 1.0 {
+            return 0.0;
+        }
+        
+        let binom_coeff = Distributions::binomial_coefficient(n, k);
+        let pk = pow_approx(p, k);
+        let q_nk = pow_approx(1.0 - p, n - k);
+        
+        (binom_coeff as f64) * pk * q_nk
+    }
+    
+    pub fn binomial_cdf(k: i32, n: i32, p: f64) -> f64 {
+        let mut sum = 0.0;
+        let mut i = 0;
+        while i <= k {
+            sum = sum + Distributions::binomial_pmf(i, n, p);
+            i = i + 1;
+        }
+        sum
+    }
+    
+    // توزيع بواسون (Poisson Distribution)
+    pub fn poisson_pmf(k: i32, lambda: f64) -> f64 {
+        if k < 0 || lambda <= 0.0 {
+            return 0.0;
+        }
+        
+        let numerator = pow_approx(lambda, k) * exp_approx(-lambda);
+        let denominator = factorial(k) as f64;
+        
+        numerator / denominator
+    }
+    
+    pub fn poisson_cdf(k: i32, lambda: f64) -> f64 {
+        let mut sum = 0.0;
+        let mut i = 0;
+        while i <= k {
+            sum = sum + Distributions::poisson_pmf(i, lambda);
+            i = i + 1;
+        }
+        sum
+    }
+    
+    // التوزيع الموحد (Uniform Distribution)
+    pub fn uniform_pdf(x: f64, a: f64, b: f64) -> f64 {
+        if x < a || x > b {
+            return 0.0;
+        }
+        1.0 / (b - a)
+    }
+    
+    pub fn uniform_cdf(x: f64, a: f64, b: f64) -> f64 {
+        if x < a {
+            return 0.0;
+        }
+        if x > b {
+            return 1.0;
+        }
+        (x - a) / (b - a)
+    }
+    
+    // توزيع الأسي (Exponential Distribution)
+    pub fn exponential_pdf(x: f64, lambda: f64) -> f64 {
+        if x < 0.0 || lambda <= 0.0 {
+            return 0.0;
+        }
+        lambda * exp_approx(-lambda * x)
+    }
+    
+    pub fn exponential_cdf(x: f64, lambda: f64) -> f64 {
+        if x < 0.0 || lambda <= 0.0 {
+            return 0.0;
+        }
+        1.0 - exp_approx(-lambda * x)
+    }
+    
+    // دالة مساعدة: حساب معامل ذو الحدين
+    fn binomial_coefficient(n: i32, k: i32) -> i32 {
+        if k > n - k {
+            return Distributions::binomial_coefficient(n, n - k);
+        }
+        
+        let mut result = 1;
+        let mut i = 0;
+        while i < k {
+            result = result * (n - i) / (i + 1);
+            i = i + 1;
+        }
+        
+        result
+    }
+}
+
+// دوال مساعدة
+fn sqrt_approx(x: f64) -> f64 {
+    if x < 0.0 {
+        return 0.0;
+    }
+    if x == 0.0 {
+        return 0.0;
+    }
+    
+    let mut guess = x / 2.0;
+    let mut i = 0;
+    while i < 10 {
+        guess = (guess + x / guess) / 2.0;
+        i = i + 1;
+    }
+    
+    guess
+}
+
+fn exp_approx(x: f64) -> f64 {
+    let mut result = 1.0;
+    let mut term = 1.0;
+    let mut i = 1;
+    while i < 20 {
+        term = term * x / (i as f64);
+        result = result + term;
+        i = i + 1;
+    }
+    result
+}
+
+fn pow_approx(x: f64, n: i32) -> f64 {
+    let mut result = 1.0;
+    let mut i = 0;
+    while i < n {
+        result = result * x;
+        i = i + 1;
+    }
+    result
+}
+
+fn factorial(n: i32) -> i32 {
+    if n <= 1 {
+        return 1;
+    }
+    
+    let mut result = 1;
+    let mut i = 2;
+    while i <= n {
+        result = result * i;
+        i = i + 1;
+    }
+    
+    result
+}
+
